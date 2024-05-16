@@ -21,10 +21,15 @@ class ModelAdapter(dl.BaseModelAdapter):
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json"
         }
+        self.max_token = self.model_entity.configuration.get('max_token', 1024)
+        self.temperature = self.model_entity.configuration.get('temperature', 0.2)
+        self.top_p = self.model_entity.configuration.get('top_p', 0.7)
+        self.seed = self.model_entity.configuration.get('seed', 0)
 
     def prepare_item_func(self, item: dl.Item):
-        if 'json' not in item.mimetype:
-            logger.warning(f"Item is not a JSON file.")
+        if 'json' not in item.mimetype or item.metadata.get('system', dict()).get('shebang', dict()).get(
+                'dltype') != 'prompt':
+            logger.warning(f"Item is not a JSON file or a Prompt item.")
             return None
         buffer = json.load(item.download(save_locally=False))
         return buffer
@@ -63,10 +68,10 @@ class ModelAdapter(dl.BaseModelAdapter):
                             "content": f'{text}. <img src="data:image/png;base64,{encoded_image}" />'
                         }
                     ],
-                    "max_tokens": 1024,
-                    "temperature": 0.20,
-                    "top_p": 0.70,
-                    "seed": 0,
+                    "max_tokens": self.max_token,
+                    "temperature": self.temperature,
+                    "top_p": self.top_p,
+                    "seed": self.seed,
                     "stream": False
                 }
                 response = requests.post(self.invoke_url, headers=self.headers, json=payload)
