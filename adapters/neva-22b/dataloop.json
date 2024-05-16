@@ -22,7 +22,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7\"",
+          "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
