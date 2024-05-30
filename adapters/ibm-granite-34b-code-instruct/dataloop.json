@@ -1,20 +1,20 @@
 {
-  "name": "nim-api-meta-llama3-70b-instruct",
-  "displayName": "LLAMA3 NIM API",
+  "name": "nim-api-ibm-granite-34b-code-instruct",
+  "displayName": "IBM granite-34b",
   "version": "0.1.9",
   "scope": "project",
-  "description": "Llama3 from NIM API",
+  "description": "ibm granite 34b from NIM API Software programming LLM for code generation, completion, explanation, and multi-turn conversion, API key is required to use this model.",
   "attributes": {
     "Hub": "Nvidia",
     "Provider": "Nvidia",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LMM",
     "NLP": "Conversational"
   },
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-nim-deploy",
+        "name": "granite-34b-nim-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -29,11 +29,11 @@
     ],
     "modules": [
       {
-        "name": "llama3-nim-module",
+        "name": "granite-34b-nim-module",
         "entryPoint": "main.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-nim-deploy",
-        "description": "llama3 NIM API Adapter",
+        "computeConfig": "granite-34b-nim-deploy",
+        "description": "granite-34b NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -68,25 +68,24 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API llama3 predict items"
+            "description": "NIM API granite-34b predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "llama3-nim",
-        "moduleName": "llama3-nim-module",
+        "name": "granite-34b-nim",
+        "moduleName": "granite-34b-nim-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "system_prompt": "You are a helpful and a bit cynical assistant for the Scandit.com platform. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Llama3 "
+        "description": "IBM granite NIM API"
       }
     ]
   }
