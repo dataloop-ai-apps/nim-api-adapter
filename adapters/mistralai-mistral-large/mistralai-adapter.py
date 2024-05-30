@@ -8,16 +8,16 @@ logger = logging.getLogger("NIM Adapter")
 
 
 class ModelAdapter(dl.BaseModelAdapter):
-    def __init__(self, model_entity: dl.Model):
+    def __init__(self, model_entity: dl.Model, nvidia_api_key_name):
+        self.api_key = os.environ.get(nvidia_api_key_name, None)
+        if self.api_key is None:
+            raise ValueError(f"Missing API key: {nvidia_api_key_name}")
         super().__init__(model_entity)
 
     def load(self, local_path, **kwargs):
-        api_key = os.environ.get("NVIDIA_NIM_API_KEY", None)
-        if api_key is None:
-            raise ValueError(f"Missing API key: NVIDIA_NIM_API_KEY")
         self.client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key=api_key
+            api_key=self.api_key
         )
 
     def prepare_item_func(self, item: dl.Item):
@@ -76,11 +76,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    if os.path.isfile('.env'):
-        with open('.env') as f:
-            # os.environ['NVIDIA_NIM_API_KEY'] = json.load(f)["NVIDIA_NIM_API_KEY"]
-            os.environ['NVIDIA_NIM_API_KEY'] = "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"
-    model = dl.models.get(model_id='66564cc366683320adc4b8ee')
-    item = dl.items.get(item_id='66564da2ae188546873cd72a')
+    model = dl.models.get(model_id='')
+    item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])

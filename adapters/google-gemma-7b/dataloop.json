@@ -7,8 +7,8 @@
   "attributes": {
     "Hub": "Nvidia",
     "Provider": "Nvidia",
-    "Category": "Model",
-    "Gen AI": "LMM",
+    "Category": "NIM",
+    "Gen AI": "LLM",
     "NLP": "Conversational"
   },
   "components": {
@@ -21,7 +21,7 @@
           "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7",
           "autoscaler": {
             "type": "rabbitmq",
-            "minReplicas": 1,
+            "minReplicas": 0,
             "maxReplicas": 2
           }
         }
@@ -38,6 +38,10 @@
           {
             "type": "Model",
             "name": "model_entity"
+          },
+          {
+            "type": "String",
+            "name": "nvidia_api_key_name"
           }
         ],
         "functions": [
