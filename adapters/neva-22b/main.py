@@ -93,7 +93,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    model = dl.models.get(model_id='65dd0f08ce79b0cf60e95074')
-    item = dl.items.get(item_id='66159ece6e626c8430542f32')
+    model = dl.models.get(model_id='')
+    item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
