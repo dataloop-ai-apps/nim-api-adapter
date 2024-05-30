@@ -3,7 +3,7 @@
   "displayName": "niv-22b NIM API",
   "version": "0.1.3",
   "scope": "public",
-  "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n",
+  "description": "Multi-modal vision-language model that understands text/images and generates informative responses",
   "attributes": {
     "Provider": "Nvidia",
     "Category": "Model",
@@ -89,7 +89,7 @@
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n."
+        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
       }
     ]
   }
