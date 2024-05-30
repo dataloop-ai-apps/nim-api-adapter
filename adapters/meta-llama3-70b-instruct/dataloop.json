@@ -7,7 +7,7 @@
   "attributes": {
     "Hub": "Nvidia",
     "Provider": "Nvidia",
-    "Category": "Model",
+    "Category": "NIM",
     "Gen AI": "LMM",
     "NLP": "Conversational"
   },

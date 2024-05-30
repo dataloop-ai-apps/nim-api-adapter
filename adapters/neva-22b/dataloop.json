@@ -5,9 +5,11 @@
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n",
   "attributes": {
+    "Hub": "Nvidia",
     "Provider": "Nvidia",
-    "Category": "Model",
+    "Category": "NIM",
     "Gen AI": "LMM",
+    "Media Type": "Multi Modal",
     "NLP": "Conversational"
   },
   "codebase": {
