@@ -11,12 +11,10 @@ logger = logging.getLogger("NIM Adapter")
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model, nvidia_api_key_name=None):
         super().__init__(model_entity)
-        # with open('.env') as f:
-        #     params = json.load(f)
         api_key = os.environ.get(nvidia_api_key_name, None)
         if api_key is None:
             raise ValueError(f"Missing API key: {nvidia_api_key_name}")
-        self.invoke_url = "https://ai.api.nvidia.com/v1/vlm/nvidia/neva-22b"
+        self.invoke_url = "https://ai.api.nvidia.com/v1/vlm/microsoft/kosmos-2"
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json"
@@ -24,7 +22,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.max_token = self.model_entity.configuration.get('max_token', 1024)
         self.temperature = self.model_entity.configuration.get('temperature', 0.2)
         self.top_p = self.model_entity.configuration.get('top_p', 0.7)
-        self.seed = self.model_entity.configuration.get('seed', 0)
 
     def load(self, local_path, **kwargs):
         pass
@@ -75,8 +72,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                     "max_tokens": self.max_token,
                     "temperature": self.temperature,
                     "top_p": self.top_p,
-                    "seed": self.seed,
-                    "stream": False
                 }
                 response = requests.post(self.invoke_url, headers=self.headers, json=payload)
                 content = response.json().get('choices')[0].get('message').get('content')

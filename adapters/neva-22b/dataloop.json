@@ -1,13 +1,15 @@
 {
-  "name": "nim-api-niv-22b",
-  "displayName": "niv-22b NIM API",
+  "name": "nim-api-neva-22b",
+  "displayName": "neva-22b NIM API",
   "version": "0.1.3",
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n",
   "attributes": {
+    "Hub": "Nvidia",
     "Provider": "Nvidia",
-    "Category": "Model",
+    "Category": "NIM",
     "Gen AI": "LMM",
+    "Media Type": "Multi Modal",
     "NLP": "Conversational"
   },
   "codebase": {
@@ -18,7 +20,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "niv-22b-deploy",
+        "name": "neva-22b-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -33,11 +35,11 @@
     ],
     "modules": [
       {
-        "name": "niv-22b-module",
+        "name": "neva-22b-module",
         "entryPoint": "main.py",
         "className": "ModelAdapter",
-        "computeConfig": "niv-22b-deploy",
-        "description": "niv-22b NIM API Adapter",
+        "computeConfig": "neva-22b-deploy",
+        "description": "neva-22b NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -72,15 +74,15 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API niv-22b predict items"
+            "description": "NIM API neva-22b predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "nim-niv-22b",
-        "moduleName": "niv-22b-module",
+        "name": "nim-neva-22b",
+        "moduleName": "neva-22b-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -89,7 +91,7 @@
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n."
+        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
       }
     ]
   }
