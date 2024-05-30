@@ -91,7 +91,7 @@
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Multi-modal vision-language model that understands text/images and generates informative responses\n\n."
+        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
       }
     ]
   }

@@ -57,7 +57,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                     elif 'text' in partial_prompt.get('mimetype', ''):
                         text = partial_prompt.get('value')
                     else:
-                        logger.warning(f"Prompt is missing either an image or a text prompt.")
+                        logger.warning(
+                            f"Prompt from type {partial_prompt.get('mimetype', '')} is not supported either an image or a text prompt.")
                 if text is None or encoded_image is None:
                     logger.warning(f"{prompt_name} is missing either an image or a text prompt.")
                     continue
