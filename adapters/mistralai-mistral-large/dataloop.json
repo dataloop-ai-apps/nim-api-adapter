@@ -1,0 +1,93 @@
+{
+  "name": "nim-api-google-gemma-7b",
+  "displayName": "Google Gemma-7b NIM API",
+  "version": "0.1.9",
+  "scope": "project",
+  "description": "Google Gemma-7b from NIM API",
+  "attributes": {
+    "Hub": "Nvidia",
+    "Provider": "Nvidia",
+    "Category": "NIM",
+    "Gen AI": "LLM",
+    "NLP": "Conversational"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "gemma-7b-nim-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 1,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "gemma-7b-nim-module",
+        "entryPoint": "gemma-7b-adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "gemma-7b-nim-deploy",
+        "description": "Google Gemma-7b NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          },
+          {
+            "type": "String",
+            "name": "nvidia_api_key_name"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API Google Gemma-7b predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "gemma-7b-nim",
+        "moduleName": "gemma-7b-nim-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "system_prompt": "You are a helpful and a bit cynical assistant for the Scandit.com platform. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0
+        },
+        "description": "Google Gemma-7B on NIM merges Google's Gemma-7B model's advanced text processing with the efficiency of NVIDIA's NIM framework."
+      }
+    ]
+  }
+}
