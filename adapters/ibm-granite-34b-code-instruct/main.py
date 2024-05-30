@@ -28,30 +28,24 @@ class ModelAdapter(dl.BaseModelAdapter):
         return buffer
 
     def predict(self, batch, **kwargs):
-        system_prompt = self.model_entity.configuration.get('system_prompt', "")
-
         annotations = []
         for prompt_item in batch:
             ann_collection = dl.AnnotationCollection()
             for prompt_name, prompt_content in prompt_item.get('prompts').items():
-                # get latest question
-                question = [p['value'] for p in prompt_content if 'text' in p['mimetype']][0]
-                nearest_items = [p['nearestItems'] for p in prompt_content if 'metadata' in p['mimetype']][0]
-                # build context
-                context = ""
-                for item_id in nearest_items:
-                    context_item = dl.items.get(item_id=item_id)
-                    with open(context_item.download(), 'r', encoding='utf-8') as f:
-                        text = f.read()
-                    context += f"\n{text}"
-                messages = [{"role": "system",
-                             "content": system_prompt},
-                            {"role": "assistant",
-                             "content": context},
-                            {"role": "user",
-                             "content": question}]
+                text = None
+                for partial_prompt in prompt_content:
+                    if 'text' in partial_prompt.get('mimetype', ''):
+                        text = partial_prompt.get('value')
+                    else:
+                        logger.warning(f"Prompt is missing text prompt.")
+                if text is None:
+                    logger.warning(f"{prompt_name} is missing text prompt.")
+                    continue
+                messages = [{"role": "user",
+                             "content": text}]
+                model_name = "ibm/granite-34b-code-instruct"
                 completion = self.client.chat.completions.create(
-                    model="meta/llama3-70b-instruct",
+                    model=model_name,
                     messages=messages,
                     temperature=0.5,
                     top_p=1,
@@ -76,7 +70,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    model = dl.models.get(model_id='66564cc366683320adc4b8ee')
-    item = dl.items.get(item_id='66564da2ae188546873cd72a')
+    model = dl.models.get(model_id='65dd0f08ce79b0cf60e95074')
+    item = dl.items.get(item_id='66159ece6e626c8430542f32')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
