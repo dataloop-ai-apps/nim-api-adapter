@@ -3,7 +3,7 @@
   "displayName": "IBM granite-34b",
   "version": "0.1.9",
   "scope": "project",
-  "description": "ibm granite 34b from NIM API, API key is required to use this model.",
+  "description": "ibm granite 34b from NIM API Software programming LLM for code generation, completion, explanation, and multi-turn conversion, API key is required to use this model.",
   "attributes": {
     "Hub": "Nvidia",
     "Provider": "Nvidia",
