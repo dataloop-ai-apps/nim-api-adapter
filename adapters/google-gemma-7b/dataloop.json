@@ -1,0 +1,89 @@
+{
+  "name": "nim-api-mistralai-mistral-large",
+  "displayName": "Mistral-Large NIM API",
+  "version": "0.1.9",
+  "scope": "project",
+  "description": "Mistral-Large from NIM API",
+  "attributes": {
+    "Hub": "Nvidia",
+    "Provider": "Nvidia",
+    "Category": "Model",
+    "Gen AI": "LMM",
+    "NLP": "Conversational"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "mistral-large-nim-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 1,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "mistral-large-nim-module",
+        "entryPoint": "mistralai-adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "mistral-large-nim-deploy",
+        "description": "Mistral-Large NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API Mistral-Large predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "mistral-large-nim",
+        "moduleName": "mistral-large-nim-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "system_prompt": "You are a helpful and a bit cynical assistant for the Scandit.com platform. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0
+        },
+        "description": "Mistral-Large on NVIDIA NIM combines MistralAI's cutting-edge text generation capabilities with NVIDIA's NIM framework, allowing developers to leverage top-tier reasoning capabilities for complex multilingual tasks."
+      }
+    ]
+  }
+}
