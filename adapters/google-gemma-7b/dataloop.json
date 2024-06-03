@@ -6,7 +6,7 @@
   "description": "Mistral-Large from NIM API",
   "attributes": {
     "Hub": "Nvidia",
-    "Provider": "Nvidia",
+    "Provider": "NVIDIA",
     "Category": "NIM",
     "Gen AI": "LLM",
     "NLP": "Conversational"

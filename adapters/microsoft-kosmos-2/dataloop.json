@@ -6,7 +6,7 @@
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses API key is required to use this model.",
   "attributes": {
     "Hub": "Nvidia",
-    "Provider": "Nvidia",
+    "Provider": "NVIDIA",
     "Category": "NIM",
     "Gen AI": "LMM",
     "Media Type": "Multi Modal",

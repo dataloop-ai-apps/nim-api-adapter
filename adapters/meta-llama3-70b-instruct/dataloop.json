@@ -6,7 +6,7 @@
   "description": "Llama3 from NIM API",
   "attributes": {
     "Hub": "Nvidia",
-    "Provider": "Nvidia",
+    "Provider": "NVIDIA",
     "Category": "NIM",
     "Gen AI": "LMM",
     "NLP": "Conversational"
