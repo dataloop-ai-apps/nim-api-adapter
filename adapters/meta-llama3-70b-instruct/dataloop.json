@@ -1,7 +1,7 @@
 {
   "name": "nim-api-meta-llama3-70b-instruct",
   "displayName": "LLAMA3 NIM API",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "scope": "project",
   "description": "Llama3 from NIM API",
   "attributes": {

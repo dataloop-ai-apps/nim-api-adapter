@@ -1,7 +1,7 @@
 {
   "name": "nim-api-neva-22b",
   "displayName": "neva-22b NIM API",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "scope": "project",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
   "attributes": {

@@ -1,7 +1,7 @@
 {
   "name": "nim-api-mistralai-mistral-large",
   "displayName": "Mistral-Large NIM API",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "scope": "project",
   "description": "Mistral-Large from NIM API",
   "attributes": {

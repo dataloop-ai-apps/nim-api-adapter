@@ -1,7 +1,7 @@
 {
   "name": "nim-api-google-gemma-7b",
   "displayName": "Google Gemma-7b NIM API",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "scope": "project",
   "description": "Google Gemma-7b from NIM API",
   "attributes": {
