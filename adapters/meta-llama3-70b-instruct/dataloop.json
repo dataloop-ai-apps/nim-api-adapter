@@ -11,6 +11,11 @@
     "Gen AI": "LMM",
     "NLP": "Conversational"
   },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.2.0"
+  },
   "components": {
     "computeConfigs": [
       {
@@ -21,7 +26,7 @@
           "runnerImage": "dataloopai/dtlpy-agent:cpu.py3.8.opencv4.7",
           "autoscaler": {
             "type": "rabbitmq",
-            "minReplicas": 1,
+            "minReplicas": 0,
             "maxReplicas": 2
           }
         }
