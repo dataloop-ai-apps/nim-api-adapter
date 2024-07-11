@@ -1,7 +1,7 @@
 {
   "name": "nim-api-meta-llama3-70b-instruct",
   "displayName": "LLAMA3 NIM API",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "scope": "public",
   "description": "Llama3 from NIM API",
   "attributes": {
@@ -17,7 +17,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.20"
+    "gitTag": "0.1.21"
   },
   "components": {
     "computeConfigs": [
