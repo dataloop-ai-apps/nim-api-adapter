@@ -1,0 +1,100 @@
+{
+  "name": "nim-api-kosmos-2",
+  "displayName": "microsoft-kosmos-2 NIM API",
+  "version": "0.1.17",
+  "scope": "public",
+  "description": "Multi-modal vision-language model that understands text/images and generates informative responses API key is required to use this model.",
+  "attributes": {
+    "Hub": "Nvidia",
+    "Provider": "NVIDIA",
+    "Category": "NIM",
+    "Gen AI": "LMM",
+    "Media Type": "Multi Modal",
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.17"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "kosmos-2-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "kosmos-2-module",
+        "entryPoint": "main_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "kosmos-2-deploy",
+        "description": "microsoft-kosmos-2 NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          },
+          {
+            "type": "String",
+            "name": "nvidia_api_key_name"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API microsoft-kosmos-2 predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nim-kosmos-2",
+        "moduleName": "kosmos-2-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "vlm/microsoft/kosmos-2",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.70,
+          "seed": 0
+        },
+        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
+      }
+    ]
+  }
+}
