@@ -1,7 +1,7 @@
 {
   "name": "nim-api-google-gemma-7b",
   "displayName": "Google Gemma-7b NIM API",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "scope": "public",
   "description": "Google Gemma-7b from NIM API",
   "attributes": {
@@ -14,7 +14,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.18"
+    "gitTag": "0.1.19"
   },
   "components": {
     "computeConfigs": [
