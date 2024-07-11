@@ -69,7 +69,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         return full_answer
 
     def predict(self, batch, **kwargs):
-        system_prompt = self.model_entity.configuration.get('system_prompt', None)
+        system_prompt = self.model_entity.configuration.get('system_prompt', '')
 
         annotations = []
         for prompt_item in batch:
