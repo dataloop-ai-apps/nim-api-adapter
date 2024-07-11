@@ -43,10 +43,6 @@
           {
             "type": "Model",
             "name": "model_entity"
-          },
-          {
-            "type": "String",
-            "name": "nvidia_api_key_name"
           }
         ],
         "functions": [

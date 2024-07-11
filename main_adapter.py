@@ -77,7 +77,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             for prompt_name, prompt_content in prompt_item.get('prompts').items():
                 # get latest question
                 question = [p['value'] for p in prompt_content if 'text' in p['mimetype']][0]
-                nearest_items = [p['nearestItems'] for p in prompt_content if 'metadata' in p['mimetype']][0]
+                nearest_items = [p['nearestItems'] for p in prompt_content if 'metadata' in p['mimetype']]
+                if len(nearest_items) > 0:
+                    nearest_items = nearest_items[0]
                 # build context
                 context = ""
                 for item_id in nearest_items:
