@@ -1,5 +1,5 @@
 {
-  "name": "nim-api-meta-llama3-70b-instruct",
+  "name": "nim-api-llama3-70b-instruct-meta",
   "displayName": "LLAMA3 NIM API",
   "version": "0.1.21",
   "scope": "public",
