@@ -5,9 +5,12 @@
   "scope": "public",
   "description": "Mistral's Mistral Large",
   "attributes": {
-    "Hub": "Nvidia",
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LLM",
     "NLP": "Conversational"
   },

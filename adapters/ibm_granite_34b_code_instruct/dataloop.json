@@ -5,9 +5,12 @@
   "scope": "public",
   "description": "ibm granite 34b from NIM API Software programming LLM for code generation, completion, explanation, and multi-turn conversion, API key is required to use this model.",
   "attributes": {
-    "Hub": "Nvidia",
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LMM",
     "NLP": "Conversational"
   },

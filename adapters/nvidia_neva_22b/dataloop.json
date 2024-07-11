@@ -5,9 +5,12 @@
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
   "attributes": {
-    "Hub": "Nvidia",
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LMM",
     "Media Type": "Multi Modal",
     "NLP": "Conversational"

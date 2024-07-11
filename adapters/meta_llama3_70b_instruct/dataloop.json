@@ -5,9 +5,12 @@
   "scope": "public",
   "description": "Llama3 from NIM API",
   "attributes": {
-    "Hub": "Nvidia",
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LMM",
     "NLP": "Conversational"
   },

@@ -5,9 +5,12 @@
   "scope": "public",
   "description": "Google Gemma-7b from NIM API",
   "attributes": {
-    "Hub": "Nvidia",
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
-    "Category": "NIM",
+    "Category": "Model",
     "Gen AI": "LLM",
     "NLP": "Conversational"
   },
