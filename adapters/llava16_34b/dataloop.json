@@ -1,0 +1,114 @@
+{
+    "name": "nim-api-llava16-34b",
+    "displayName": "llava16-34b NIM API",
+    "version": "0.1.16",
+    "scope": "public",
+    "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
+    "attributes": {
+        "Hub": "Nvidia",
+        "Provider": "NVIDIA",
+        "Category": "NIM",
+        "Gen AI": "LMM",
+        "Media Type": "Multi Modal",
+        "NLP": "Conversational"
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.1.3"
+    },
+    "components": {
+        "computeConfigs": [
+            {
+                "name": "llava16-34b-deploy",
+                "runtime": {
+                    "podType": "regular-xs",
+                    "concurrency": 1,
+                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 0,
+                        "maxReplicas": 2
+                    }
+                }
+            }
+        ],
+        "modules": [
+            {
+                "name": "llava16-34b-module",
+                "entryPoint": "main.py",
+                "className": "ModelAdapter",
+                "computeConfig": "llava16-34b-deploy",
+                "description": "llava16-34b NIM API Adapter",
+                "initInputs": [
+                    {
+                        "type": "Model",
+                        "name": "model_entity"
+                    },
+                    {
+                        "type": "String",
+                        "name": "nvidia_api_key_name"
+                    }
+                ],
+                "functions": [
+                    {
+                        "name": "predict_items",
+                        "input": [
+                            {
+                                "type": "Item[]",
+                                "name": "items",
+                                "description": "List of items to run inference on"
+                            }
+                        ],
+                        "output": [
+                            {
+                                "type": "Item[]",
+                                "name": "items",
+                                "description": "The same input images for prediction."
+                            },
+                            {
+                                "type": "Annotation[]",
+                                "name": "annotations",
+                                "description": "The predicted annotations."
+                            }
+                        ],
+                        "displayName": "Predict Items",
+                        "displayIcon": "",
+                        "description": "NIM API llava16-34b predict items"
+                    }
+                ]
+            }
+        ],
+        "models": [
+            {
+                "name": "nim-llava16-34b",
+                "moduleName": "llava16-34b-module",
+                "scope": "project",
+                "status": "pre-trained",
+                "configuration": {
+                    "nim_model_name": "vlm/community/llava16-34b",
+                    "max_tokens": 1024,
+                    "temperature": 0.2,
+                    "top_p": 0.70,
+                    "seed": 0
+                },
+                "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
+            }
+        ],
+        "integrations": [
+            {
+                "connectTo": "NVIDIA",
+                "values": [
+                    {
+                        "name": "nvidia-nim-api-region",
+                        "envName": "NVIDIA_NIM_REGION"
+                    },
+                    {
+                        "name": "nim-api",
+                        "envName": "NVIDIA_NIM_KEY"
+                    }
+                ]
+            }
+        ]
+    }
+}

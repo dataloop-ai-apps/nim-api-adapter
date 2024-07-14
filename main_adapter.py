@@ -65,6 +65,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             "stream": False
         }
         response = requests.post(url=url, headers=headers, json=payload)
+        if not response.ok:
+            raise ValueError(f'error:{response.status_code}, message: {response.text}')
         full_answer = response.json().get('choices')[0].get('message').get('content')
         return full_answer
 
