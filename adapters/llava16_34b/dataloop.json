@@ -97,17 +97,9 @@
         ],
         "integrations": [
             {
-                "connectTo": "NVIDIA",
-                "values": [
-                    {
-                        "name": "nvidia-nim-api-region",
-                        "envName": "NVIDIA_NIM_REGION"
-                    },
-                    {
-                        "name": "nim-api",
-                        "envName": "NVIDIA_NIM_KEY"
-                    }
-                ]
+                "to": "NVIDIA",
+                "name": "dl-nvidia-nim-api-key",
+                "env": "NVIDIA_NIM_API_KEY"
             }
         ]
     }
