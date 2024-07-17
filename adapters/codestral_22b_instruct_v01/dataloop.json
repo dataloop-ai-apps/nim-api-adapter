@@ -9,10 +9,11 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "MistralAI",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LMM",
-    "Media Type": "Multi Modal",
+    "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {

@@ -10,9 +10,10 @@
       "Dataloop"
     ],
     "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LMM",
-    "Media Type": "Multi Modal",
+    "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {

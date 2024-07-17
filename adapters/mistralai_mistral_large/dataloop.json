@@ -9,7 +9,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "MistralAI",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
     "NLP": "Conversational"

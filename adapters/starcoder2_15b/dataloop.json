@@ -10,8 +10,10 @@
       "Dataloop"
     ],
     "Provider": "NVIDIA",
+    "Deployed By": "BigCode",
     "Category": "Model",
     "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {

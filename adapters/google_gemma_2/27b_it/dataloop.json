@@ -9,9 +9,11 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Google",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {
