@@ -89,12 +89,14 @@ class ModelAdapter(dl.BaseModelAdapter):
                     with open(context_item.download(), 'r', encoding='utf-8') as f:
                         text = f.read()
                     context += f"\n{text}"
-                messages = [{"role": "system",
-                             "content": system_prompt},
-                            {"role": "assistant",
-                             "content": context},
-                            {"role": "user",
-                             "content": question}]
+                messages = list()
+                if len(system_prompt) > 0:
+                    messages.append({"role": "system",
+                                     "content": system_prompt})
+                messages.extend([{"role": "assistant",
+                                  "content": context},
+                                 {"role": "user",
+                                  "content": question}])
                 if self.nim_model_name.startswith('vlm/'):
                     full_answer = self.call_model_requests(messages=messages)
                 else:
