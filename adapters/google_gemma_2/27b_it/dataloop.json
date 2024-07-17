@@ -1,9 +1,9 @@
 {
-  "name": "google-gemma2-9b",
-  "displayName": "Google Gemma2 9b",
+  "name": "google-gemma2-27b",
+  "displayName": "Google Gemma2 27b",
   "version": "0.1.22",
   "scope": "public",
-  "description": "Google Gemma2-9b from NIM API",
+  "description": "Google Gemma2-27b from NIM API",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -24,7 +24,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "gemma2-9b-nim-deploy",
+        "name": "gemma2-27b-nim-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -39,11 +39,11 @@
     ],
     "modules": [
       {
-        "name": "gemma2-9b-nim-module",
+        "name": "gemma2-27b-nim-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "gemma2-9b-nim-deploy",
-        "description": "Google Gemma2-9b NIM API Adapter",
+        "computeConfig": "gemma2-27b-nim-deploy",
+        "description": "Google Gemma2-27b NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -74,19 +74,19 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API Google Gemma2-9b predict items"
+            "description": "NIM API Google Gemma2-27b predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "gemma2-9b-nim",
-        "moduleName": "gemma2-9b-nim-module",
+        "name": "gemma2-27b-nim",
+        "moduleName": "gemma2-27b-nim-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "google/gemma-2-9b-it",
+          "nim_model_name": "google/gemma-2-27b-it",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,
