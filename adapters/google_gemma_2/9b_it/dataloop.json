@@ -1,0 +1,98 @@
+{
+  "name": "google-gemma2-27b",
+  "displayName": "Google Gemma2 27b",
+  "version": "0.1.22",
+  "scope": "public",
+  "description": "Google Gemma2-27b from NIM API",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": "LLM",
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.22"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "gemma2-27b-nim-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "gemma2-27b-nim-module",
+        "entryPoint": "main_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "gemma2-27b-nim-deploy",
+        "description": "Google Gemma2-27b NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API Google Gemma2-27b predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "gemma2-27b-nim",
+        "moduleName": "gemma2-27b-nim-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "google/gemma-2-27b-it",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": 0
+        },
+        "description": "Cutting-edge text generation model text understanding, transformation, and code generation."
+      }
+    ]
+  }
+}

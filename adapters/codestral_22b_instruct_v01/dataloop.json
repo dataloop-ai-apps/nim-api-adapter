@@ -1,0 +1,98 @@
+{
+  "name": "codestral-22b-instruct",
+  "displayName": "Mistral Codestral 22B",
+  "version": "0.1.22",
+  "scope": "public",
+  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": "LMM",
+    "Media Type": "Multi Modal",
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.22"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "codestral-22b-instruct-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "codestral-22b-instruct-module",
+        "entryPoint": "main_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "codestral-22b-instruct-deploy",
+        "description": "codestral-22b-instruct NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API codestral-22b-instruct predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "codestral-22b-instruct",
+        "moduleName": "codestral-22b-instruct-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "mistralai/codestral-22b-instruct-v0.1",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0
+        },
+        "description": "Model for writing and interacting with code across a wide range of programming languages and tasks."
+      }
+    ]
+  }
+}
