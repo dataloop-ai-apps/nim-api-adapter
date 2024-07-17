@@ -1,9 +1,9 @@
 {
-  "name": "nim-api-mistralai-mistral-large",
-  "displayName": "Mistral Large",
+  "name": "codestral-22b-instruct",
+  "displayName": "Mistral Codestral 22B",
   "version": "0.1.22",
   "scope": "public",
-  "description": "Mistral's Mistral Large",
+  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -13,6 +13,7 @@
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {
@@ -23,10 +24,10 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "mistral-large-nim-deploy",
+        "name": "codestral-22b-instruct-deploy",
         "runtime": {
           "podType": "regular-xs",
-          "concurrency": 10,
+          "concurrency": 1,
           "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
           "autoscaler": {
             "type": "rabbitmq",
@@ -38,11 +39,11 @@
     ],
     "modules": [
       {
-        "name": "mistral-large-nim-module",
+        "name": "codestral-22b-instruct-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "mistral-large-nim-deploy",
-        "description": "Mistral's mistral-large NIM API Adapter",
+        "computeConfig": "codestral-22b-instruct-deploy",
+        "description": "codestral-22b-instruct NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -73,26 +74,25 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API Mistral mistral-large predict items"
+            "description": "NIM API codestral-22b-instruct predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "mistral-large",
-        "moduleName": "mistral-large-nim-module",
+        "name": "codestral-22b-instruct",
+        "moduleName": "codestral-22b-instruct-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "mistralai/mistral-large",
-          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "nim_model_name": "mistralai/codestral-22b-instruct-v0.1",
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
           "seed": 0
         },
-        "description": "mistral-large on NVIDIA NIMS for advanced text processing with the efficiency of NVIDIA's NIM framework."
+        "description": "Model for writing and interacting with code across a wide range of programming languages and tasks."
       }
     ]
   }

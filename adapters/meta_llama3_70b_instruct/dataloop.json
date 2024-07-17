@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-70b-instruct-meta",
-  "displayName": "LLAMA3 NIM API",
+  "displayName": "LLAMA3 70B Instruct",
   "version": "0.1.22",
   "scope": "public",
   "description": "Llama3 from NIM API",
@@ -9,9 +9,11 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Meta",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LMM",
+    "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {

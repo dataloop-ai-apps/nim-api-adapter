@@ -1,6 +1,6 @@
 {
   "name": "nim-api-google-gemma-7b",
-  "displayName": "Google Gemma-7b NIM API",
+  "displayName": "Google Gemma-7b",
   "version": "0.1.22",
   "scope": "public",
   "description": "Google Gemma-7b from NIM API",
@@ -9,9 +9,11 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Google",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {

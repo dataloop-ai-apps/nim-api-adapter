@@ -1,6 +1,6 @@
 {
   "name": "nim-api-neva-22b",
-  "displayName": "neva-22b NIM API",
+  "displayName": "neva-22b",
   "version": "0.1.22",
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
@@ -10,6 +10,7 @@
       "Dataloop"
     ],
     "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LMM",
     "Media Type": "Multi Modal",

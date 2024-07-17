@@ -1,18 +1,19 @@
 {
-  "name": "nim-api-mistralai-mistral-large",
-  "displayName": "Mistral Large",
+  "name": "phi-3-medium-128k-instruct",
+  "displayName": "phi-3 Medium 128k Instruct",
   "version": "0.1.22",
   "scope": "public",
-  "description": "Mistral's Mistral Large",
+  "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.\n\n, API key is required to use this model.",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "MistralAI",
+    "Provider": "Microsoft",
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
+    "Media Type": "Text",
     "NLP": "Conversational"
   },
   "codebase": {
@@ -23,7 +24,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "mistral-large-nim-deploy",
+        "name": "phi-3-medium-128k-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -38,11 +39,11 @@
     ],
     "modules": [
       {
-        "name": "mistral-large-nim-module",
+        "name": "phi-3-medium-128k-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "mistral-large-nim-deploy",
-        "description": "Mistral's mistral-large NIM API Adapter",
+        "computeConfig": "phi-3-medium-128k-deploy",
+        "description": "phi-3-medium-128k NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -73,26 +74,26 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API Mistral mistral-large predict items"
+            "description": "NIM API phi-3-medium-128k predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "mistral-large",
-        "moduleName": "mistral-large-nim-module",
+        "name": "phi-3-medium-128k",
+        "moduleName": "phi-3-medium-128k-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "mistralai/mistral-large",
+          "nim_model_name": "microsoft/phi-3-medium-128k-instruct",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
-          "temperature": 0.5,
-          "top_p": 1,
+          "temperature": 0.2,
+          "top_p": 0.7,
           "seed": 0
         },
-        "description": "mistral-large on NVIDIA NIMS for advanced text processing with the efficiency of NVIDIA's NIM framework."
+        "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning."
       }
     ]
   }

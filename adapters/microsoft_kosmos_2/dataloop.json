@@ -1,6 +1,6 @@
 {
   "name": "nim-api-kosmos-2",
-  "displayName": "microsoft-kosmos-2 NIM API",
+  "displayName": "microsoft-kosmos-2",
   "version": "0.1.22",
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses API key is required to use this model.",
@@ -9,7 +9,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Microsoft",
+    "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LMM",
     "Media Type": "Multi Modal",
