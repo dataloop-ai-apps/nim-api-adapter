@@ -1,7 +1,7 @@
 {
   "name": "google-gemma2-9b",
   "displayName": "Google Gemma2 9b",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "scope": "public",
   "description": "Google Gemma2-9b from NIM API",
   "attributes": {
@@ -19,7 +19,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.23"
+    "gitTag": "0.1.24"
   },
   "components": {
     "computeConfigs": [
