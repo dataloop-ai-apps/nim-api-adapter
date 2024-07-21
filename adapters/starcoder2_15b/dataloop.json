@@ -86,13 +86,12 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "bigcode/starcoder2-15b",
-          "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.7,
-          "seed": 0
+          "nim_model_name": "bigcode/starcoder2-15b"
         },
-        "description": "Advanced programming model for code completion, summarization, and generation"
+        "description": "Advanced programming model for code completion, summarization, and generation",
+        "metadata": {
+          "model_type": "coding"
+        }
       }
     ]
   }

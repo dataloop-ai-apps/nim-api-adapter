@@ -86,13 +86,12 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "nvidia/nemotron-4-340b-reward",
-          "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.70,
-          "seed": 0
+          "nim_model_name": "nvidia/nemotron-4-340b-reward"
         },
-        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
+        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",
+        "metadata": {
+          "model_type": "reward"
+        }
       }
     ]
   }
