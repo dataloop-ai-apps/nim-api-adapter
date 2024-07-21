@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import OpenAI, NOT_GIVEN
 import dtlpy as dl
 import requests
 import logging
@@ -12,6 +12,12 @@ class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model):
         if os.environ.get("NVIDIA_NIM_API_KEY", None) is None:
             raise ValueError(f"Missing API key: NVIDIA_NIM_API_KEY")
+        self.api_key = os.environ.get("NVIDIA_NIM_API_KEY", None)
+        self.max_token = model_entity.configuration.get('max_token', 1024)
+        self.temperature = model_entity.configuration.get('temperature', 0.2)
+        self.top_p = model_entity.configuration.get('top_p', 0.7)
+        self.seed = model_entity.configuration.get('seed', 0)
+        self.stream = model_entity.configuration.get('stream', True)
         super().__init__(model_entity)
 
     def load(self, local_path, **kwargs):
@@ -29,15 +35,38 @@ class ModelAdapter(dl.BaseModelAdapter):
     def call_model_open_ai(self, messages):
         client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key=os.environ.get("NVIDIA_NIM_API_KEY", None)
+            api_key=self.api_key
         )
+        model_type = self.model_entity.metadata.get('model_type', 'chat')
+        if model_type == 'chat':
+            full_answer = self.call_chat_model(messages=messages, client=client)
+        elif model_type == 'reward':
+            full_answer = self.call_reward_model(messages=messages, client=client)
+        else:
+            full_answer = self.call_coding_model(messages=messages, client=client)
+
+        return full_answer
+
+    def call_reward_model(self, messages, client):
+        reward_dict = dict()
+        if messages[-1].get('role') == 'assistant':
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+            )
+            rewards = completion.choices[0].logprobs.content
+            for reward in rewards:
+                reward_dict[reward.token] = reward.logprob
+        return str(reward_dict)
+
+    def call_chat_model(self, messages, client):
         completion = client.chat.completions.create(
             model=self.nim_model_name,
             messages=messages,
-            temperature=0.5,
-            top_p=1,
-            max_tokens=1024,
-            stream=True
+            temperature=self.temperature,
+            top_p=self.top_p,
+            max_tokens=self.max_token,
+            stream=self.stream
         )
         full_answer = ""
         for chunk in completion:
@@ -45,24 +74,31 @@ class ModelAdapter(dl.BaseModelAdapter):
                 full_answer += chunk.choices[0].delta.content
         return full_answer
 
+    def call_coding_model(self, messages, client):
+        code = client.completions.create(
+            model=self.nim_model_name,
+            prompt=messages[0].get('content', ''),
+            temperature=self.temperature,
+            top_p=self.top_p,
+            max_tokens=self.max_token,
+            stream=False
+        )
+        code = code.choices[0].text
+        return code
+
     def call_model_requests(self, messages):
         url = f"https://ai.api.nvidia.com/v1/{self.model_entity.configuration.get('nim_model_name')}"
         headers = {
-            "Authorization": f"Bearer {os.environ.get('NVIDIA_NIM_API_KEY', None)}",
+            "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json"
         }
-        max_token = self.model_entity.configuration.get('max_token', 1024)
-        temperature = self.model_entity.configuration.get('temperature', 0.2)
-        top_p = self.model_entity.configuration.get('top_p', 0.7)
-        seed = self.model_entity.configuration.get('seed', 0)
-
         payload = {
             "messages": messages,
-            "max_tokens": max_token,
-            "temperature": temperature,
-            "top_p": top_p,
-            "seed": seed,
-            "stream": False
+            "max_tokens": self.max_token,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "seed": self.seed,
+            "stream": self.stream
         }
         response = requests.post(url=url, headers=headers, json=payload)
         if not response.ok:
@@ -93,14 +129,15 @@ class ModelAdapter(dl.BaseModelAdapter):
                 if len(system_prompt) > 0:
                     messages.append({"role": "system",
                                      "content": system_prompt})
-                messages.extend([{"role": "assistant",
-                                  "content": context},
-                                 {"role": "user",
-                                  "content": question}])
+                messages.extend([
+                    {"role": "user",
+                     "content": question + ' ' + context}
+                ])
                 if self.nim_model_name.startswith('vlm/'):
                     full_answer = self.call_model_requests(messages=messages)
                 else:
                     full_answer = self.call_model_open_ai(messages=messages)
+
                 ann_collection.add(
                     annotation_definition=dl.FreeText(text=full_answer),
                     prompt_id=prompt_name,
@@ -110,6 +147,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                         'confidence': 1.0
                     }
                 )
+
             annotations.append(ann_collection)
         return annotations
 
