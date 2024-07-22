@@ -89,9 +89,6 @@
           "nim_model_name": "nvidia/nemotron-4-340b-reward"
         },
         "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",
-        "metadata": {
-          "model_type": "reward"
-        }
       }
     ]
   }

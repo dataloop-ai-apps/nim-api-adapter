@@ -89,9 +89,6 @@
           "nim_model_name": "bigcode/starcoder2-15b"
         },
         "description": "Advanced programming model for code completion, summarization, and generation",
-        "metadata": {
-          "model_type": "coding"
-        }
       }
     ]
   }
