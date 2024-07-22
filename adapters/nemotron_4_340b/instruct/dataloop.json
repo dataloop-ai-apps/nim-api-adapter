@@ -1,7 +1,7 @@
 {
   "name": "nemotron-4-340b-instruct",
   "displayName": "Nemotron-4 340b Instruct",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "scope": "public",
   "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
   "attributes": {
@@ -19,7 +19,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.27"
+    "gitTag": "0.1.28"
   },
   "components": {
     "computeConfigs": [
