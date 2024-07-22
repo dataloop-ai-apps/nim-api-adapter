@@ -18,6 +18,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.top_p = model_entity.configuration.get('top_p', 0.7)
         self.seed = model_entity.configuration.get('seed', 0)
         self.stream = model_entity.configuration.get('stream', True)
+
         super().__init__(model_entity)
 
     def load(self, local_path, **kwargs):
@@ -32,18 +33,32 @@ class ModelAdapter(dl.BaseModelAdapter):
         buffer = json.load(item.download(save_locally=False))
         return buffer
 
+    @staticmethod
+    def process_instruct_messages(messages):
+        for message in messages:
+            if message.get('role') == 'user':
+                return [message]
+
     def call_model_open_ai(self, messages):
         client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=self.api_key
         )
-        model_type = self.model_entity.metadata.get('model_type', 'chat')
-        if model_type == 'chat':
+        with open('nim_configs.json', 'r') as f:
+            model_configs = json.load(f)
+
+        model_type = model_configs.get(self.nim_model_name, None)
+        if model_type == 'instruct':
+            messages = self.process_instruct_messages(messages)
+            full_answer = self.call_chat_model(messages=messages, client=client)
+        elif model_type == 'chat':
             full_answer = self.call_chat_model(messages=messages, client=client)
         elif model_type == 'reward':
             full_answer = self.call_reward_model(messages=messages, client=client)
-        else:
+        elif model_type == 'coding':
             full_answer = self.call_coding_model(messages=messages, client=client)
+        else:
+            raise ValueError(f"Model type {model_type} for model {self.nim_model_name} is not supported")
 
         return full_answer
 
@@ -75,6 +90,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         return full_answer
 
     def call_coding_model(self, messages, client):
+        messages = self.process_instruct_messages(messages=messages)
         code = client.completions.create(
             model=self.nim_model_name,
             prompt=messages[0].get('content', ''),
@@ -129,10 +145,11 @@ class ModelAdapter(dl.BaseModelAdapter):
                 if len(system_prompt) > 0:
                     messages.append({"role": "system",
                                      "content": system_prompt})
-                messages.extend([
-                    {"role": "user",
-                     "content": question + ' ' + context}
-                ])
+                messages.extend([{"role": "assistant",
+                                  "content": context},
+                                 {"role": "user",
+                                  "content": question}
+                                 ])
                 if self.nim_model_name.startswith('vlm/'):
                     full_answer = self.call_model_requests(messages=messages)
                 else:
