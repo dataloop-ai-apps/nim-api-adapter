@@ -13,7 +13,8 @@
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
-    "Media Type": "Text",
+    "Media Type": [
+      "Text"],
     "NLP": "Conversational"
   },
   "codebase": {

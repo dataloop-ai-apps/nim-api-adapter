@@ -12,9 +12,13 @@
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LLM",
-    "Media Type": "Text",
-    "NLP": "Conversational"
+    "Gen AI": [
+      "LLM",
+      "Reward"
+    ],
+    "Media Type": [
+      "Text"
+    ]
   },
   "codebase": {
     "type": "git",

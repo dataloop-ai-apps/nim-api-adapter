@@ -12,9 +12,13 @@
     "Provider": "BigCode",
     "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LLM",
-    "Media Type": "Text",
-    "NLP": "Conversational"
+    "Gen AI": [
+      "LLM",
+      "Code Generation"
+    ],
+    "Media Type": [
+      "Text"
+    ]
   },
   "codebase": {
     "type": "git",

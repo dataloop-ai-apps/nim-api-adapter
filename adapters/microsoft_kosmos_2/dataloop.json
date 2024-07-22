@@ -13,7 +13,9 @@
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LMM",
-    "Media Type": "Multi Modal",
+    "Media Type": [
+      "Multi Modal"
+    ],
     "NLP": "Conversational"
   },
   "codebase": {
