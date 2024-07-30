@@ -14,7 +14,7 @@
     },
     "codebase": {
         "type": "git",
-        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
         "gitTag": "0.1.29"
     },
     "components": {

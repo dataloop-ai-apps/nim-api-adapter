@@ -22,7 +22,7 @@
   },
   "codebase": {
     "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
     "gitTag": "0.1.29"
   },
   "components": {
@@ -44,7 +44,7 @@
     "modules": [
       {
         "name": "codestral-22b-instruct-module",
-        "entryPoint": "main_adapter.py",
+        "entrypoint": "adapters/api_nims/main_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "codestral-22b-instruct-deploy",
         "description": "codestral-22b-instruct NIM API Adapter",

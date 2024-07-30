@@ -1,30 +1,32 @@
 {
-  "name": "nim-api-ibm-granite-34b-code-instruct",
-  "displayName": "IBM granite-34b",
+  "name": "nim-api-mistralai-mistral-large",
+  "displayName": "Mistral Large",
   "version": "0.1.29",
   "scope": "public",
-  "description": "ibm granite 34b from NIM API Software programming LLM for code generation, completion, explanation, and multi-turn conversion, API key is required to use this model.",
+  "description": "Mistral's Mistral Large",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "IBM",
+    "Provider": "MistralAI",
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
-    "Media Type": ["Text"],
+    "Media Type": [
+      "Text"
+    ],
     "NLP": "Conversational"
   },
   "codebase": {
     "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
     "gitTag": "0.1.29"
   },
   "components": {
     "computeConfigs": [
       {
-        "name": "granite-34b-nim-deploy",
+        "name": "mistral-large-nim-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -39,11 +41,11 @@
     ],
     "modules": [
       {
-        "name": "granite-34b-nim-module",
-        "entryPoint": "main_adapter.py",
+        "name": "mistral-large-nim-module",
+        "entrypoint": "adapters/api_nims/main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "granite-34b-nim-deploy",
-        "description": "granite-34b NIM API Adapter",
+        "computeConfig": "mistral-large-nim-deploy",
+        "description": "Mistral's mistral-large NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -74,25 +76,26 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API granite-34b predict items"
+            "description": "NIM API Mistral mistral-large predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "granite-34b-nim",
-        "moduleName": "granite-34b-nim-module",
+        "name": "mistral-large",
+        "moduleName": "mistral-large-nim-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "ibm/granite-34b-code-instruct",
+          "nim_model_name": "mistralai/mistral-large",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.70,
+          "temperature": 0.5,
+          "top_p": 1,
           "seed": 0
         },
-        "description": "IBM granite NIM API"
+        "description": "mistral-large on NVIDIA NIMS for advanced text processing with the efficiency of NVIDIA's NIM framework."
       }
     ]
   }

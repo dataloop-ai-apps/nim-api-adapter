@@ -1,20 +1,20 @@
 {
-  "name": "starcoder2-15b",
-  "displayName": "starcoder2-15b 27b",
+  "name": "nemotron-4-340b-reward",
+  "displayName": "Nemotron-4 340b Reward",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Advanced programming model for code completion, summarization, and generation, API key is required to use this model.",
+  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "BigCode",
+    "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": [
       "LLM",
-      "Code Generation"
+      "Reward"
     ],
     "Media Type": [
       "Text"
@@ -22,16 +22,16 @@
   },
   "codebase": {
     "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
     "gitTag": "0.1.29"
   },
   "components": {
     "computeConfigs": [
       {
-        "name": "starcoder2-15b-deploy",
+        "name": "nemotron-4-340b-reward-deploy",
         "runtime": {
           "podType": "regular-xs",
-          "concurrency": 10,
+          "concurrency": 1,
           "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
           "autoscaler": {
             "type": "rabbitmq",
@@ -43,11 +43,11 @@
     ],
     "modules": [
       {
-        "name": "starcoder2-15b-module",
-        "entryPoint": "main_adapter.py",
+        "name": "nemotron-4-340b-module",
+        "entrypoint": "adapters/api_nims/main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "starcoder2-15b-deploy",
-        "description": "starcoder2-15b NIM API Adapter",
+        "computeConfig": "nemotron-4-340b-reward-deploy",
+        "description": "nemotron-4-340b-reward NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -78,21 +78,21 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API starcoder2-15b predict items"
+            "description": "NIM API nemotron-4-340b-reward predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "starcoder2-15b",
-        "moduleName": "starcoder2-15b-module",
+        "name": "nemotron-4-340b-reward",
+        "moduleName": "nemotron-4-340b-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "bigcode/starcoder2-15b"
+          "nim_model_name": "nvidia/nemotron-4-340b-reward"
         },
-        "description": "Advanced programming model for code completion, summarization, and generation"
+        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
       }
     ]
   }

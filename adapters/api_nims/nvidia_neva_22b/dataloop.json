@@ -1,34 +1,34 @@
 {
-  "name": "nim-api-llama3-70b-instruct-meta",
-  "displayName": "LLAMA3 70B Instruct",
+  "name": "nim-api-neva-22b",
+  "displayName": "neva-22b",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Llama3 from NIM API",
+  "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "Meta",
+    "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LLM",
+    "Gen AI": "LMM",
     "Media Type": [
-      "Text"],
+      "Multi Modal"],
     "NLP": "Conversational"
   },
   "codebase": {
     "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
     "gitTag": "0.1.29"
   },
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-nim-deploy",
+        "name": "neva-22b-deploy",
         "runtime": {
           "podType": "regular-xs",
-          "concurrency": 10,
+          "concurrency": 1,
           "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
           "autoscaler": {
             "type": "rabbitmq",
@@ -40,11 +40,11 @@
     ],
     "modules": [
       {
-        "name": "llama3-nim-module",
-        "entryPoint": "main_adapter.py",
+        "name": "neva-22b-module",
+        "entrypoint": "adapters/api_nims/main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-nim-deploy",
-        "description": "llama3 NIM API Adapter",
+        "computeConfig": "neva-22b-deploy",
+        "description": "neva-22b NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -75,26 +75,25 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API llama3 predict items"
+            "description": "NIM API neva-22b predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "llama3-nim",
-        "moduleName": "llama3-nim-module",
+        "name": "nim-neva-22b",
+        "moduleName": "neva-22b-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "meta/llama3-70b-instruct",
-          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "nim_model_name": "vlm/nvidia/neva-22b",
           "max_tokens": 1024,
           "temperature": 0.2,
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Llama3 "
+        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
       }
     ]
   }

@@ -1,32 +1,30 @@
 {
-  "name": "phi-3-medium-128k-instruct",
-  "displayName": "phi-3 Medium 128k Instruct",
+  "name": "nim-api-ibm-granite-34b-code-instruct",
+  "displayName": "IBM granite-34b",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.\n\n, API key is required to use this model.",
+  "description": "ibm granite 34b from NIM API Software programming LLM for code generation, completion, explanation, and multi-turn conversion, API key is required to use this model.",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "Microsoft",
+    "Provider": "IBM",
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "Gen AI": "LLM",
-    "Media Type": [
-      "Text"
-    ],
+    "Media Type": ["Text"],
     "NLP": "Conversational"
   },
   "codebase": {
     "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-adapter",
     "gitTag": "0.1.29"
   },
   "components": {
     "computeConfigs": [
       {
-        "name": "phi-3-medium-128k-deploy",
+        "name": "granite-34b-nim-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,11 +39,11 @@
     ],
     "modules": [
       {
-        "name": "phi-3-medium-128k-module",
-        "entryPoint": "main_adapter.py",
+        "name": "granite-34b-nim-module",
+        "entrypoint": "adapters/api_nims/main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "phi-3-medium-128k-deploy",
-        "description": "phi-3-medium-128k NIM API Adapter",
+        "computeConfig": "granite-34b-nim-deploy",
+        "description": "granite-34b NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -76,25 +74,25 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API phi-3-medium-128k predict items"
+            "description": "NIM API granite-34b predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "phi-3-medium-128k",
-        "moduleName": "phi-3-medium-128k-module",
+        "name": "granite-34b-nim",
+        "moduleName": "granite-34b-nim-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "microsoft/phi-3-medium-128k-instruct",
+          "nim_model_name": "ibm/granite-34b-code-instruct",
           "max_tokens": 1024,
           "temperature": 0.2,
-          "top_p": 0.7,
+          "top_p": 0.70,
           "seed": 0
         },
-        "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning."
+        "description": "IBM granite NIM API"
       }
     ]
   }
