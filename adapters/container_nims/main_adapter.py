@@ -3,6 +3,7 @@ import subprocess
 import logging
 import time
 from openai import OpenAI
+import socket
 
 logger = logging.getLogger('NiM-Model')
 
@@ -14,30 +15,40 @@ class ModelAdapter(dl.BaseModelAdapter):
                                           stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE,
                                           shell=True)
-        while run_api_server.poll() is None:
-            time.sleep(120)
 
-        (out, err) = run_api_server.communicate()
-        if run_api_server.returncode != 0:
-            raise Exception(f'Failed to start API server: {err}')
+        max_retries = 3
+        while max_retries > 0 and self.is_port_available(host='0.0.0.0', port=8000) is True:
+            time.sleep(20)
+            max_retries -= 1
+
+        if self.is_port_available(host='0.0.0.0', port=8000) is True:
+            raise Exception('Unable to start inference server')
+
         self.client = OpenAI(base_url='http://0.0.0.0:8000/v1', api_key="not-used")
 
         self.nim_model_name = self.configuration.get('model_name', None)
         if self.nim_model_name is None:
             raise Exception('Model name is missing in configuration')
 
-    def call_model_chat_open_ai(self, messages):
+    @staticmethod
+    def is_port_available(host, port):
+        """Checks if a port is available on a given host.
 
-        completion = self.client.chat.completions.create(
-            model=self.nim_model_name,
-            messages=messages,
-            temperature=0.5,
-            top_p=1,
-            max_tokens=1024,
-            stream=False
-        )
-        full_answer = completion.choices[0].message.content
-        return full_answer
+        Args:
+            host: The hostname or IP address of the host.
+            port: The port number to check.
+
+        Returns:
+            True if the port is available, False otherwise.
+        """
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.bind((host, port))
+            s.close()
+            return True
+        except OSError:
+            return False
 
     def call_model_open_ai(self, prompt):
 
@@ -52,29 +63,19 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     @staticmethod
     def process_messages(messages):
+        message_string = ""
         for message in messages:
-            message_string = ""
             for element in message.get('content', []):
                 message_string += element.get('text', "")
-            message['content'] = message_string
-        return messages
+        return message_string
+
+    def prepare_item_func(self, item: dl.Item):
+        prompt_item = dl.PromptItem.from_item(item=item)
+        return prompt_item
 
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
             messages = prompt_item.messages(model_name=self.model_entity.name)
-            try:
-                full_answer = self.call_model_chat_open_ai(messages=messages)
-                print('heeeeeeeeeereee')
-            except:
-                print('faaaaaaaaaaaaaail')
-                full_answer = self.call_model_open_ai(prompt=self.process_messages(messages[-1]['content']))
+            full_answer = self.call_model_open_ai(prompt=messages[-1]['content'][0]['text'])
             annotation = dl.FreeText(text=full_answer)
             prompt_item.add_responses(annotation=annotation, model=self.model_entity)
-
-
-if __name__ == '__main__':
-    dl.setenv('rc')
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
-    adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])
