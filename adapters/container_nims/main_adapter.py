@@ -20,4 +20,4 @@ class ModelAdapter(dl.BaseModelAdapter):
         (out, err) = run_api_server.communicate()
         if run_api_server.returncode != 0:
             raise Exception(f'Failed to start API server: {err}')
-        self.client = OpenAI(base_url='http://0.0.0.0:8000/v1', api_key="not=used")
+        self.client = OpenAI(base_url='http://0.0.0.0:8000/v1', api_key="not-used")
