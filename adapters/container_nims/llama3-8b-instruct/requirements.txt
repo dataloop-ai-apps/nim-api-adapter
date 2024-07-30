@@ -1,2 +1,0 @@
-openai
-prometheus-client==0.20.0
