@@ -16,9 +16,9 @@ class ModelAdapter(dl.BaseModelAdapter):
                                           stderr=subprocess.PIPE,
                                           shell=True)
 
-        max_retries = 3
+        max_retries = 5
         while max_retries > 0 and self.is_port_available(host='0.0.0.0', port=8000) is True:
-            time.sleep(20)
+            time.sleep(60)
             max_retries -= 1
 
         if self.is_port_available(host='0.0.0.0', port=8000) is True:
