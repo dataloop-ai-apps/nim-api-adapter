@@ -27,6 +27,9 @@
     "computeConfigs": [
       {
         "name": "llama3-nim-deploy",
+        "versions": {
+          "dtlpy": "1.93.6"
+        },
         "runtime": {
           "podType": "gpu-a100-s",
           "concurrency": 10,
