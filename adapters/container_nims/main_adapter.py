@@ -10,6 +10,7 @@ logger = logging.getLogger('NiM-Model')
 
 class ModelAdapter(dl.BaseModelAdapter):
     def load(self, local_path, **kwargs):
+        logger.info('Starting inference server')
         run_api_server_command = 'bash /opt/nim/start-server.sh'
         run_api_server = subprocess.Popen(run_api_server_command,
                                           stdout=subprocess.PIPE,
@@ -18,9 +19,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         max_retries = 5
         while max_retries > 0 and self.is_port_available(host='0.0.0.0', port=8000) is True:
+            logger.info(f'Waiting for inference server to start sleep {max_retries}')
             time.sleep(60)
             max_retries -= 1
-
+        logger.info('Done Trying')
         if self.is_port_available(host='0.0.0.0', port=8000) is True:
             raise Exception('Unable to start inference server')
 
