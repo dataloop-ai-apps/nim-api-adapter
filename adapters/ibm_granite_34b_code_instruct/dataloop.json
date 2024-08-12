@@ -88,8 +88,8 @@
         "configuration": {
           "nim_model_name": "ibm/granite-34b-code-instruct",
           "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.70,
+          "temperature": 0.5,
+          "top_p": 1,
           "seed": 0
         },
         "description": "IBM granite NIM API"

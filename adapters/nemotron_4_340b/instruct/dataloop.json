@@ -91,7 +91,7 @@
           "nim_model_name": "nvidia/nemotron-4-340b-instruct",
           "max_tokens": 1024,
           "temperature": 0.2,
-          "top_p": 0.70,
+          "top_p": 0.7,
           "seed": 0
         },
         "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
