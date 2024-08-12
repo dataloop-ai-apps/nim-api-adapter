@@ -1,0 +1,103 @@
+{
+  "name": "mistral-7b-instruct",
+  "displayName": "Mistral 7b Instruct",
+  "version": "0.1.29",
+  "scope": "public",
+  "description": "This LLM follows instructions, completes requests, and generates creative text.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "MistralAI",
+    "Deployed By": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": [
+      "LLM",
+      "Code Generation"
+    ],
+    "Media Type": [
+      "Text"
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.29"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "mistral-7b-instruct-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "mistral-7b-instruct-module",
+        "entryPoint": "main_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "mistral-7b-instruct-deploy",
+        "description": "mistral-7b-instruct NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API mistral-7b-instruct predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "mistral-7b-instruct",
+        "moduleName": "mistral-7b-instruct-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "mistralai/mistral-7b-instruct-v0.3",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": 0
+        },
+        "description": "This LLM follows instructions, completes requests, and generates creative text."
+      }
+    ]
+  }
+}
