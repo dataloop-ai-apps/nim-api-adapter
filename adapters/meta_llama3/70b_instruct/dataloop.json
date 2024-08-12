@@ -3,7 +3,7 @@
   "displayName": "LLAMA3 70B Instruct",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Llama3 from NIM API",
+  "description": "Llama3 70b instruct from NIM API",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -14,7 +14,8 @@
     "Category": "Model",
     "Gen AI": "LLM",
     "Media Type": [
-      "Text"],
+      "Text"
+    ],
     "NLP": "Conversational"
   },
   "codebase": {
@@ -25,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-nim-deploy",
+        "name": "llama3-70b-instruct-nim-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -40,11 +41,11 @@
     ],
     "modules": [
       {
-        "name": "llama3-nim-module",
+        "name": "llama3-70b-instruct-nim-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-nim-deploy",
-        "description": "llama3 NIM API Adapter",
+        "computeConfig": "llama3-70b-instruct-nim-deploy",
+        "description": "llama3 70b instruct NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -82,8 +83,8 @@
     ],
     "models": [
       {
-        "name": "llama3-nim",
-        "moduleName": "llama3-nim-module",
+        "name": "llama3-70b-instruct-nim",
+        "moduleName": "llama3-70b-instruct-nim-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -94,7 +95,7 @@
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Llama3 "
+        "description": "Llama3 70b instruct"
       }
     ]
   }

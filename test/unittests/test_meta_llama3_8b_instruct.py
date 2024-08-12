@@ -12,7 +12,7 @@ dotenv.load_dotenv('.env')
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        with open("adapters/meta_llama3/70b_instruct/dataloop.json") as f:
+        with open("adapters/meta_llama3/8b_instruct/dataloop.json") as f:
             manifest = json.load(f)
         model_json = manifest['components']['models'][0]
         dummy_model = dl.Model.from_json(_json=model_json,
