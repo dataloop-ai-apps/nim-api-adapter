@@ -1,9 +1,9 @@
 {
-  "name": "codestral-22b-instruct",
-  "displayName": "Mistral Codestral 22B",
+  "name": "mixtral-8x22b-instruct",
+  "displayName": "Mistral Mixtral 8x22B Instruct",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Model for writing and interacting with code across a wide range of programming languages and tasks.",
+  "description": "An MOE LLM that follows instructions, completes requests, and generates creative text.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -28,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "codestral-22b-instruct-deploy",
+        "name": "mixtral-8x22b-instruct-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -43,11 +43,11 @@
     ],
     "modules": [
       {
-        "name": "codestral-22b-instruct-module",
+        "name": "mixtral-8x22b-instruct-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "codestral-22b-instruct-deploy",
-        "description": "codestral-22b-instruct NIM API Adapter",
+        "computeConfig": "mixtral-8x22b-instruct-deploy",
+        "description": "mixtral-8x22b-instruct NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -78,25 +78,25 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API codestral-22b-instruct predict items"
+            "description": "NIM API mixtral-8x22b-instruct predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "codestral-22b-instruct",
-        "moduleName": "codestral-22b-instruct-module",
+        "name": "mixtral-8x22b-instruct",
+        "moduleName": "mixtral-8x22b-instruct-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "mistralai/codestral-22b-instruct-v0.1",
+          "nim_model_name": "mistralai/mixtral-8x22b-instruct-v0.1",
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
           "seed": 0
         },
-        "description": "Model for writing and interacting with code across a wide range of programming languages and tasks."
+        "description": "An MOE LLM that follows instructions, completes requests, and generates creative text."
       }
     ]
   }
