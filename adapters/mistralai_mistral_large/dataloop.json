@@ -1,7 +1,7 @@
 {
   "name": "nim-api-mistralai-mistral-large",
   "displayName": "Mistral Large",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "scope": "public",
   "description": "Mistral's Mistral Large",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.31"
+    "gitTag": "0.1.32"
   },
   "components": {
     "computeConfigs": [
