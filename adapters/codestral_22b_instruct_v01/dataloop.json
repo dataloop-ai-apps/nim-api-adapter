@@ -3,7 +3,7 @@
   "displayName": "Mistral Codestral 22B",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
+  "description": "Model for writing and interacting with code across a wide range of programming languages and tasks.",
   "attributes": {
     "Hub": [
       "Nvidia",

@@ -91,8 +91,8 @@
           "nim_model_name": "vlm/microsoft/kosmos-2",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.70,
+          "temperature": 0.20,
+          "top_p": 0.20,
           "seed": 0
         },
         "description": "Multi-modal vision-language model that understands text/images and generates informative responses."

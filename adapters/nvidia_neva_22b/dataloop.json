@@ -89,7 +89,7 @@
         "configuration": {
           "nim_model_name": "vlm/nvidia/neva-22b",
           "max_tokens": 1024,
-          "temperature": 0.2,
+          "temperature": 0.20,
           "top_p": 0.70,
           "seed": 0
         },

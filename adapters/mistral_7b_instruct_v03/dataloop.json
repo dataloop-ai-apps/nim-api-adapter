@@ -1,22 +1,24 @@
 {
-  "name": "nemotron-4-340b-instruct",
-  "displayName": "Nemotron-4 340b Instruct",
+  "name": "mistral-7b-instruct",
+  "displayName": "Mistral 7b Instruct",
   "version": "0.1.29",
   "scope": "public",
-  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
+  "description": "This LLM follows instructions, completes requests, and generates creative text.",
   "attributes": {
     "Hub": [
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "MistralAI",
     "Deployed By": "NVIDIA",
     "Category": "Model",
-    "Gen AI": "LLM",
+    "Gen AI": [
+      "LLM",
+      "Code Generation"
+    ],
     "Media Type": [
       "Text"
-    ],
-    "NLP": "Conversational"
+    ]
   },
   "codebase": {
     "type": "git",
@@ -26,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "nemotron-4-340b-instruct-deploy",
+        "name": "mistral-7b-instruct-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -41,11 +43,11 @@
     ],
     "modules": [
       {
-        "name": "nemotron-4-340b-module",
+        "name": "mistral-7b-instruct-module",
         "entryPoint": "main_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "nemotron-4-340b-instruct-deploy",
-        "description": "nemotron-4-340b-instruct NIM API Adapter",
+        "computeConfig": "mistral-7b-instruct-deploy",
+        "description": "mistral-7b-instruct NIM API Adapter",
         "initInputs": [
           {
             "type": "Model",
@@ -76,25 +78,25 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API nemotron-4-340b-instruct predict items"
+            "description": "NIM API mistral-7b-instruct predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "nemotron-4-340b-instruct",
-        "moduleName": "nemotron-4-340b-module",
+        "name": "mistral-7b-instruct",
+        "moduleName": "mistral-7b-instruct-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "nvidia/nemotron-4-340b-instruct",
+          "nim_model_name": "mistralai/mistral-7b-instruct-v0.3",
           "max_tokens": 1024,
           "temperature": 0.2,
           "top_p": 0.7,
           "seed": 0
         },
-        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
+        "description": "This LLM follows instructions, completes requests, and generates creative text."
       }
     ]
   }
