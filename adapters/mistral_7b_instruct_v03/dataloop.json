@@ -1,7 +1,7 @@
 {
   "name": "mistral-7b-instruct",
   "displayName": "Mistral 7b Instruct",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "scope": "public",
   "description": "This LLM follows instructions, completes requests, and generates creative text.",
   "attributes": {
@@ -23,7 +23,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.29"
+    "gitTag": "0.1.30"
   },
   "components": {
     "computeConfigs": [
