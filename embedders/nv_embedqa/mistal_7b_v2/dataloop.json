@@ -1,10 +1,14 @@
 {
   "name": "nv-embedqa-mistral-7bv2",
   "displayName": "NV Embedqa Mistral 7bv2",
-  "version": "0.0.21",
+  "version": "0.1.32",
   "description": "NV Embedqa Mistral 7bv2 NIM API model",
   "scope": "project",
   "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",

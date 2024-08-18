@@ -1,10 +1,14 @@
 {
   "name": "nv-embedqa-e5v5",
   "displayName": "NV Embedqa e5 v5",
-  "version": "0.0.21",
+  "version": "0.1.32",
   "description": "NV Embedqa e5 v5 NIM API model",
   "scope": "project",
   "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",

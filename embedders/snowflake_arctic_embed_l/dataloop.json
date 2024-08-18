@@ -1,10 +1,14 @@
 {
   "name": "snowflake-arctic-embed-l",
   "displayName": "Snowflake Arctic Embeddings L",
-  "version": "0.0.21",
+  "version": "0.1.32",
   "description": "Snowflake Arctic Embeddings L NIM API Model",
   "scope": "project",
   "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": "Model",
