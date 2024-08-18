@@ -8,9 +8,9 @@ logger = logging.getLogger("NIM Adapter")
 
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model):
-        if os.environ.get("NVIDIA_NIM_API_KEY", None) is None:
-            raise ValueError(f"Missing API key: NVIDIA_NIM_API_KEY")
-        self.api_key = os.environ.get("NVIDIA_NIM_API_KEY", None)
+        if os.environ.get("NGC_API_KEY", None) is None:
+            raise ValueError(f"Missing API key: NGC_API_KEY")
+        self.api_key = os.environ.get("NGC_API_KEY", None)
         self.embedding_size = model_entity.configuration.get('embeddings_size', 512)
         super().__init__(model_entity)
 

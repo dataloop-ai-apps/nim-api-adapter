@@ -6,7 +6,6 @@
   "google/gemma-2-27b-it": "chat",
   "google/gemma-7b": "chat",
   "ibm/granite-34b-code-instruct": "chat",
-  "vlm/community/llava16-34b": "chat",
   "meta/llama3-70b-instruct": "chat",
   "vlm/microsoft/kosmos-2": "chat",
   "mistralai/mistral-large": "chat",

@@ -10,9 +10,9 @@ logger = logging.getLogger("NIM Adapter")
 
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model):
-        if os.environ.get("NVIDIA_NIM_API_KEY", None) is None:
-            raise ValueError(f"Missing API key: NVIDIA_NIM_API_KEY")
-        self.api_key = os.environ.get("NVIDIA_NIM_API_KEY", None)
+        if os.environ.get("NGC_API_KEY", None) is None:
+            raise ValueError(f"Missing API key: NGC_API_KEY")
+        self.api_key = os.environ.get("NGC_API_KEY", None)
         self.max_token = model_entity.configuration.get('max_token', 1024)
         self.temperature = model_entity.configuration.get('temperature', 0.2)
         self.top_p = model_entity.configuration.get('top_p', 0.7)

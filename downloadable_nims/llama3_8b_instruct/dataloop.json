@@ -45,9 +45,12 @@
     "modules": [
       {
         "name": "llama3-nim-module",
-        "entryPoint": "adapters/container_nims/main_adapter.py",
+        "entryPoint": "main_downloadable_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "llama3-nim-deploy",
+        "versions": {
+          "dtlpy": "1.93.6"
+        },
         "description": "Downloadable llama3 NIM Adapter module",
         "initInputs": [
           {
