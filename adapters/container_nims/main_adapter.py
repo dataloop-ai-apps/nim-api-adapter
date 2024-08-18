@@ -63,14 +63,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         full_answer = completion.choices[0].text
         return full_answer
 
-    @staticmethod
-    def process_messages(messages):
-        message_string = ""
-        for message in messages:
-            for element in message.get('content', []):
-                message_string += element.get('text', "")
-        return message_string
-
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item=item)
         return prompt_item
@@ -79,5 +71,11 @@ class ModelAdapter(dl.BaseModelAdapter):
         for prompt_item in batch:
             messages = prompt_item.messages(model_name=self.model_entity.name)
             full_answer = self.call_model_open_ai(prompt=messages[-1]['content'][0]['text'])
-            annotation = dl.FreeText(text=full_answer)
-            prompt_item.add_responses(annotation=annotation, model=self.model_entity)
+            prompt_item.add(message={"role": "assistant",
+                                     "content": [{"mimetype": dl.PromptType.TEXT,
+                                                  "value": full_answer}]},
+                            stream=True,
+                            model_info={'name': self.model_entity.name,
+                                        'confidence': 1.0,
+                                        'model_id': self.model_entity.id})
+        return []
