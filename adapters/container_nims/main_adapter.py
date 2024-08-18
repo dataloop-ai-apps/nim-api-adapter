@@ -20,7 +20,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         max_retries = 5
         while max_retries > 0 and self.is_port_available(host='0.0.0.0', port=8000) is True:
             logger.info(f'Waiting for inference server to start sleep {max_retries}')
-            time.sleep(60 * 5)
+            time.sleep(60 * 20)
             max_retries -= 1
         logger.info('Done Trying')
         if self.is_port_available(host='0.0.0.0', port=8000) is True:
