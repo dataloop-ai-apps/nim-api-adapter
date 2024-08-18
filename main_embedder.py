@@ -28,8 +28,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             input=[text],
             model=self.nim_model_name,
             encoding_format="float",
-            extra_body={"input_type": "query", "truncate": "NONE"},
-            dimensions=self.embedding_size
+            extra_body={"input_type": "query", "truncate": "NONE"}
         )
         embedding = response.data[0].embedding
         return embedding
@@ -49,7 +48,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
+    dl.setenv('rc')
+    import dotenv
+    dotenv.load_dotenv()
     model = dl.models.get(model_id='')
     item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])
+    adapter.embed_items(items=[item])
