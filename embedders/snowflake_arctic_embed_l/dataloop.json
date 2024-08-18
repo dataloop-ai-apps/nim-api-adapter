@@ -1,8 +1,8 @@
 {
-  "name": "nv-embedqa-e5v5",
-  "displayName": "NV Embedqa e5 v5",
+  "name": "snowflake-arctic-embed-l",
+  "displayName": "Snowflake Arctic Embeddings L",
   "version": "0.0.21",
-  "description": "NV Embedqa e5 v5 NIM API model",
+  "description": "Snowflake Arctic Embeddings L NIM API Model",
   "scope": "project",
   "attributes": {
     "Provider": "NVIDIA",
@@ -100,13 +100,13 @@
     ],
     "models": [
       {
-        "name": "nv-embedqa-e5v5",
+        "name": "snowflake-arctic-embed-l",
         "moduleName": "nim-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
         "configuration": {
-          "nim_model_name": "nvidia/nv-embedqa-e5-v5",
+          "nim_model_name": "snowflake/arctic-embed-l",
           "embeddings_size": 1024
         },
         "description": "AI models generate responses and outputs based on complex algorithms and machine learning techniques, and those responses or outputs may be inaccurate, harmful, biased or indecent. By testing this model, you assume the risk of any harm caused by any response or output of the model. Please do not upload any confidential information or personal data unless expressly permitted. Your use is logged for security purposes.\n\n"
