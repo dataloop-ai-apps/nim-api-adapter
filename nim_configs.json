@@ -15,5 +15,8 @@
   "microsoft/phi-3-medium-128k-instruct": "chat",
   "meta/llama3-8b-instruct": "chat",
   "mistralai/mixtral-8x22b-instruct-v0.1": "instruct",
-  "mistralai/mistral-7b-instruct-v0.3": "instruct"
+  "mistralai/mistral-7b-instruct-v0.3": "instruct",
+  "meta/llama3.1-8b-instruct": "chat",
+  "meta/llama-3.1-70b-instruct": "chat",
+  "meta/llama-3.1-405b-instruct": "chat"
 }
