@@ -47,7 +47,7 @@
         "name": "nim-downloadable-module",
         "entryPoint": "models/downloadable/main_downloadable_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "nim-api-deploy",
+        "computeConfig": "nim-downloadable-deploy",
         "versions": {
           "dtlpy": "1.93.6"
         },
@@ -90,7 +90,7 @@
     "models": [
       {
         "name": "llama3-8b-instruct",
-        "moduleName": "llama3-nim-module",
+        "moduleName": "nim-downloadable-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
