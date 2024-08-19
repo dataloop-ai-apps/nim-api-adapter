@@ -69,7 +69,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
-            messages = prompt_item.messages(model_name=self.model_entity.name)
+            messages = prompt_item.to_messages(model_name=self.model_entity.name)
             full_answer = self.call_model_open_ai(prompt=messages[-1]['content'][0]['text'])
             prompt_item.add(message={"role": "assistant",
                                      "content": [{"mimetype": dl.PromptType.TEXT,
