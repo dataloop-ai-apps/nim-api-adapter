@@ -1,9 +1,9 @@
 {
   "name": "nemotron-4-340b-reward",
-  "displayName": "Nemotron-4 340b Reward",
+  "displayName": "nvidia/nemotron-4-340b-reward",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
+  "description": "Grades responses on five attributes helpfulness, correctness, coherence, complexity and verbosity.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -28,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "nemotron-4-340b-reward-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -43,10 +43,10 @@
     ],
     "modules": [
       {
-        "name": "nemotron-4-340b-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "nemotron-4-340b-reward-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "nemotron-4-340b-reward NIM API Adapter",
         "initInputs": [
           {
@@ -86,13 +86,13 @@
     "models": [
       {
         "name": "nemotron-4-340b-reward",
-        "moduleName": "nemotron-4-340b-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-4-340b-reward"
         },
-        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
+        "description": "The Nemotron-4-340B-Reward is a multi-dimensional Reward Model that can be used as part of a synthetic data generation pipeline to create training data that helps researchers and developers build their own LLMs."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
   "name": "nemotron-4-340b-instruct",
-  "displayName": "Nemotron-4 340b Instruct",
+  "displayName": "nvidia/nemotron-4-340b-instruct",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data, API key is required to use this model.",
+  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "nemotron-4-340b-instruct-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "nemotron-4-340b-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "nemotron-4-340b-instruct-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "nemotron-4-340b-instruct NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "nemotron-4-340b-instruct",
-        "moduleName": "nemotron-4-340b-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -94,7 +94,7 @@
           "top_p": 0.7,
           "seed": 0
         },
-        "description": "Creates diverse synthetic data that mimics the characteristics of real-world data."
+        "description": "Nemotron-4-340B-Instruct is a large language model (LLM) that can be used as part of a synthetic data generation pipeline to create training data that helps researchers and developers build their own LLMs."
       }
     ]
   }

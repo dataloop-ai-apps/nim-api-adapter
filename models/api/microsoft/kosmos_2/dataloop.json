@@ -1,9 +1,9 @@
 {
   "name": "nim-api-kosmos-2",
-  "displayName": "microsoft-kosmos-2",
+  "displayName": "microsoft/kosmos-2",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Multi-modal vision-language model that understands text/images and generates informative responses API key is required to use this model.",
+  "description": "Groundbreaking multimodal model designed to understand and reason about visual elements in images.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "kosmos-2-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "kosmos-2-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "kosmos-2-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "microsoft-kosmos-2 NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "nim-kosmos-2",
-        "moduleName": "kosmos-2-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 0.20,
           "seed": 0
         },
-        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
+        "description": "Kosmos-2 model is a groundbreaking multimodal large language model (MLLM)."
       }
     ]
   }

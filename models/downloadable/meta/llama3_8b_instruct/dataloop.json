@@ -1,9 +1,9 @@
 {
   "name": "nim-llama3-8b-instruct-meta",
-  "displayName": "LLAMA3 8b Instruct",
+  "displayName": "meta/llama3-8b-instruct downloadable",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Downloadable Llama3 from NIM",
+  "description": "Downloadable meta/llama3-8b-instruct from NIM",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-nim-deploy",
+        "name": "nim-downloadable-deploy",
         "versions": {
           "dtlpy": "1.93.6"
         },
@@ -44,10 +44,10 @@
     ],
     "modules": [
       {
-        "name": "llama3-nim-module",
-        "entryPoint": "main_downloadable_adapter.py",
+        "name": "nim-downloadable-module",
+        "entryPoint": "models/downloadable/main_downloadable_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-nim-deploy",
+        "computeConfig": "nim-api-deploy",
         "versions": {
           "dtlpy": "1.93.6"
         },

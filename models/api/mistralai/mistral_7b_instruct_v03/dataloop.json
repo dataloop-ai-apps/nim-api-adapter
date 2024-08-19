@@ -1,6 +1,6 @@
 {
   "name": "mistral-7b-instruct",
-  "displayName": "Mistral 7b Instruct",
+  "displayName": "mistralai/mistral-7b-instruct-v0.3",
   "version": "0.1.32",
   "scope": "public",
   "description": "This LLM follows instructions, completes requests, and generates creative text.",
@@ -28,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "mistral-7b-instruct-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -43,10 +43,10 @@
     ],
     "modules": [
       {
-        "name": "mistral-7b-instruct-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "mistral-7b-instruct-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "mistral-7b-instruct NIM API Adapter",
         "initInputs": [
           {
@@ -86,7 +86,7 @@
     "models": [
       {
         "name": "mistral-7b-instruct",
-        "moduleName": "mistral-7b-instruct-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -96,7 +96,7 @@
           "top_p": 0.7,
           "seed": 0
         },
-        "description": "This LLM follows instructions, completes requests, and generates creative text."
+        "description": "It is an instruct version of the Mistral-7B-v0.3 generative text model fine-tuned using a variety of publicly available conversation datasets."
       }
     ]
   }

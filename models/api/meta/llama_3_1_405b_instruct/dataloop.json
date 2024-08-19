@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-1-405b-instruct-meta",
-  "displayName": "LLAMA3.1 405B Instruct",
+  "displayName": "meta/llama-3.1-405b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Advanced LLM for synthetic data generation, distillation, and inference for chatbots, coding, and domain-specific tasks.",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-1-405b-instruct-nim-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "llama3-1-405b-instruct-nim-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-1-405b-instruct-nim-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "llama3.1 405b instruct NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "llama3-1-405b-instruct-nim",
-        "moduleName": "llama3-1-405b-instruct-nim-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 0.7,
           "seed": 0
         },
-        "description": "Advanced LLM for synthetic data generation, distillation, and inference for chatbots, coding, and domain-specific tasks."
+        "description": "The Meta Llama 3.1 collection of multilingual large language models (LLMs) is a collection of pretrained and instruction tuned generative models."
       }
     ]
   }

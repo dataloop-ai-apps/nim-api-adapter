@@ -1,9 +1,9 @@
 {
   "name": "phi-3-medium-128k-instruct",
-  "displayName": "phi-3 Medium 128k Instruct",
+  "displayName": "microsoft/phi-3-medium-128k-instruct",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.\n\n, API key is required to use this model.",
+  "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "phi-3-medium-128k-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "phi-3-medium-128k-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "phi-3-medium-128k-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "phi-3-medium-128k NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "phi-3-medium-128k",
-        "moduleName": "phi-3-medium-128k-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -94,7 +94,7 @@
           "top_p": 0.7,
           "seed": 0
         },
-        "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning."
+        "description": "Phi-3 Medium is a lightweight, state-of-the-art open model built upon datasets used for Phi-2 - synthetic data and filtered publicly available websites - with a focus on very high-quality, reasoning dense data."
       }
     ]
   }

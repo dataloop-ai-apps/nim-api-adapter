@@ -1,9 +1,9 @@
 {
   "name": "nim-api-neva-22b",
-  "displayName": "neva-22b",
+  "displayName": "nvidia/neva-22b",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Multi-modal vision-language model that understands text/images and generates informative responses, API key is required to use this model.",
+  "description": "Multi-modal vision-language model that understands text/images and generates informative responses",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -14,7 +14,8 @@
     "Category": "Model",
     "Gen AI": "LMM",
     "Media Type": [
-      "Multi Modal"],
+      "Multi Modal"
+    ],
     "NLP": "Conversational"
   },
   "codebase": {
@@ -25,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "neva-22b-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -40,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "neva-22b-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "neva-22b-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "neva-22b NIM API Adapter",
         "initInputs": [
           {
@@ -82,8 +83,8 @@
     ],
     "models": [
       {
-        "name": "nim-neva-22b",
-        "moduleName": "neva-22b-module",
+        "name": "nvidia-neva-22b",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -93,7 +94,7 @@
           "top_p": 0.70,
           "seed": 0
         },
-        "description": "Multi-modal vision-language model that understands text/images and generates informative responses."
+        "description": "NeVA is NVIDIA's version of the LLaVA model where the open source LLaMA model is replaced with a GPT model trained by NVIDIA."
       }
     ]
   }

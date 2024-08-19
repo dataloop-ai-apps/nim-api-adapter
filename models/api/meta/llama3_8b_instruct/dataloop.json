@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-8b-instruct-meta",
-  "displayName": "LLAMA3 8B Instruct",
+  "displayName": "meta/llama3-8b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Advanced state-of-the-art LLM with language understanding, superior reasoning, and text generation.",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "llama3-8b-instruct-nim-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "llama3-8b-instruct-nim-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "llama3-8b-instruct-nim-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "llama3 8b instruct NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "llama3-8b-instruct-nim",
-        "moduleName": "llama3-8b-instruct-nim-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 1,
           "seed": 0
         },
-        "description": "Advanced state-of-the-art LLM with language understanding, superior reasoning, and text generation."
+        "description": "Llama 3 is a large language AI model comprising a collection of models capable of generating text and code in response to prompts."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
   "name": "starcoder2-15b",
-  "displayName": "starcoder2-15b 27b",
+  "displayName": "bigcode/starcoder2-15b",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Advanced programming model for code completion, summarization, and generation, API key is required to use this model.",
+  "description": "Advanced programming model for code completion, summarization, and generation",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -28,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "starcoder2-15b-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -43,10 +43,10 @@
     ],
     "modules": [
       {
-        "name": "starcoder2-15b-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "starcoder2-15b-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "starcoder2-15b NIM API Adapter",
         "initInputs": [
           {
@@ -86,7 +86,7 @@
     "models": [
       {
         "name": "starcoder2-15b",
-        "moduleName": "starcoder2-15b-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 0.7,
           "max_tokens": 200
         },
-        "description": "Advanced programming model for code completion, summarization, and generation"
+        "description": "StarCoder2-15B is a state-of-the-art language model with 15 billion parameters, trained on over 600 programming languages using The Stack v2 dataset."
       }
     ]
   }

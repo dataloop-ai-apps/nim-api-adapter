@@ -1,6 +1,6 @@
 {
   "name": "codestral-22b-instruct",
-  "displayName": "Mistral Codestral 22B",
+  "displayName": "mistralai/codestral-22b-instruct-v0.1",
   "version": "0.1.32",
   "scope": "public",
   "description": "Model for writing and interacting with code across a wide range of programming languages and tasks.",
@@ -28,7 +28,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "codestral-22b-instruct-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -43,10 +43,10 @@
     ],
     "modules": [
       {
-        "name": "codestral-22b-instruct-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "codestral-22b-instruct-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "codestral-22b-instruct NIM API Adapter",
         "initInputs": [
           {
@@ -86,7 +86,7 @@
     "models": [
       {
         "name": "codestral-22b-instruct",
-        "moduleName": "codestral-22b-instruct-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -96,7 +96,7 @@
           "top_p": 1,
           "seed": 0
         },
-        "description": "Model for writing and interacting with code across a wide range of programming languages and tasks."
+        "description": "Codestral is trained on a diverse dataset of 80+ programming languages, including the most popular ones, such as Python, Java, C, C++, JavaScript, and Bash."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
   "name": "nim-api-mistralai-mistral-large",
-  "displayName": "Mistral Large",
+  "displayName": "mistralai/mistral-large",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Mistral's Mistral Large",
+  "description": "Excels in complex multilingual reasoning tasks, including text understanding, and code generation.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "mistral-large-nim-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "mistral-large-nim-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "mistral-large-nim-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "Mistral's mistral-large NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "mistral-large",
-        "moduleName": "mistral-large-nim-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 1,
           "seed": 0
         },
-        "description": "mistral-large on NVIDIA NIMS for advanced text processing with the efficiency of NVIDIA's NIM framework."
+        "description": "It can be used for complex multilingual reasoning tasks, including text understanding, transformation, and code generation. Mistral Large has the following capabilities."
       }
     ]
   }

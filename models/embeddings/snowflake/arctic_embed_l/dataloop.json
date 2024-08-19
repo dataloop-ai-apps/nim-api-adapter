@@ -1,8 +1,8 @@
 {
   "name": "snowflake-arctic-embed-l",
-  "displayName": "Snowflake Arctic Embeddings L",
+  "displayName": "snowflake/arctic-embed-l",
   "version": "0.1.32",
-  "description": "Snowflake Arctic Embeddings L NIM API Model",
+  "description": "GPU-accelerated generation of text embeddings.",
   "scope": "project",
   "attributes": {
     "Hub": [
@@ -41,7 +41,7 @@
     "modules": [
       {
         "name": "nim-embeddings-module",
-        "entryPoint": "main_embeddings_adapter.py",
+        "entryPoint": "models/embeddings/main_embeddings_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
@@ -104,7 +104,7 @@
     ],
     "models": [
       {
-        "name": "snowflake-arctic-embed-l",
+        "name": "arctic-embed-l",
         "moduleName": "nim-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
@@ -113,7 +113,7 @@
           "nim_model_name": "snowflake/arctic-embed-l",
           "embeddings_size": 1024
         },
-        "description": "AI models generate responses and outputs based on complex algorithms and machine learning techniques, and those responses or outputs may be inaccurate, harmful, biased or indecent. By testing this model, you assume the risk of any harm caused by any response or output of the model. Please do not upload any confidential information or personal data unless expressly permitted. Your use is logged for security purposes.\n\n"
+        "description": "snowflake-arctic-embed is a suite of text embedding models that creates high-quality retrieval models optimized for performance."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
   "name": "nim-api-google-gemma-7b",
-  "displayName": "Google Gemma-7b",
+  "displayName": "google/gemma-7b",
   "version": "0.1.32",
   "scope": "public",
-  "description": "Google Gemma-7b from NIM API",
+  "description": "Cutting-edge text generation model text understanding, transformation, and code generation.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -26,7 +26,7 @@
   "components": {
     "computeConfigs": [
       {
-        "name": "gemma-7b-nim-deploy",
+        "name": "nim-api-deploy",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -41,10 +41,10 @@
     ],
     "modules": [
       {
-        "name": "gemma-7b-nim-module",
-        "entryPoint": "main_api_adapter.py",
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
         "className": "ModelAdapter",
-        "computeConfig": "gemma-7b-nim-deploy",
+        "computeConfig": "nim-api-deploy",
         "description": "Google Gemma-7b NIM API Adapter",
         "initInputs": [
           {
@@ -84,7 +84,7 @@
     "models": [
       {
         "name": "gemma-7b-nim",
-        "moduleName": "gemma-7b-nim-module",
+        "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
@@ -95,7 +95,7 @@
           "top_p": 1,
           "seed": 0
         },
-        "description": "Google Gemma-7B on NIM merges Google's Gemma-7B model's advanced text processing with the efficiency of NVIDIA's NIM framework."
+        "description": "Gemma is a family of lightweight, state-of-the art open models from Google, built from the same research and technology used to create the Gemini models."
       }
     ]
   }
