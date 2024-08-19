@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "llama3-8b-instruct-nim",
+        "name": "llama3-8b-instruct",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

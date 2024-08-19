@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "nvidia-neva-22b",
+        "name": "neva-22b",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

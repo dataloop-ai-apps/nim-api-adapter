@@ -89,7 +89,7 @@
     ],
     "models": [
       {
-        "name": "llama3-nim",
+        "name": "llama3-8b-instruct-downloadable",
         "moduleName": "llama3-nim-module",
         "scope": "project",
         "status": "pre-trained",

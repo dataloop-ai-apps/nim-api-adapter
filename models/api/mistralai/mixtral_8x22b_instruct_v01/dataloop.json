@@ -85,7 +85,7 @@
     ],
     "models": [
       {
-        "name": "mixtral-8x22b-instruct",
+        "name": "mixtral-8x22b-instruct-v01",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

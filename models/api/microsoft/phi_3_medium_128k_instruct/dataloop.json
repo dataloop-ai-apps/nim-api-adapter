@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "phi-3-medium-128k",
+        "name": "phi-3-medium-128k-instruct",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

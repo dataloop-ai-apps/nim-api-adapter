@@ -85,7 +85,7 @@
     ],
     "models": [
       {
-        "name": "mistral-7b-instruct",
+        "name": "mistral-7b-instruct-v03",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

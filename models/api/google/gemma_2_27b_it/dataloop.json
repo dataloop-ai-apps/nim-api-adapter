@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "gemma2-27b-nim",
+        "name": "gemma-2-27b-it",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

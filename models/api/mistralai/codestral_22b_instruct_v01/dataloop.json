@@ -85,7 +85,7 @@
     ],
     "models": [
       {
-        "name": "codestral-22b-instruct",
+        "name": "codestral-22b-instruct-v01",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

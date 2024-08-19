@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "granite-34b-nim",
+        "name": "granite-34b-code-instruct",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",

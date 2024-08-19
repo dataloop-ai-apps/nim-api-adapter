@@ -83,7 +83,7 @@
     ],
     "models": [
       {
-        "name": "nim-kosmos-2",
+        "name": "kosmos-2",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
