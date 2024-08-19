@@ -1,0 +1,120 @@
+{
+  "name": "nv-embedqa-e5v5",
+  "displayName": "NV Embedqa e5 v5",
+  "version": "0.1.32",
+  "description": "NV Embedqa e5 v5 NIM API model",
+  "scope": "project",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
+    "Category": "Model",
+    "NLP": "Embeddings",
+    "Media Type": [
+      "Text"
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
+    "gitTag": "0.1.32"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-embeddings-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-embeddings-module",
+        "entryPoint": "main_embeddings_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-embeddings-deploy",
+        "description": "NIM embeddings module",
+        "versions": {
+          "dtlpy": "1.94.2"
+        },
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "embed_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The input items for embeddings."
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input items for embeddings."
+              },
+              {
+                "type": "Json",
+                "name": "json",
+                "description": "Embeddings of items."
+              }
+            ],
+            "displayName": "Embed Items",
+            "displayIcon": "",
+            "description": "The inference function of the model."
+          },
+          {
+            "name": "embed_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "The input dataset of the items required for prediction."
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "The DQL in json format to get all the items required for prediction."
+              }
+            ],
+            "output": [],
+            "displayName": "Embed Dataset",
+            "displayIcon": "",
+            "description": "Inference function of the model on a dataset."
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nv-embedqa-e5v5",
+        "moduleName": "nim-embeddings-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "configuration": {
+          "nim_model_name": "nvidia/nv-embedqa-e5-v5",
+          "embeddings_size": 1024
+        },
+        "description": "AI models generate responses and outputs based on complex algorithms and machine learning techniques, and those responses or outputs may be inaccurate, harmful, biased or indecent. By testing this model, you assume the risk of any harm caused by any response or output of the model. Please do not upload any confidential information or personal data unless expressly permitted. Your use is logged for security purposes.\n\n"
+      }
+    ]
+  }
+}
