@@ -1,6 +1,6 @@
 {
   "name": "starcoder2-15b",
-  "displayName": "bigcode/starcoder2-15b",
+  "displayName": "starcoder2-15b",
   "version": "0.1.32",
   "scope": "public",
   "description": "Advanced programming model for code completion, summarization, and generation",

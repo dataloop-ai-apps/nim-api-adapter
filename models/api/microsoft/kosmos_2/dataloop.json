@@ -1,6 +1,6 @@
 {
   "name": "nim-api-kosmos-2",
-  "displayName": "microsoft/kosmos-2",
+  "displayName": "kosmos-2",
   "version": "0.1.32",
   "scope": "public",
   "description": "Groundbreaking multimodal model designed to understand and reason about visual elements in images.",

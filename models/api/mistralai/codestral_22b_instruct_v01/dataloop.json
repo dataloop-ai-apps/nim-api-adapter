@@ -1,6 +1,6 @@
 {
   "name": "codestral-22b-instruct",
-  "displayName": "mistralai/codestral-22b-instruct-v0.1",
+  "displayName": "codestral-22b-instruct-v0.1",
   "version": "0.1.32",
   "scope": "public",
   "description": "Model for writing and interacting with code across a wide range of programming languages and tasks.",

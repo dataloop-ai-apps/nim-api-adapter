@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-8b-instruct-meta",
-  "displayName": "meta/llama3-8b-instruct",
+  "displayName": "llama3-8b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Advanced state-of-the-art LLM with language understanding, superior reasoning, and text generation.",

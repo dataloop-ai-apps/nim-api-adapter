@@ -1,6 +1,6 @@
 {
   "name": "mixtral-8x22b-instruct",
-  "displayName": "mistralai/mixtral-8x22b-instruct-v0.1",
+  "displayName": "mixtral-8x22b-instruct-v0.1",
   "version": "0.1.32",
   "scope": "public",
   "description": "An MOE LLM that follows instructions, completes requests, and generates creative text.",

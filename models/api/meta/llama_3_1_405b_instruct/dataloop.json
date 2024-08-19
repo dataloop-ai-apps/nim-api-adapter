@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-1-405b-instruct-meta",
-  "displayName": "meta/llama-3.1-405b-instruct",
+  "displayName": "llama-3.1-405b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Advanced LLM for synthetic data generation, distillation, and inference for chatbots, coding, and domain-specific tasks.",

@@ -1,6 +1,6 @@
 {
   "name": "nim-api-ibm-granite-34b-code-instruct",
-  "displayName": "ibm/granite-34b-code-instruct",
+  "displayName": "granite-34b-code-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Software programming LLM for code generation, completion, explanation, and multi-turn conversion.",

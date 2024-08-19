@@ -1,6 +1,6 @@
 {
   "name": "nemotron-4-340b-instruct",
-  "displayName": "nvidia/nemotron-4-340b-instruct",
+  "displayName": "nemotron-4-340b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",

@@ -1,6 +1,6 @@
 {
   "name": "phi-3-medium-128k-instruct",
-  "displayName": "microsoft/phi-3-medium-128k-instruct",
+  "displayName": "phi-3-medium-128k-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.",

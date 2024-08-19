@@ -1,6 +1,6 @@
 {
   "name": "nim-llama3-8b-instruct-meta",
-  "displayName": "meta/llama3-8b-instruct downloadable",
+  "displayName": "llama3-8b-instruct downloadable",
   "version": "0.1.32",
   "scope": "public",
   "description": "Downloadable meta/llama3-8b-instruct from NIM",

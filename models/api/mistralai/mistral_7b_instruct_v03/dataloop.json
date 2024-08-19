@@ -1,6 +1,6 @@
 {
   "name": "mistral-7b-instruct",
-  "displayName": "mistralai/mistral-7b-instruct-v0.3",
+  "displayName": "mistral-7b-instruct-v0.3",
   "version": "0.1.32",
   "scope": "public",
   "description": "This LLM follows instructions, completes requests, and generates creative text.",

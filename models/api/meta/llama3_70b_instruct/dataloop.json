@@ -1,6 +1,6 @@
 {
   "name": "nim-api-llama3-70b-instruct-meta",
-  "displayName": "meta/llama3-70b-instruct",
+  "displayName": "llama3-70b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation.",

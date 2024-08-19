@@ -1,6 +1,6 @@
 {
   "name": "nv-embedqa-mistral-7bv2",
-  "displayName": "nvidia/nv-embedqa-mistral-7b-v2",
+  "displayName": "nv-embedqa-mistral-7b-v2",
   "version": "0.1.32",
   "description": "GPU-accelerated generation of text embeddings used for question-answering retrieval.",
   "scope": "project",

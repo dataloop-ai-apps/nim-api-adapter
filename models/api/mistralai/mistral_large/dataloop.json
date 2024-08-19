@@ -1,6 +1,6 @@
 {
   "name": "nim-api-mistralai-mistral-large",
-  "displayName": "mistralai/mistral-large",
+  "displayName": "mistral-large",
   "version": "0.1.32",
   "scope": "public",
   "description": "Excels in complex multilingual reasoning tasks, including text understanding, and code generation.",

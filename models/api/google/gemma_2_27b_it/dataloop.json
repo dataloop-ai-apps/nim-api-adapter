@@ -1,6 +1,6 @@
 {
   "name": "google-gemma2-27b",
-  "displayName": "google/gemma-2-27b-it",
+  "displayName": "gemma-2-27b-it",
   "version": "0.1.32",
   "scope": "public",
   "description": "Cutting-edge text generation model text understanding, transformation, and code generation.",

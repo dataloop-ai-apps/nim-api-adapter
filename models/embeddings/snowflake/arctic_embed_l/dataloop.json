@@ -1,6 +1,6 @@
 {
   "name": "snowflake-arctic-embed-l",
-  "displayName": "snowflake/arctic-embed-l",
+  "displayName": "arctic-embed-l",
   "version": "0.1.32",
   "description": "GPU-accelerated generation of text embeddings.",
   "scope": "project",
@@ -9,7 +9,7 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Snowflake",
     "Deployed By": "NVIDIA",
     "Category": "Model",
     "NLP": "Embeddings",

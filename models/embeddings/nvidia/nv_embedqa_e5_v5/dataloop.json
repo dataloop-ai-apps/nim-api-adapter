@@ -1,6 +1,6 @@
 {
   "name": "nv-embedqa-e5v5",
-  "displayName": "nvidia/nv-embedqa-e5-v5",
+  "displayName": "nv-embedqa-e5-v5",
   "version": "0.1.32",
   "description": "GPU-accelerated generation of text embeddings used for question-answering retrieval.",
   "scope": "project",

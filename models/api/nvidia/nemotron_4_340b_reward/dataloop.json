@@ -1,6 +1,6 @@
 {
   "name": "nemotron-4-340b-reward",
-  "displayName": "nvidia/nemotron-4-340b-reward",
+  "displayName": "nemotron-4-340b-reward",
   "version": "0.1.32",
   "scope": "public",
   "description": "Grades responses on five attributes helpfulness, correctness, coherence, complexity and verbosity.",
