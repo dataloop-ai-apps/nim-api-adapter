@@ -1,6 +1,6 @@
 {
   "name": "nim-llama3-8b-instruct-meta",
-  "displayName": "llama3-8b-instruct downloadable",
+  "displayName": "llama3-8b-instruct",
   "version": "0.1.32",
   "scope": "public",
   "description": "Downloadable meta/llama3-8b-instruct from NIM",
@@ -89,7 +89,7 @@
     ],
     "models": [
       {
-        "name": "llama3-8b-instruct-downloadable",
+        "name": "llama3-8b-instruct",
         "moduleName": "llama3-nim-module",
         "scope": "project",
         "status": "pre-trained",
