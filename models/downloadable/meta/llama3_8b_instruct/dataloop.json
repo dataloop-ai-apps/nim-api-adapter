@@ -97,8 +97,8 @@
           "nim_model_name": "meta/llama3-8b-instruct",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
-          "temperature": 0.2,
-          "top_p": 0.70,
+          "temperature": 0.5,
+          "top_p": 1,
           "seed": 0
         },
         "description": "Llama3 downloadable nim"
