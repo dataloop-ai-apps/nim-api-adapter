@@ -44,7 +44,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=self.api_key
         )
-        with open('nim_configs.json', 'r') as f:
+        current_dir = os.path.dirname(__file__)
+        nim_configs_filepath = os.path.join(current_dir, 'nim_configs.json')
+        with open(nim_configs_filepath, 'r') as f:
             model_configs = json.load(f)
 
         model_type = model_configs.get(self.nim_model_name, None)
@@ -170,7 +172,8 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
-    adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])
+    print(os.path.dirname(__file__))
+    # model = dl.models.get(model_id='')
+    # item = dl.items.get(item_id='')
+    # adapter = ModelAdapter(model)
+    # adapter.predict_items(items=[item])
