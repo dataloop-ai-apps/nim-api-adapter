@@ -33,7 +33,7 @@
         "runtime": {
           "podType": "gpu-a100-s",
           "concurrency": 10,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/llama3-8b-instruct:0.1.4",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/llama3-8b-instruct:0.1.5",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
