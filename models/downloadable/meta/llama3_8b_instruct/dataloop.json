@@ -101,7 +101,7 @@
           "top_p": 1,
           "seed": 0
         },
-        "description": "Llama3 downloadable nim"
+        "description": "Downloadable meta/llama3-8b-instruct from NIM"
       }
     ]
   }
