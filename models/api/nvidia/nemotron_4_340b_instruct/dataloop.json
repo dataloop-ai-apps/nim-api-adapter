@@ -1,0 +1,101 @@
+{
+  "name": "nemotron-4-340b-instruct",
+  "displayName": "nemotron-4-340b-instruct",
+  "version": "0.1.32",
+  "scope": "public",
+  "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": "LLM",
+    "Media Type": [
+      "Text"
+    ],
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.32"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "nemotron-4-340b-instruct NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API nemotron-4-340b-instruct predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nemotron-4-340b-instruct",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "nvidia/nemotron-4-340b-instruct",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": 0
+        },
+        "description": "Nemotron-4-340B-Instruct is a large language model (LLM) that can be used as part of a synthetic data generation pipeline to create training data that helps researchers and developers build their own LLMs."
+      }
+    ]
+  }
+}

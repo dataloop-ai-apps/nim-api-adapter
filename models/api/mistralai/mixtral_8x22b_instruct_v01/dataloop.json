@@ -1,0 +1,103 @@
+{
+  "name": "mixtral-8x22b-instruct",
+  "displayName": "mixtral-8x22b-instruct-v0.1",
+  "version": "0.1.32",
+  "scope": "public",
+  "description": "An MOE LLM that follows instructions, completes requests, and generates creative text.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "MistralAI",
+    "Deployed By": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": [
+      "LLM",
+      "Code Generation"
+    ],
+    "Media Type": [
+      "Text"
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.32"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "mixtral-8x22b-instruct NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API mixtral-8x22b-instruct predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "mixtral-8x22b-instruct-v01",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "mistralai/mixtral-8x22b-instruct-v0.1",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0
+        },
+        "description": "It is a sparse Mixture-of-Experts (SMoE) model that uses only 39B active parameters out of 141B, offering unparalleled cost efficiency for its size."
+      }
+    ]
+  }
+}

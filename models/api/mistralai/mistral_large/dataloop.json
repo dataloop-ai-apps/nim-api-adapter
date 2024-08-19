@@ -1,0 +1,102 @@
+{
+  "name": "nim-api-mistralai-mistral-large",
+  "displayName": "mistral-large",
+  "version": "0.1.32",
+  "scope": "public",
+  "description": "Excels in complex multilingual reasoning tasks, including text understanding, and code generation.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "MistralAI",
+    "Deployed By": "NVIDIA",
+    "Category": "Model",
+    "Gen AI": "LLM",
+    "Media Type": [
+      "Text"
+    ],
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.1.32"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "Mistral's mistral-large NIM API Adapter",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API Mistral mistral-large predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "mistral-large",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "mistralai/mistral-large",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0
+        },
+        "description": "It can be used for complex multilingual reasoning tasks, including text understanding, transformation, and code generation. Mistral Large has the following capabilities."
+      }
+    ]
+  }
+}

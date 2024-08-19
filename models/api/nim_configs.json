@@ -1,0 +1,21 @@
+{
+  "bigcode/starcoder2-15b": "coding",
+  "nvidia/nemotron-4-340b-reward": "reward",
+  "mistralai/codestral-22b-instruct-v0.1": "instruct",
+  "google/gemma-2-9b-it": "chat",
+  "google/gemma-2-27b-it": "chat",
+  "google/gemma-7b": "chat",
+  "ibm/granite-34b-code-instruct": "chat",
+  "meta/llama3-70b-instruct": "chat",
+  "vlm/microsoft/kosmos-2": "chat",
+  "mistralai/mistral-large": "chat",
+  "nvidia/nemotron-4-340b-instruct": "instruct",
+  "vlm/nvidia/neva-22b": "chat",
+  "microsoft/phi-3-medium-128k-instruct": "chat",
+  "meta/llama3-8b-instruct": "chat",
+  "mistralai/mixtral-8x22b-instruct-v0.1": "instruct",
+  "mistralai/mistral-7b-instruct-v0.3": "instruct",
+  "meta/llama-3.1-8b-instruct": "chat",
+  "meta/llama-3.1-70b-instruct": "chat",
+  "meta/llama-3.1-405b-instruct": "chat"
+}
