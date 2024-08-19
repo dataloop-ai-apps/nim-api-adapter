@@ -54,9 +54,9 @@
 # .idea/artifacts
 # .idea/compiler.xml
 # .idea/jarRepositories.xml
-# .idea/adapters.xml
+# .idea/api_nim.xml
 # .idea/*.iml
-# .idea/adapters
+# .idea/api_nim
 # *.iml
 # *.ipr
 
@@ -100,7 +100,7 @@ fabric.properties
 # Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
 
 # *.iml
-# adapters.xml
+# api_nim.xml
 # .idea/misc.xml
 # *.ipr
 
@@ -151,9 +151,9 @@ fabric.properties
 # .idea/artifacts
 # .idea/compiler.xml
 # .idea/jarRepositories.xml
-# .idea/adapters.xml
+# .idea/api_nim.xml
 # .idea/*.iml
-# .idea/adapters
+# .idea/api_nim
 # *.iml
 # *.ipr
 
