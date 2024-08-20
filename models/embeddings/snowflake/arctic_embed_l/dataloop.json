@@ -26,6 +26,9 @@
     "computeConfigs": [
       {
         "name": "nim-embeddings-deploy",
+        "versions": {
+          "dtlpy": "1.94.3"
+        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -46,7 +49,7 @@
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
         "versions": {
-          "dtlpy": "1.94.2"
+          "dtlpy": "1.94.3"
         },
         "initInputs": [
           {
