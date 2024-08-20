@@ -28,7 +28,7 @@
       {
         "name": "nim-downloadable-deploy",
         "versions": {
-          "dtlpy": "1.93.6"
+          "dtlpy": "1.94.2"
         },
         "runtime": {
           "podType": "gpu-a100-s",
@@ -49,7 +49,7 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-downloadable-deploy",
         "versions": {
-          "dtlpy": "1.93.6"
+          "dtlpy": "1.94.2"
         },
         "description": "Downloadable llama3 NIM Adapter module",
         "initInputs": [
