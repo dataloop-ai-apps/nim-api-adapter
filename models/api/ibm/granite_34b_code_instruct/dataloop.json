@@ -11,7 +11,10 @@
     ],
     "Provider": "IBM",
     "Deployed By": "NVIDIA",
-    "Category": "Model",
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"

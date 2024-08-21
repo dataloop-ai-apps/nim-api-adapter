@@ -69,7 +69,7 @@ if __name__ == '__main__':
     import dotenv
 
     dotenv.load_dotenv()
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
+    model = dl.models.get(model_id='66c4783c6e6c1ecabf27ae40')
+    item = dl.items.get(item_id='66c47521a55ccf39d96ca91b')
     adapter = ModelAdapter(model)
     adapter.embed_items(items=[item])

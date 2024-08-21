@@ -11,7 +11,10 @@
     ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": "Model",
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": [
       "LLM",
       "Reward"
