@@ -1,7 +1,7 @@
 {
   "name": "mixtral-8x22b-instruct",
   "displayName": "mixtral-8x22b-instruct-v0.1",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "scope": "public",
   "description": "An MOE LLM that follows instructions, completes requests, and generates creative text.",
   "attributes": {
@@ -26,7 +26,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.40"
+    "gitTag": "0.1.41"
   },
   "components": {
     "computeConfigs": [
