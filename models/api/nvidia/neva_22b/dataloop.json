@@ -11,10 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": [
-      "Model",
-      "NIM"
-    ],
+    "Category": "Model",
     "Gen AI": "LMM",
     "Media Type": [
       "Multi Modal"

@@ -11,10 +11,7 @@
     ],
     "Provider": "BigCode",
     "Deployed By": "NVIDIA",
-    "Category": [
-      "Model",
-      "NIM"
-    ],
+    "Category": "Model",
     "Gen AI": [
       "LLM",
       "Code Generation"

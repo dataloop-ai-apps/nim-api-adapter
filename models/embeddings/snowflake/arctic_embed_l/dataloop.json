@@ -11,10 +11,7 @@
     ],
     "Provider": "Snowflake",
     "Deployed By": "NVIDIA",
-    "Category": [
-      "Model",
-      "NIM"
-    ],
+    "Category": "Model",
     "NLP": "Embeddings",
     "Media Type": [
       "Text"
