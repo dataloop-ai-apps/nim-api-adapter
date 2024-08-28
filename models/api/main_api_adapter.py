@@ -144,11 +144,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def predict(self, batch, **kwargs):
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
-
-        # annotations = []
         for prompt_item in batch:
-            # ann_collection = dl.AnnotationCollection()
-
             # Get all messages including model annotations
             messages = prompt_item.to_messages(model_name=self.model_entity.name)
             messages.insert(0, {"role": "system", "content": system_prompt})
