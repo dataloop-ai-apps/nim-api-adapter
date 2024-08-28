@@ -197,7 +197,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 if __name__ == '__main__':
     print(os.path.dirname(__file__))
-    model = dl.models.get(model_id='66cef6ba591adea8906f365b')
-    item = dl.items.get(item_id='66cef62e64d90bec7ec13db2')
-    adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])
+    # model = dl.models.get(model_id='')
+    # item = dl.items.get(item_id='')
+    # adapter = ModelAdapter(model)
+    # adapter.predict_items(items=[item])
