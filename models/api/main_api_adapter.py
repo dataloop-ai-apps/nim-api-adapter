@@ -142,6 +142,23 @@ class ModelAdapter(dl.BaseModelAdapter):
         full_answer = response.json().get('choices')[0].get('message').get('content')
         return full_answer
 
+    @staticmethod
+    def _preprocess_messages(messages):
+        pre_processed_messages = list()
+        for message in messages:
+            if isinstance(message.get('content', None), list):
+                for message_content in message['content']:
+                    if message_content.get('type', None) == "text" and message_content.get('text', '') != '':
+                        pre_processed_messages.append({
+                            "role": message['role'],
+                            "content": message_content['text']
+                        })
+                    else:
+                        continue
+            else:
+                pre_processed_messages.append(message)
+        return pre_processed_messages
+
     def predict(self, batch, **kwargs):
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         for prompt_item in batch:
@@ -157,6 +174,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 )
                 logger.info(f"Nearest items Context: {context}")
                 messages.append({"role": "assistant", "content": context})
+            messages = self._preprocess_messages(messages=messages)
 
             stream_response = self.stream_response(messages=messages)
             response = ""
@@ -179,7 +197,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 if __name__ == '__main__':
     print(os.path.dirname(__file__))
-    # model = dl.models.get(model_id='')
-    # item = dl.items.get(item_id='')
-    # adapter = ModelAdapter(model)
-    # adapter.predict_items(items=[item])
+    model = dl.models.get(model_id='66cef6ba591adea8906f365b')
+    item = dl.items.get(item_id='66cef62e64d90bec7ec13db2')
+    adapter = ModelAdapter(model)
+    adapter.predict_items(items=[item])
