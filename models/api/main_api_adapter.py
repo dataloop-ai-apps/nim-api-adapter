@@ -121,6 +121,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         return code
 
     def call_model_requests(self, messages):
+        self.stream = False
+
         url = f"https://ai.api.nvidia.com/v1/{self.model_entity.configuration.get('nim_model_name')}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -138,7 +140,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
 
-        self.stream = False
         full_answer = response.json().get('choices')[0].get('message').get('content')
         return full_answer
 
@@ -197,7 +198,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 if __name__ == '__main__':
     print(os.path.dirname(__file__))
-    # model = dl.models.get(model_id='')
-    # item = dl.items.get(item_id='')
-    # adapter = ModelAdapter(model)
-    # adapter.predict_items(items=[item])
+    model = dl.models.get(model_id='66cef6ba591adea8906f365b')
+    item = dl.items.get(item_id='66cef62e64d90bec7ec13db2')
+    adapter = ModelAdapter(model)
+    adapter.predict_items(items=[item])
