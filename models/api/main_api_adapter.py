@@ -27,11 +27,20 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
 
     def prepare_item_func(self, item: dl.Item):
-        if ('json' not in item.mimetype or
-                item.metadata.get('system', dict()).get('shebang', dict()).get('dltype') != 'prompt'):
-            raise ValueError('Only prompt items are supported')
-        buffer = json.load(item.download(save_locally=False))
-        return buffer
+        prompt_item = dl.PromptItem.from_item(item)
+        return prompt_item
+
+    def stream_response(self, messages):
+        if self.nim_model_name.startswith('vlm/'):
+            response = self.call_model_requests(messages=messages)
+        else:
+            response = self.call_model_open_ai(messages=messages)
+
+        if self.stream:
+            for chunk in response:
+                yield chunk.choices[0].delta.content or ""
+        else:
+            yield response
 
     @staticmethod
     def process_instruct_messages(messages):
@@ -65,11 +74,13 @@ class ModelAdapter(dl.BaseModelAdapter):
         return full_answer
 
     def call_reward_model(self, messages, client):
+        self.stream = False
+
         reward_dict = dict()
         if messages[-1].get('role') == 'assistant':
             completion = client.chat.completions.create(
                 model=self.nim_model_name,
-                messages=messages,
+                messages=messages
             )
             rewards = completion.choices[0].logprobs.content
             for reward in rewards:
@@ -85,13 +96,18 @@ class ModelAdapter(dl.BaseModelAdapter):
             max_tokens=self.max_token,
             stream=self.stream
         )
-        full_answer = ""
-        for chunk in completion:
-            if chunk.choices[0].delta.content is not None:
-                full_answer += chunk.choices[0].delta.content
+        if self.stream is False:
+            full_answer = ""
+            for chunk in completion:
+                if chunk.choices[0].delta.content is not None:
+                    full_answer += chunk.choices[0].delta.content
+        else:
+            full_answer = completion
         return full_answer
 
     def call_coding_model(self, messages, client):
+        self.stream = False
+
         messages = self.process_instruct_messages(messages=messages)
         code = client.completions.create(
             model=self.nim_model_name,
@@ -99,12 +115,14 @@ class ModelAdapter(dl.BaseModelAdapter):
             temperature=self.temperature,
             top_p=self.top_p,
             max_tokens=self.max_token,
-            stream=False
+            stream=self.stream
         )
         code = code.choices[0].text
         return code
 
     def call_model_requests(self, messages):
+        self.stream = False
+
         url = f"https://ai.api.nvidia.com/v1/{self.model_entity.configuration.get('nim_model_name')}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -121,59 +139,66 @@ class ModelAdapter(dl.BaseModelAdapter):
         response = requests.post(url=url, headers=headers, json=payload)
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
+
         full_answer = response.json().get('choices')[0].get('message').get('content')
         return full_answer
 
+    @staticmethod
+    def _preprocess_messages(messages):
+        pre_processed_messages = list()
+        for message in messages:
+            if isinstance(message.get('content', None), list):
+                for message_content in message['content']:
+                    if message_content.get('type', None) == "text" and message_content.get('text', '') != '':
+                        pre_processed_messages.append({
+                            "role": message['role'],
+                            "content": message_content['text']
+                        })
+                    else:
+                        continue
+            else:
+                pre_processed_messages.append(message)
+        return pre_processed_messages
+
     def predict(self, batch, **kwargs):
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
-
-        annotations = []
         for prompt_item in batch:
-            ann_collection = dl.AnnotationCollection()
-            for prompt_name, prompt_content in prompt_item.get('prompts').items():
-                # get latest question
-                question = [p['value'] for p in prompt_content if 'text' in p['mimetype']][0]
-                nearest_items = [p['nearestItems'] for p in prompt_content if 'metadata' in p['mimetype']]
-                if len(nearest_items) > 0:
-                    nearest_items = nearest_items[0]
-                # build context
-                context = ""
-                for item_id in nearest_items:
-                    context_item = dl.items.get(item_id=item_id)
-                    with open(context_item.download(), 'r', encoding='utf-8') as f:
-                        text = f.read()
-                    context += f"\n{text}"
-                messages = list()
-                if len(system_prompt) > 0:
-                    messages.append({"role": "system",
-                                     "content": system_prompt})
-                messages.extend([{"role": "assistant",
-                                  "content": context},
-                                 {"role": "user",
-                                  "content": question}
-                                 ])
-                if self.nim_model_name.startswith('vlm/'):
-                    full_answer = self.call_model_requests(messages=messages)
-                else:
-                    full_answer = self.call_model_open_ai(messages=messages)
+            # Get all messages including model annotations
+            messages = prompt_item.to_messages(model_name=self.model_entity.name)
+            messages.insert(0, {"role": "system", "content": system_prompt})
 
-                ann_collection.add(
-                    annotation_definition=dl.FreeText(text=full_answer),
-                    prompt_id=prompt_name,
+            nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
+            if len(nearest_items) > 0:
+                context = prompt_item.build_context(
+                    nearest_items=nearest_items,
+                    add_metadata=self.configuration.get("add_metadata")
+                )
+                logger.info(f"Nearest items Context: {context}")
+                messages.append({"role": "assistant", "content": context})
+            messages = self._preprocess_messages(messages=messages)
+
+            stream_response = self.stream_response(messages=messages)
+            response = ""
+            for chunk in stream_response:
+                #  Build text that includes previous stream
+                response += chunk
+                prompt_item.add(message={
+                    "role": "assistant",
+                    "content": [{"mimetype": dl.PromptType.TEXT, "value": response}]},
+                    stream=True,
                     model_info={
                         'name': self.model_entity.name,
-                        'model_id': self.model_entity.id,
-                        'confidence': 1.0
+                        'confidence': 1.0,
+                        'model_id': self.model_entity.id
                     }
                 )
 
-            annotations.append(ann_collection)
-        return annotations
+            return []
 
 
 if __name__ == '__main__':
     print(os.path.dirname(__file__))
-    # model = dl.models.get(model_id='')
-    # item = dl.items.get(item_id='')
-    # adapter = ModelAdapter(model)
-    # adapter.predict_items(items=[item])
+    model = dl.models.get(model_id='66cef6ba591adea8906f365b')
+    item = dl.items.get(item_id='66cef62e64d90bec7ec13db2')
+    adapter = ModelAdapter(model)
+    adapter.predict_items(items=[item])
