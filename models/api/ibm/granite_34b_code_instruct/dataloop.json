@@ -1,7 +1,7 @@
 {
   "name": "nim-api-ibm-granite-34b-code-instruct",
   "displayName": "granite-34b-code-instruct",
-  "version": "0.1.43",
+  "version": "0.1.44",
   "scope": "public",
   "description": "Software programming LLM for code generation, completion, explanation, and multi-turn conversion.",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.43"
+    "gitTag": "0.1.44"
   },
   "components": {
     "computeConfigs": [

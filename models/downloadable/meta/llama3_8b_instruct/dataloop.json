@@ -1,7 +1,7 @@
 {
   "name": "nim-llama3-8b-instruct-meta",
   "displayName": "llama3-8b-instruct",
-  "version": "0.1.43",
+  "version": "0.1.44",
   "scope": "public",
   "description": "Downloadable meta/llama3-8b-instruct from NIM",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.43"
+    "gitTag": "0.1.44"
   },
   "components": {
     "computeConfigs": [
