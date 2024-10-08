@@ -1,7 +1,7 @@
 {
   "name": "nim-api-google-gemma-7b",
   "displayName": "gemma-7b",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "scope": "public",
   "description": "Cutting-edge text generation model text understanding, transformation, and code generation.",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.45"
+    "gitTag": "0.1.46"
   },
   "components": {
     "computeConfigs": [

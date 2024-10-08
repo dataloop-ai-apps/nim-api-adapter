@@ -1,7 +1,7 @@
 {
   "name": "nim-api-kosmos-2",
   "displayName": "kosmos-2",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "scope": "public",
   "description": "Groundbreaking multimodal model designed to understand and reason about visual elements in images.",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.1.45"
+    "gitTag": "0.1.46"
   },
   "components": {
     "computeConfigs": [
