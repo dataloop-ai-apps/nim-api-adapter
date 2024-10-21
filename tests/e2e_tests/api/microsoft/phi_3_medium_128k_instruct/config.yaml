@@ -1,0 +1,25 @@
+# ordered list of dpks to publish and install
+dpks:
+    - phi-3-medium-128k-instruct:
+        install_app: True
+
+# ordered list of datasets to create from local assets
+local_datasets:
+    - text_prompt_text_answer
+
+# ordered list of models to get from apps
+models:
+    - phi-3-medium-128k-instruct:
+        deploy_model: False
+        source_app: phi-3-medium-128k-instruct
+
+# list of pipeline variables to update with reference
+variables:
+    dataset:
+        text_prompt_text_answer:
+            resource_type: datasets
+            entity_field: id
+    model:
+        phi-3-medium-128k-instruct:
+            resource_type: models
+            entity_field: id
