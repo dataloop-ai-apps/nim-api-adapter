@@ -2,7 +2,7 @@ import json
 
 import dotenv
 import unittest
-from models.api_nim.main_adapter import ModelAdapter
+from models.api.main_api_adapter import ModelAdapter
 import dtlpy as dl
 
 dotenv.load_dotenv('.env')
@@ -12,7 +12,7 @@ dotenv.load_dotenv('.env')
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        with open("api_nim/nvidia_neva_22b/dataloop.json") as f:
+        with open("api/nvidia/neva_22b/dataloop.json") as f:
             manifest = json.load(f)
         model_json = manifest['components']['models'][0]
         dummy_model = dl.Model.from_json(_json=model_json,

@@ -2,7 +2,7 @@ import json
 
 import dotenv
 import unittest
-from models.api_nim.main_adapter import ModelAdapter
+from models.api.main_api_adapter import ModelAdapter
 import dtlpy as dl
 
 dotenv.load_dotenv('.env')
@@ -12,7 +12,7 @@ dotenv.load_dotenv('.env')
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        with open("api_nim/meta_llama3/8b_instruct/dataloop.json") as f:
+        with open("api/meta/llama3_8b_instruct/dataloop.json") as f:
             manifest = json.load(f)
         model_json = manifest['components']['models'][0]
         dummy_model = dl.Model.from_json(_json=model_json,
@@ -23,7 +23,7 @@ class TestModelAdapter(unittest.TestCase):
         adapter.load('./')
         messages = [{"role": "user",
                      "content": "What is the most important thing a hitchhiker can carry?"}]
-        output = adapter.call_model(messages)
+        output = adapter.call_model_open_ai(messages)
         print(f"model `{dummy_model.name}`, {adapter.nim_model_name}. output: {output}")
 
 
