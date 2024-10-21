@@ -1,0 +1,25 @@
+# ordered list of dpks to publish and install
+dpks:
+    - google-gemma2-27b:
+        install_app: True
+
+# ordered list of datasets to create from local assets
+local_datasets:
+    - text_prompt_text_answer
+
+# ordered list of models to get from apps
+models:
+    - gemma-2-27b-it:
+        deploy_model: False
+        source_app: google-gemma2-27b
+
+# list of pipeline variables to update with reference
+variables:
+    dataset:
+        text_prompt_text_answer:
+            resource_type: datasets
+            entity_field: id
+    model:
+        gemma-2-27b-it:
+            resource_type: models
+            entity_field: id
