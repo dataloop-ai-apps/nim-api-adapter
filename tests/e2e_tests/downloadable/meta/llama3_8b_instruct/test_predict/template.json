@@ -161,7 +161,7 @@
           "io": "output"
         }
       ],
-      "name": "Predict",
+      "name": "Generate",
       "type": "ml",
       "namespace": {
         "functionName": "predict",
