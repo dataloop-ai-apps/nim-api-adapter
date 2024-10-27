@@ -11,7 +11,10 @@
     ],
     "Provider": "MistralAI",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "Mistral's mistral-large NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -93,7 +99,8 @@
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "It can be used for complex multilingual reasoning tasks, including text understanding, transformation, and code generation. Mistral Large has the following capabilities."
       }

@@ -11,7 +11,10 @@
     ],
     "Provider": "BigCode",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": [
       "LLM",
       "Code Generation"
@@ -48,6 +51,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "starcoder2-15b NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -93,7 +99,8 @@
           "nim_model_name": "bigcode/starcoder2-15b",
           "temperature": 0.1,
           "top_p": 0.7,
-          "max_tokens": 200
+          "max_tokens": 200,
+          "stream": true
         },
         "description": "StarCoder2-15B is a state-of-the-art language model with 15 billion parameters, trained on over 600 programming languages using The Stack v2 dataset."
       }
