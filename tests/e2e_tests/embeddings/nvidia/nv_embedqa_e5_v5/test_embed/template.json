@@ -107,7 +107,7 @@
       "projectId": null,
       "config": {
         "package": {
-          "code": "import dtlpy as dl\n\nclass ServiceRunner:\n    @staticmethod\n    def _add_secret_to_model(dataset: dl.Dataset, model: dl.Model, secret_name: str):\n        # Deploy model and get Service\n        service = model.deploy()\n\n        # Get Secret\n        project_org = dl.organizations.get(organization_id=dataset.project.org[\"id\"])\n        org_integrations = project_org.integrations.list()\n        secret_id = None\n        for integration in org_integrations:\n            if integration[\"name\"] == secret_name:\n                secret_id = integration[\"id\"]\n                break\n\n        if secret_id is None:\n            raise ValueError(f\"Secret {secret_name} not found.\")\n\n        # Connect the secret to the service and the model\n        service.secrets = [secret_id]\n        service.update()\n        model.configuration[\"hf_access_token\"] = secret_name\n        model.update()\n\n    def run(self, dataset: dl.Dataset, model: dl.Model, secret_name: str):\n        self._add_secret_to_model(dataset=dataset, model=model, secret_name=secret_name)\n\n        # Define filters\n        filters = dl.Filters()\n        filters.add(field=\"metadata.tags.predict\", values=True)\n\n        # Get predict item\n        predict_item = list(dataset.items.list(filters=filters).all())[0]\n        predict_item.annotations.delete(filters=dl.Filters(resource=dl.FiltersResource.ANNOTATION))\n\n        return predict_item\n",
+          "code": "import dtlpy as dl\n\nclass ServiceRunner:\n    @staticmethod\n    def _add_secret_to_model(dataset: dl.Dataset, model: dl.Model, secret_name: str):\n        # Deploy model and get Service\n        service = model.deploy()\n\n        # Get Secret\n        project_org = dl.organizations.get(organization_id=dataset.project.org[\"id\"])\n        org_integrations = project_org.integrations.list()\n        secret_id = None\n        for integration in org_integrations:\n            if integration[\"name\"] == secret_name:\n                secret_id = integration[\"id\"]\n                break\n\n        if secret_id is None:\n            raise ValueError(f\"Secret {secret_name} not found.\")\n\n        # Update service metadata for embedding\n        service.metadata[\"ml\"][\"deployOperation\"] = \"embed\"\n\n        # Connect the secret to the service and the model\n        service.secrets = [secret_id]\n        service.update()\n        model.configuration[\"hf_access_token\"] = secret_name\n        model.update()\n\n    def run(self, dataset: dl.Dataset, model: dl.Model, secret_name: str):\n        self._add_secret_to_model(dataset=dataset, model=model, secret_name=secret_name)\n\n        # Define filters\n        filters = dl.Filters()\n        filters.add(field=\"metadata.tags.predict\", values=True)\n\n        # Get predict item\n        predict_item = list(dataset.items.list(filters=filters).all())[0]\n        predict_item.annotations.delete(filters=dl.Filters(resource=dl.FiltersResource.ANNOTATION))\n\n        return predict_item\n",
           "name": "run",
           "type": "code",
           "codebase": {
@@ -160,7 +160,7 @@
       "namespace": {
         "functionName": "embed",
         "projectName": null,
-        "serviceName": "model-mgmt-app-predict",
+        "serviceName": "model-mgmt-app-embeddings",
         "moduleName": "",
         "packageName": "model-mgmt-app"
       },
