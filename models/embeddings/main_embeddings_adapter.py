@@ -64,11 +64,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    dl.setenv('rc')
     import dotenv
 
     dotenv.load_dotenv()
-    model = dl.models.get(model_id='67163eeaa3a85dd670c508e7')
-    item = dl.items.get(item_id='67163e620061d9901dd904a7')
+    model = dl.models.get(model_id='')
+    item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.embed_items(items=[item])

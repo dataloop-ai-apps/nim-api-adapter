@@ -66,22 +66,17 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     @staticmethod
     def extract_content(line):
-        default_output = {"content": "", "entities": []}
-        try:
-            line = line[len("data: "):]
-            json_data = json.loads(line)
-            if "choices" in json_data and json_data["choices"]:
-                choices = json_data["choices"][0]
-                if "message" in choices:
-                    content = choices["message"].get("content", "")
-                    entities = choices["message"].get("entities", [])
-                    # Return both content and entities
-                    output = {"content": content, "entities": entities}
-                    return output
+        output = {"content": "", "entities": []}
+        choices = line.get("choices", [{}])
+        choices = choices[0]
+        if "message" in choices:
+            content = choices.get("message", {}).get("content", "")
+            entities = choices.get("message", {}).get("entities", [])
+            output = {"content": content, "entities": entities}
+        else:
+            logger.warning("Message not found in response's json")
 
-        except json.JSONDecodeError:
-            logger.warning("Cannot extract request content. Returns empty output.")
-            return default_output
+        return output
 
     def call_model_open_ai(self, messages):
         client = OpenAI(
@@ -172,7 +167,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                 for line in response.iter_lines():
                     if line:
                         line = line.decode('utf-8')
-                        yield self.extract_content(line) or ""
+                        decoded_line = json.loads(line)
+                        yield self.extract_content(decoded_line) or ""
         else:
             yield response.json().get('choices')[0].get('message').get('content')
 
@@ -206,9 +202,10 @@ class ModelAdapter(dl.BaseModelAdapter):
             for chunk in stream_response:
                 #  Multimodal responses
                 if isinstance(chunk, dict):
-                    entities = chunk.get("entities", [])
+                    entities = chunk.get("entities")
                     chunk = chunk.get("content")
                     if entities != []:
+                        logger.info(f"Found {len(entities)} Bounding Boxes!")
                         elements = prompt_item.prompts[0].elements
                         image_item_id = (
                             next((element['value'].split('/')[-2] for element in elements if
@@ -229,6 +226,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'model_id': self.model_entity.id,
                                             'confidence': 1.0})
                         image_item.annotations.upload(image_annotations)
+                        logger.info("Uploaded bounding box annotations")
 
                 # Other models responses
                 response += chunk
