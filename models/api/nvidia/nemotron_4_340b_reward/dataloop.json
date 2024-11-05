@@ -1,7 +1,7 @@
 {
   "name": "nemotron-4-340b-reward",
   "displayName": "nemotron-4-340b-reward",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Grades responses on five attributes helpfulness, correctness, coherence, complexity and verbosity.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": [
       "LLM",
       "Reward"
@@ -23,7 +26,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -48,6 +51,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "nemotron-4-340b-reward NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -90,7 +96,9 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "nvidia/nemotron-4-340b-reward"
+          "nim_model_name": "nvidia/nemotron-4-340b-reward",
+          "model_to_reward": "nemotron-4-340b-reward",
+          "stream": true
         },
         "description": "The Nemotron-4-340B-Reward is a multi-dimensional Reward Model that can be used as part of a synthetic data generation pipeline to create training data that helps researchers and developers build their own LLMs."
       }

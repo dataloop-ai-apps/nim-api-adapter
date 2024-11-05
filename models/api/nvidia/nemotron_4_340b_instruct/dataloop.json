@@ -1,7 +1,7 @@
 {
   "name": "nemotron-4-340b-instruct",
   "displayName": "nemotron-4-340b-instruct",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Creates diverse synthetic data that mimics the characteristics of real-world data.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"
@@ -21,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "nemotron-4-340b-instruct NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -89,10 +95,12 @@
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-4-340b-instruct",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,
           "top_p": 0.7,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "Nemotron-4-340B-Instruct is a large language model (LLM) that can be used as part of a synthetic data generation pipeline to create training data that helps researchers and developers build their own LLMs."
       }

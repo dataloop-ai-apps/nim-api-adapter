@@ -1,7 +1,7 @@
 {
   "name": "nim-api-kosmos-2",
   "displayName": "kosmos-2",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Groundbreaking multimodal model designed to understand and reason about visual elements in images.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "Microsoft",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LMM",
     "Media Type": [
       "Multi Modal"
@@ -21,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "microsoft-kosmos-2 NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -89,11 +95,11 @@
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "vlm/microsoft/kosmos-2",
-          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.20,
           "top_p": 0.20,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "Kosmos-2 model is a groundbreaking multimodal large language model (MLLM)."
       }

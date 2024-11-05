@@ -1,7 +1,7 @@
 {
   "name": "phi-3-medium-128k-instruct",
   "displayName": "phi-3-medium-128k-instruct",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "Microsoft",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"
@@ -21,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "phi-3-medium-128k NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -92,7 +98,8 @@
           "max_tokens": 1024,
           "temperature": 0.2,
           "top_p": 0.7,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "Phi-3 Medium is a lightweight, state-of-the-art open model built upon datasets used for Phi-2 - synthetic data and filtered publicly available websites - with a focus on very high-quality, reasoning dense data."
       }

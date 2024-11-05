@@ -1,7 +1,7 @@
 {
   "name": "snowflake-arctic-embed-l",
   "displayName": "arctic-embed-l",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "GPU-accelerated generation of text embeddings.",
   "scope": "project",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "Snowflake",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "NLP": "Embeddings",
     "Media Type": [
       "Text"
@@ -20,15 +23,12 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
       {
         "name": "nim-embeddings-deploy",
-        "versions": {
-          "dtlpy": "1.94.3"
-        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -48,9 +48,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
-        "versions": {
-          "dtlpy": "1.94.3"
-        },
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",

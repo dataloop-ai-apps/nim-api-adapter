@@ -1,7 +1,7 @@
 {
   "name": "nim-api-ibm-granite-34b-code-instruct",
   "displayName": "granite-34b-code-instruct",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Software programming LLM for code generation, completion, explanation, and multi-turn conversion.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "IBM",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"
@@ -21,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "granite-34b NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -89,10 +95,12 @@
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "ibm/granite-34b-code-instruct",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "Granite-34B-Code-Instruct generates, explains, and translates code from a natural language prompt."
       }

@@ -9,9 +9,8 @@ logger = logging.getLogger("NIM Adapter")
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model):
         if os.environ.get("NGC_API_KEY", None) is None:
-            raise ValueError(f"Missing API key: NGC_API_KEY")
+            raise ValueError(f"Missing API key")
         self.api_key = os.environ.get("NGC_API_KEY", None)
-        self.embedding_size = model_entity.configuration.get('embeddings_size', 512)
         super().__init__(model_entity)
 
     def load(self, local_path, **kwargs):
@@ -65,11 +64,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    dl.setenv('rc')
     import dotenv
 
     dotenv.load_dotenv()
-    model = dl.models.get(model_id='66c4783c6e6c1ecabf27ae40')
-    item = dl.items.get(item_id='66c47521a55ccf39d96ca91b')
+    model = dl.models.get(model_id='')
+    item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.embed_items(items=[item])

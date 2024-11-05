@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-8b-instruct-meta",
   "displayName": "llama3-8b-instruct",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "scope": "public",
   "description": "Advanced state-of-the-art LLM with language understanding, superior reasoning, and text generation.",
   "attributes": {
@@ -11,7 +11,10 @@
     ],
     "Provider": "Meta",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "Gen AI": "LLM",
     "Media Type": [
       "Text"
@@ -21,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.2"
   },
   "components": {
     "computeConfigs": [
@@ -46,6 +49,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "llama3 8b instruct NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -93,7 +99,8 @@
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
-          "seed": 0
+          "seed": 0,
+          "stream": true
         },
         "description": "Llama 3 is a large language AI model comprising a collection of models capable of generating text and code in response to prompts."
       }
