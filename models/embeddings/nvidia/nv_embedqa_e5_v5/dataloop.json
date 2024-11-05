@@ -11,7 +11,10 @@
     ],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": ["Model", "NIM"],
+    "Category": [
+      "Model",
+      "NIM"
+    ],
     "NLP": "Embeddings",
     "Media Type": [
       "Text"
@@ -26,9 +29,6 @@
     "computeConfigs": [
       {
         "name": "nim-embeddings-deploy",
-        "versions": {
-          "dtlpy": "1.94.3"
-        },
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
@@ -48,9 +48,9 @@
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
-        "versions": {
-          "dtlpy": "1.94.3"
-        },
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "initInputs": [
           {
             "type": "Model",
@@ -114,7 +114,7 @@
         "inputType": "text",
         "configuration": {
           "nim_model_name": "nvidia/nv-embedqa-e5-v5",
-          "embeddings_size": 1024
+          "embeddings_size": 4096
         },
         "description": "The NVIDIA Retrieval QA E5 Embedding Model is an embedding model optimized for text question-answering retrieval."
       }
