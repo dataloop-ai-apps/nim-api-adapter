@@ -72,7 +72,6 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
     model = dl.models.get(model_id='')
-    dataset = dl.datasets.get(dataset_id="")
-    items = dataset.items.get_all_items()
+    item = dl.items.get(item_id="")
     adapter = ModelAdapter(model)
-    adapter.embed_items(items=items)
+    adapter.embed_items(items=[item])
