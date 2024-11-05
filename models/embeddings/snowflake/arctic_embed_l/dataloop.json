@@ -1,7 +1,7 @@
 {
   "name": "snowflake-arctic-embed-l",
   "displayName": "arctic-embed-l",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "GPU-accelerated generation of text embeddings.",
   "scope": "project",
   "attributes": {
@@ -23,7 +23,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "gitTag": "0.3.0"
+    "gitTag": "0.3.1"
   },
   "components": {
     "computeConfigs": [
