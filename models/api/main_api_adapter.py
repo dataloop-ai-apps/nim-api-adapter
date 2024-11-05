@@ -181,8 +181,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             model_name = self.configuration.get("model_to_reward", self.model_entity.name)
 
             messages = prompt_item.to_messages(model_name=model_name)
-            messages.insert(0, {"role": "system",
-                                "content": system_prompt})
+            if system_prompt != '':
+                messages.insert(0, {"role": "system",
+                                    "content": system_prompt})
 
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
             if len(nearest_items) > 0:
