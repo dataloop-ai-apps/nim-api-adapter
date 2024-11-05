@@ -14,14 +14,16 @@ class ModelAdapter(dl.BaseModelAdapter):
         if os.environ.get("NGC_API_KEY", None) is None:
             raise ValueError(f"Missing API key")
 
+        self.adapter_defaults.upload_annotations = False
+
         self.api_key = os.environ.get("NGC_API_KEY", None)
         self.max_token = self.configuration.get('max_token', 1024)
         self.temperature = self.configuration.get('temperature', 0.2)
         self.top_p = self.configuration.get('top_p', 0.7)
         self.seed = self.configuration.get('seed', 0)
         self.stream = self.configuration.get('stream', True)
-        self.nim_model_name = self.configuration.get("nim_model_name")
 
+        self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
 
@@ -31,8 +33,15 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     @staticmethod
     def process_chat_messages(messages):
-        return [{'role': msg['role'], 'content': msg['content'][0][msg['content'][0]['type']]}
-                if (msg.get('role') == 'user' or msg.get('role') == 'assistant') else msg for msg in messages]
+        reformatted_messages = list()
+        for msg in messages:
+            role = msg.get('role')
+            if role == 'user' or role == 'assistant':
+                new_msg = {'role': msg['role'], 'content': msg['content'][0][msg['content'][0]['type']]}
+                reformatted_messages.append(new_msg)
+            else:
+                reformatted_messages.append(msg)
+        return reformatted_messages
 
     @staticmethod
     def process_multimodal_messages(messages: list):
@@ -57,24 +66,22 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     @staticmethod
     def extract_content(line):
+        default_output = {"content": "", "entities": []}
         try:
-            if line.startswith("data: "):
-                line = line[len("data: "):]
+            line = line[len("data: "):]
             json_data = json.loads(line)
             if "choices" in json_data and json_data["choices"]:
                 choices = json_data["choices"][0]
                 if "message" in choices:
                     content = choices["message"].get("content", "")
                     entities = choices["message"].get("entities", [])
+                    # Return both content and entities
+                    output = {"content": content, "entities": entities}
+                    return output
 
-                    # Return both content and entities if entities exist
-                    if entities:
-                        return {"content": content, "entities": entities}
-                    else:
-                        return content
         except json.JSONDecodeError:
-            pass
-        return ""
+            logger.warning("Cannot extract request content. Returns empty output.")
+            return default_output
 
     def call_model_open_ai(self, messages):
         client = OpenAI(
@@ -89,9 +96,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         model_type = model_configs.get(self.nim_model_name, None)
         messages = self.process_chat_messages(messages)
 
-        if model_type == 'instruct':
-            full_answer = self.call_chat_model(messages=messages, client=client)
-        elif model_type == 'chat':
+        if model_type == 'instruct' or model_type == 'chat':
             full_answer = self.call_chat_model(messages=messages, client=client)
         elif model_type == 'reward':
             full_answer = self.call_reward_model(messages=messages, client=client)
@@ -123,7 +128,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             max_tokens=self.max_token,
             stream=self.stream
         )
-        if self.stream:
+        if self.stream is True:
             for chunk in completion:
                 yield chunk.choices[0].delta.content or ""
         else:
@@ -138,7 +143,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             max_tokens=self.max_token,
             stream=self.stream
         )
-        if self.stream:
+        if self.stream is True:
             for chunk in code:
                 yield chunk.choices[0].text or ""
         else:
@@ -161,7 +166,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
 
-        if self.stream:
+        if self.stream is True:
             with response:  # To properly closed The response object after the block of code is executed
                 logger.info("Streaming the response")
                 for line in response.iter_lines():
@@ -199,31 +204,33 @@ class ModelAdapter(dl.BaseModelAdapter):
 
             response = ""
             for chunk in stream_response:
-                #  Build text that includes previous stream
+                #  Multimodal responses
                 if isinstance(chunk, dict):
-                    entities = chunk.get("entities")
+                    entities = chunk.get("entities", [])
                     chunk = chunk.get("content")
-                    elements = prompt_item.prompts[0].elements
-                    image_item_id = (
-                        next((element['value'].split('/')[-2] for element in elements if
-                              element['mimetype'] == 'image/*'), ""))
-                    image_item = dl.items.get(item_id=image_item_id)
-                    image_annotations = dl.AnnotationCollection()
-                    for entity in entities:
-                        label = entity.get("phrase")
-                        bbox = entity.get("bboxes")[0]  # kosmos-2 expect one image for VQA task
-                        image_annotations.add(
-                            annotation_definition=dl.Box(left=bbox[0] * image_item.width,
-                                                         top=bbox[1] * image_item.height,
-                                                         right=bbox[2] * image_item.width,
-                                                         bottom=bbox[3] * image_item.height,
-                                                         label=label),
+                    if entities != []:
+                        elements = prompt_item.prompts[0].elements
+                        image_item_id = (
+                            next((element['value'].split('/')[-2] for element in elements if
+                                  element['mimetype'] == 'image/*'), ""))
+                        image_item = dl.items.get(item_id=image_item_id)
+                        image_annotations = dl.AnnotationCollection()
+                        for entity in entities:
+                            label = entity.get("phrase")
+                            bbox = entity.get("bboxes")[0]  # kosmos-2 expect one image for VQA task
+                            image_annotations.add(
+                                annotation_definition=dl.Box(left=bbox[0] * image_item.width,
+                                                             top=bbox[1] * image_item.height,
+                                                             right=bbox[2] * image_item.width,
+                                                             bottom=bbox[3] * image_item.height,
+                                                             label=label),
 
-                            model_info={'name': self.model_entity.name,
-                                        'model_id': self.model_entity.id,
-                                        'confidence': 1.0})
-                    image_item.annotations.upload(image_annotations)
+                                model_info={'name': self.model_entity.name,
+                                            'model_id': self.model_entity.id,
+                                            'confidence': 1.0})
+                        image_item.annotations.upload(image_annotations)
 
+                # Other models responses
                 response += chunk
                 prompt_item.add(message={"role": "assistant",
                                          "content": [{"mimetype": dl.PromptType.TEXT,
@@ -236,26 +243,11 @@ class ModelAdapter(dl.BaseModelAdapter):
 
 
 if __name__ == '__main__':
-    print(os.path.dirname(__file__))
-    dl.setenv('rc')
     import dotenv
 
     dotenv.load_dotenv()
-    # CHAT
-    model = dl.models.get(model_id='671654c7a3a85df573c508ef')  # VVVV
 
-    # # REWARD
-    # model = dl.models.get(model_id='671654e2f42c6763525b3d38')  # VVVV
-    #
-    # # CODING
-    # model = dl.models.get(model_id='6717690059c4f62fade09dd6')  # VVVV
-
-    # INSTRUCT
-    # model = dl.models.get(model_id='671769f309076bf507caefaa')  # VVVV
-
-    # VLM
-    # model = dl.models.get(model_id='671e03207f6c84bc1d300927')  # TEST THIS
-
-    item = dl.items.get(item_id='671655100061d94c58d91192')
+    model = dl.models.get(model_id='')
+    item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
