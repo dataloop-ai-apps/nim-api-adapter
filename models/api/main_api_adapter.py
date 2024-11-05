@@ -36,8 +36,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         reformatted_messages = list()
         for msg in messages:
             role = msg.get('role')
+            content = msg.get('content', [{}])[0]
             if role == 'user' or role == 'assistant':
-                new_msg = {'role': msg['role'], 'content': msg['content'][0][msg['content'][0]['type']]}
+                new_msg = {'role': role, 'content': content.get(content.get("type", "text"), "")}
                 reformatted_messages.append(new_msg)
             else:
                 reformatted_messages.append(msg)
@@ -245,7 +246,7 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
 
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
+    model = dl.models.get(model_id='672a0b75b71c8ecdf002679c')
+    item = dl.items.get(item_id='672a41f300ef28b76cefc3d9')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])

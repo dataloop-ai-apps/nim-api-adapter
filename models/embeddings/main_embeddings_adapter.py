@@ -56,9 +56,13 @@ class ModelAdapter(dl.BaseModelAdapter):
                 except ValueError as e:
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
 
-            embedding = self.call_model_open_ai(text)
-            logger.info(f'Extracted embeddings for text {item}: {embedding}')
-            embeddings.append(embedding)
+            try:
+                embedding = self.call_model_open_ai(text)
+                logger.info(f'Extracted embeddings for text {item}: {embedding}')
+                embeddings.append(embedding)
+            except Exception:
+                print("skipppp")
+                pass
 
         return embeddings
 
@@ -67,7 +71,8 @@ if __name__ == '__main__':
     import dotenv
 
     dotenv.load_dotenv()
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
+    model = dl.models.get(model_id='672a1b4eb71c8e5acc02679e')
+    dataset = dl.datasets.get(dataset_id="66f2ea16459b2e282f972eca")
+    items = dataset.items.get_all_items()
     adapter = ModelAdapter(model)
-    adapter.embed_items(items=[item])
+    adapter.embed_items(items=items)
