@@ -56,13 +56,9 @@ class ModelAdapter(dl.BaseModelAdapter):
                 except ValueError as e:
                     raise ValueError(f'Only mimetype text or prompt items are supported {e}')
 
-            try:
-                embedding = self.call_model_open_ai(text)
-                logger.info(f'Extracted embeddings for text {item}: {embedding}')
-                embeddings.append(embedding)
-            except Exception:
-                print("skipppp")
-                pass
+            embedding = self.call_model_open_ai(text)
+            logger.info(f'Extracted embeddings for text {item}: {embedding}')
+            embeddings.append(embedding)
 
         return embeddings
 
