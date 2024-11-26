@@ -36,11 +36,13 @@ class ModelAdapter(dl.BaseModelAdapter):
         reformatted_messages = list()
         for msg in messages:
             role = msg.get('role')
+            content = msg.get('content')
             if role == 'user' or role == 'assistant':
-                new_msg = {'role': msg['role'], 'content': msg['content'][0][msg['content'][0]['type']]}
-                reformatted_messages.append(new_msg)
-            else:
-                reformatted_messages.append(msg)
+                if not isinstance(content, str):
+                    msg = {'role': role, 'content': content[0].get(content[0].get("type", "text"), "")}
+
+            reformatted_messages.append(msg)
+
         return reformatted_messages
 
     @staticmethod
