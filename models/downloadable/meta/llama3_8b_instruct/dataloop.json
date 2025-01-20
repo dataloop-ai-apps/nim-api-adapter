@@ -48,9 +48,9 @@
         "entryPoint": "models/downloadable/main_downloadable_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-downloadable-deploy",
-        "versions": {
-          "dtlpy": "1.94.2"
-        },
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
         "description": "Downloadable llama3 NIM Adapter module",
         "initInputs": [
           {
