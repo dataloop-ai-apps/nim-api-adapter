@@ -27,9 +27,6 @@
     "computeConfigs": [
       {
         "name": "nim-downloadable-deploy",
-        "versions": {
-          "dtlpy": "1.94.2"
-        },
         "runtime": {
           "podType": "gpu-a100-s",
           "concurrency": 10,
