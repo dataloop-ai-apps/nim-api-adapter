@@ -1,6 +1,6 @@
 {
-  "name": "nim-api-llama3-2-8b-vision-instruct-meta",
-  "displayName": "llama-3.2-8b-vision-instruct",
+  "name": "nim-api-llama3-2-90b-vision-instruct-meta",
+  "displayName": "llama-3.2-90b-vision-instruct",
   "version": "0.3.4",
   "scope": "public",
   "description": "Cutting-edge vision-language model exceling in high-quality reasoning from images.",
@@ -91,12 +91,12 @@
     ],
     "models": [
       {
-        "name": "llama-3-2-8b-vision-instruct",
+        "name": "llama-3-2-90b-vision-instruct",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "meta/llama-3.2-8b-vision-instruct",
+          "nim_model_name": "meta/llama-3.2-90b-vision-instruct",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,
