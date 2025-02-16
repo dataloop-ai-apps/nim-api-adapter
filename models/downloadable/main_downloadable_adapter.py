@@ -20,11 +20,14 @@ class ModelAdapter(dl.BaseModelAdapter):
                                           stderr=subprocess.PIPE,
                                           shell=True)
 
-        max_retries = 5
+        max_retries = 20
         while max_retries > 0 and self.is_port_available(host='0.0.0.0', port=8000) is True:
             logger.info(f'Waiting for inference server to start sleep {max_retries}')
-            time.sleep(60 * 20)
+            time.sleep(60 * 5)
             max_retries -= 1
+            (out, err) = run_api_server.communicate()
+            logger.info(f'Inference server output: {out}')
+            logger.info(f'Inference server error: {err}')
         logger.info('Done Trying')
         if self.is_port_available(host='0.0.0.0', port=8000) is True:
             raise Exception('Unable to start inference server')
