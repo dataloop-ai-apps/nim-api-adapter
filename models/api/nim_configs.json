@@ -17,5 +17,6 @@
   "mistralai/mistral-7b-instruct-v0.3": "instruct",
   "meta/llama-3.1-8b-instruct": "chat",
   "meta/llama-3.1-70b-instruct": "chat",
-  "meta/llama-3.1-405b-instruct": "chat"
+  "meta/llama-3.1-405b-instruct": "chat",
+  "meta/llama-3.2-90b-vision-instruct": "chat"
 }

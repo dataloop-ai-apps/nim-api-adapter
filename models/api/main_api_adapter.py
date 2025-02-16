@@ -22,6 +22,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.top_p = self.configuration.get('top_p', 0.7)
         self.seed = self.configuration.get('seed', 0)
         self.stream = self.configuration.get('stream', True)
+        self.json_schema = self.configuration.get('json_schema', None)
 
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
@@ -117,14 +118,27 @@ class ModelAdapter(dl.BaseModelAdapter):
         return str(reward_dict)
 
     def call_chat_model(self, messages, client):
-        completion = client.chat.completions.create(
-            model=self.nim_model_name,
-            messages=messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            max_tokens=self.max_token,
-            stream=self.stream
-        )
+        if self.json_schema is not None:
+            self.json_schema = json.loads(self.json_schema)
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream,
+                extra_body={"nvext": {"guided_json": self.json_schema}}
+            )
+        else:
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream
+            )
+
         if self.stream is True:
             for chunk in completion:
                 yield chunk.choices[0].delta.content or ""
@@ -247,7 +261,7 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
 
-    model = dl.models.get(model_id='')
+    model = dl.models.get(model_id='67af067de61420520163d9c7')
     item = dl.items.get(item_id='')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
