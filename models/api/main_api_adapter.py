@@ -253,7 +253,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                                 model_info={'name': self.model_entity.name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
-        return []
+        return batch
 
 
 if __name__ == '__main__':
