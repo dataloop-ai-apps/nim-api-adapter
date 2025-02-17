@@ -2,7 +2,7 @@ import json
 
 import dotenv
 import unittest
-from models.api_nim.main_adapter import ModelAdapter
+from models.api.main_api_adapter import ModelAdapter
 import dtlpy as dl
 
 dotenv.load_dotenv('.env')

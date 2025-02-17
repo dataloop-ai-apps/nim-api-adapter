@@ -119,7 +119,6 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def call_chat_model(self, messages, client):
         if self.json_schema is not None:
-            self.json_schema = json.loads(self.json_schema)
             completion = client.chat.completions.create(
                 model=self.nim_model_name,
                 messages=messages,
@@ -261,7 +260,7 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
 
-    model = dl.models.get(model_id='67af067de61420520163d9c7')
-    item = dl.items.get(item_id='')
+    model = dl.models.get(model_id='67b2ee8985f6d9019681c73c')
+    item = dl.items.get(item_id='67b1de4f7720591867226571')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
