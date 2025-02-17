@@ -27,6 +27,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
+        self.nim_invoke_url = self.configuration.get("nim_invoke_url", self.nim_model_name)
 
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item)
@@ -160,7 +161,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             yield code.choices[0].text
 
     def call_multimodal(self, messages):
-        url = f"https://ai.api.nvidia.com/v1/{self.nim_model_name}"
+        url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json"
@@ -172,6 +173,10 @@ class ModelAdapter(dl.BaseModelAdapter):
             "top_p": self.top_p,
             "stream": self.stream
         }
+        if self.nim_invoke_url != self.nim_model_name:
+            payload["model"] = self.nim_model_name
+        if self.json_schema is not None:
+            payload["nvext"] = {"guided_json": self.json_schema}
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
@@ -207,7 +212,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 logger.info(f"Nearest items Context: {context}")
                 messages.append({"role": "assistant", "content": context})
 
-            if self.nim_model_name.startswith('vlm/'):
+            if self.nim_invoke_url.startswith('vlm/') or self.nim_invoke_url.startswith('gr/'):
                 # VLM (Vision Language Model) - Multimodal models
                 messages = self.process_multimodal_messages(messages)
                 stream_response = self.call_multimodal(messages=messages)
