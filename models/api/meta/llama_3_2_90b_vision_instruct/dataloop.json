@@ -97,6 +97,7 @@
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "meta/llama-3.2-90b-vision-instruct",
+          "nim_invoke_url": "gr/meta/llama-3.2-90b-vision-instruct/chat/completions",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,

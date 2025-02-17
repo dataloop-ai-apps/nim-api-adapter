@@ -31,26 +31,33 @@ json_schema = {
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        file_path = os.path.abspath("models/api/meta/llama_3_2_90b_vision_instruct/dataloop.json")
-        with open(file_path) as f:
+        model_path = os.path.abspath("models/api/meta/llama_3_2_90b_vision_instruct/dataloop.json")
+        with open(model_path) as f:
             manifest = json.load(f)
         model_json = manifest['components']['models'][0]
         dummy_model = dl.Model.from_json(_json=model_json,
                                          client_api=dl.client_api,
                                          project=None,
                                          package=dl.Package())
-
+        dummy_model.configuration['stream'] = False
+        dummy_model.configuration['json_schema'] = json_schema
         adapter = ModelAdapter(model_entity=dummy_model)
-        adapter.stream = False
-        adapter.json_schema = json.loads(json_schema)
+        # adapter.stream = False
+        # adapter.json_schema = json.dumps(json_schema)
 
         adapter.load('./')
+        # prompt_file = os.path.abspath("test/assets/unittests/prompt_item.json")
+        # prompt_item = dl.PromptItem.from_local_file(filepath=prompt_file)
+        # output = adapter.predict([prompt_item])
         messages = [{"role": "user",
                      "content": "What is the most important thing a hitchhiker can carry?"}]
-        output = adapter.call_model_open_ai(messages)
+        output = adapter.call_multimodal(messages)
+
         print(f"model `{dummy_model.name}`,\n\n"
               f"{adapter.nim_model_name}.\n\n"
-              f" output: {output}")
+              f" output: {[print(out) for out in output]}")
+        print()
+
 
 
 if __name__ == '__main__':
