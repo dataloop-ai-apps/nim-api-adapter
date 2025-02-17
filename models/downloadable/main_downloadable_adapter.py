@@ -5,6 +5,7 @@ import time
 from openai import OpenAI
 import socket
 import os
+import select
 
 logger = logging.getLogger('NiM-Model')
 
@@ -18,7 +19,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         run_api_server = subprocess.Popen(run_api_server_command,
                                           stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE,
-                                          shell=True)
+                                          shell=True,
+                                          text=True)
 
         max_retries = 0
         while max_retries < 20 and self.is_port_available(host='0.0.0.0', port=8000) is True:
@@ -26,9 +28,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             time.sleep(60 * 5)
             max_retries += 1
             logger.info(f'Still waiting current logs: ')
-            (out, err) = run_api_server.communicate()
-            logger.info(f'Inference server output: {out}')
-            logger.info(f'Inference server error: {err}')
+            readable, _, _ = select.select([run_api_server.stdout, run_api_server.stderr], [], [], 0.1)
+            for f in readable:
+                line = f.readline()
+                if line:
+                    print(f"Output: {line.strip()}")
         logger.info('Done Trying')
         if self.is_port_available(host='0.0.0.0', port=8000) is True:
             raise Exception('Unable to start inference server')
