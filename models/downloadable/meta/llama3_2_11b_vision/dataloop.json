@@ -92,13 +92,13 @@
           "scope": "project",
           "status": "pre-trained",
           "configuration": {
+            "guided_json": null,
             "request_type": "requests",
             "nim_model_name": "meta/llama3-2-11b-vision",
             "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
-            "max_tokens": 1024,
-            "temperature": 0.5,
-            "top_p": 1,
-            "seed": 0
+            "max_tokens": 256,
+            "temperature": 0,
+            "seed": 20
           },
           "description": "Downloadable meta/llama3-2-11b-vision from NIM"
         }

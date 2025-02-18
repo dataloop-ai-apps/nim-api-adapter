@@ -8,6 +8,7 @@ import requests
 import os
 import select
 import threading
+import json
 
 logger = logging.getLogger("NiM-Model")
 
@@ -56,6 +57,12 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.nim_model_name = self.configuration.get("nim_model_name", None)
         if self.nim_model_name is None:
             raise Exception("Model name is missing in configuration")
+        self.guided_json = self.configuration.get("guided_json", None)
+        if self.guided_json is not None:
+            item = dl.items.get(item_id=self.guided_json)
+            path = item.download(save_locally=True)
+            self.guided_json = json.loads(path)
+            logger.info(f"Guided json: {self.guided_json}")
 
     @staticmethod
     def get_gpu_memory():
@@ -109,7 +116,6 @@ class ModelAdapter(dl.BaseModelAdapter):
             return False
 
     def call_model_open_ai(self, prompt):
-
         completion = self.client.completions.create(
             model=self.nim_model_name, prompt=prompt, max_tokens=1024, stream=False
         )
@@ -117,14 +123,20 @@ class ModelAdapter(dl.BaseModelAdapter):
         return full_answer
 
     def call_model_requests(self, messages):
-
+        seed = self.configuration.get("seed", 20)
+        temperature = self.configuration.get("temperature", 0)
+        max_tokens = self.configuration.get("max_tokens", 256)
         url = "http://0.0.0.0:8000/v1/chat/completions"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "model": "meta/llama-3.2-11b-vision-instruct",
             "messages": messages,
-            "max_tokens": 256,
+            "temperature": temperature,
+            "seed": seed,
+            "max_tokens": max_tokens,
         }
+        if self.guided_json is not None:
+            data["nvext"] = {"guided_json": self.json_schema}
         response = requests.post(url, headers=headers, json=data)
         response_json = response.json()
         full_answer = response_json["choices"][0]["message"]["content"]
@@ -136,7 +148,6 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
-
             messages = prompt_item.to_messages(model_name=self.model_entity.name)
             if self.configuration.get("request_type", "openai") == "openai":
                 full_answer = self.call_model_open_ai(
