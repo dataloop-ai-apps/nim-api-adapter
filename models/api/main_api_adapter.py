@@ -265,7 +265,7 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
 
-    model = dl.models.get(model_id='67b2ee8985f6d9019681c73c')
-    item = dl.items.get(item_id='67b1de4f7720591867226571')
+    model = dl.models.get(model_id='67b45294073b3c88ab48ccbf')
+    item = dl.items.get(item_id='67b444fabe640c0a1bf467b4')
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])

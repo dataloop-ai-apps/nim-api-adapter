@@ -44,9 +44,6 @@ class TestModelAdapter(unittest.TestCase):
         adapter = ModelAdapter(model_entity=dummy_model)
 
         adapter.load('./')
-        # prompt_file = os.path.abspath("test/assets/unittests/prompt_item.json")
-        # prompt_item = dl.PromptItem.from_local_file(filepath=prompt_file)
-        # output = adapter.predict([prompt_item])
         messages = [{"role": "user",
                      "content": "What is the most important thing a hitchhiker can carry?"}]
         output = adapter.call_multimodal(messages)

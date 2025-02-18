@@ -1,8 +1,8 @@
 {
-  "name": "nim-api-llama3-2-90b-vision-instruct-meta",
+  "name": "nim-api-llama3-2-90b-vision-instruct-meta-apps-1703-llama-3.2-0",
   "displayName": "llama-3.2-90b-vision-instruct",
-  "version": "0.3.4",
-  "scope": "public",
+  "version": "0.3.5",
+  "scope": "project",
   "description": "Cutting-edge vision-language model exceling in high-quality reasoning from images.",
   "attributes": {
     "Hub": [
@@ -32,6 +32,7 @@
     "computeConfigs": [
       {
         "name": "nim-api-deploy",
+        "driverId": "us-faas",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
