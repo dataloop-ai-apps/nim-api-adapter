@@ -6,42 +6,85 @@ from openai import OpenAI
 import socket
 import os
 import select
-
-logger = logging.getLogger('NiM-Model')
+import threading
+logger = logging.getLogger("NiM-Model")
 
 
 class ModelAdapter(dl.BaseModelAdapter):
     def load(self, local_path, **kwargs):
         if os.environ.get("NGC_API_KEY", None) is None:
             raise ValueError(f"Missing API key: NGC_API_KEY")
-        logger.info('Starting inference server')
-        run_api_server_command = 'bash /opt/nim/start-server.sh'
-        run_api_server = subprocess.Popen(run_api_server_command,
-                                          stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE,
-                                          shell=True,
-                                          text=True)
+
+        threading.Thread(target=self.keep, daemon=True).start()
+
+        logger.info("Starting inference server")
+        run_api_server_command = "bash /opt/nim/start-server.sh"
+        run_api_server = subprocess.Popen(
+            run_api_server_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            text=True,
+        )
 
         max_retries = 0
-        while max_retries < 20 and self.is_port_available(host='0.0.0.0', port=8000) is True:
-            logger.info(f'Waiting for inference server to start sleep iteration {max_retries} sleeping for 5 minutes')
+        while (
+            max_retries < 20
+            and self.is_port_available(host="0.0.0.0", port=8000) is True
+        ):
+            logger.info(
+                f"Waiting for inference server to start sleep iteration {max_retries} sleeping for 5 minutes"
+            )
             time.sleep(60 * 5)
             max_retries += 1
-            logger.info(f'Still waiting current logs: ')
-            readable, _, _ = select.select([run_api_server.stdout, run_api_server.stderr], [], [], 0.1)
+            logger.info(f"Still waiting current logs: ")
+            readable, _, _ = select.select(
+                [run_api_server.stdout, run_api_server.stderr], [], [], 0.1
+            )
             for f in readable:
                 line = f.readline()
                 if line:
                     print(f"Output: {line.strip()}")
-        logger.info('Done Trying')
-        if self.is_port_available(host='0.0.0.0', port=8000) is True:
-            raise Exception('Unable to start inference server')
+        logger.info("Done Trying")
+        if self.is_port_available(host="0.0.0.0", port=8000) is True:
+            raise Exception("Unable to start inference server")
 
-        self.client = OpenAI(base_url='http://0.0.0.0:8000/v1', api_key="not-used")
+        self.client = OpenAI(base_url="http://0.0.0.0:8000/v1", api_key="not-used")
 
-        self.nim_model_name = self.configuration.get('nim_model_name', None)
+        self.nim_model_name = self.configuration.get("nim_model_name", None)
         if self.nim_model_name is None:
-            raise Exception('Model name is missing in configuration')
+            raise Exception("Model name is missing in configuration")
+
+    @staticmethod
+    def get_gpu_memory():
+        command = "nvidia-smi --query-gpu=memory.free --format=csv"
+        info = (
+            subprocess.check_output(command.split())
+            .decode("ascii")
+            .split("\n")[:-1][1:]
+        )
+        free = [int(x.split()[0]) for i, x in enumerate(info)]
+        command = "nvidia-smi --query-gpu=memory.total --format=csv"
+        info = (
+            subprocess.check_output(command.split())
+            .decode("ascii")
+            .split("\n")[:-1][1:]
+        )
+        total = [int(x.split()[0]) for i, x in enumerate(info)]
+        command = "nvidia-smi --query-gpu=memory.used --format=csv"
+        info = (
+            subprocess.check_output(command.split())
+            .decode("ascii")
+            .split("\n")[:-1][1:]
+        )
+        used = [int(x.split()[0]) for i, x in enumerate(info)]
+        return free, total, used
+
+    def keep(self):
+        while True:
+            free, total, used = self.get_gpu_memory()
+            logger.info(f"gpu memory - total: {total}, used: {used}, free: {free}")
+            time.sleep(5)
 
     @staticmethod
     def is_port_available(host, port):
@@ -66,10 +109,7 @@ class ModelAdapter(dl.BaseModelAdapter):
     def call_model_open_ai(self, prompt):
 
         completion = self.client.completions.create(
-            model=self.nim_model_name,
-            prompt=prompt,
-            max_tokens=1024,
-            stream=False
+            model=self.nim_model_name, prompt=prompt, max_tokens=1024, stream=False
         )
         full_answer = completion.choices[0].text
         return full_answer
@@ -81,11 +121,18 @@ class ModelAdapter(dl.BaseModelAdapter):
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
             messages = prompt_item.to_messages(model_name=self.model_entity.name)
-            full_answer = self.call_model_open_ai(prompt=messages[-1]['content'][0]['text'])
-            prompt_item.add(message={"role": "assistant",
-                                     "content": [{"mimetype": dl.PromptType.TEXT,
-                                                  "value": full_answer}]},
-                            model_info={'name': self.model_entity.name,
-                                        'confidence': 1.0,
-                                        'model_id': self.model_entity.id})
+            full_answer = self.call_model_open_ai(
+                prompt=messages[-1]["content"][0]["text"]
+            )
+            prompt_item.add(
+                message={
+                    "role": "assistant",
+                    "content": [{"mimetype": dl.PromptType.TEXT, "value": full_answer}],
+                },
+                model_info={
+                    "name": self.model_entity.name,
+                    "confidence": 1.0,
+                    "model_id": self.model_entity.id,
+                },
+            )
         return []
