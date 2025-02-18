@@ -4,9 +4,11 @@ import logging
 import time
 from openai import OpenAI
 import socket
+import requests
 import os
 import select
 import threading
+
 logger = logging.getLogger("NiM-Model")
 
 
@@ -114,16 +116,34 @@ class ModelAdapter(dl.BaseModelAdapter):
         full_answer = completion.choices[0].text
         return full_answer
 
+    def call_model_requests(self, messages):
+
+        url = "http://0.0.0.0:8000/v1/chat/completions"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+        data = {
+            "model": "meta/llama-3.2-11b-vision-instruct",
+            "messages": messages,
+            "max_tokens": 256,
+        }
+        response = requests.post(url, headers=headers, json=data)
+        response_json = response.json()
+        full_answer = response_json["choices"][0]["message"]["content"]
+        return full_answer
+
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item=item)
         return prompt_item
 
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
+
             messages = prompt_item.to_messages(model_name=self.model_entity.name)
-            full_answer = self.call_model_open_ai(
-                prompt=messages[-1]["content"][0]["text"]
-            )
+            if self.configuration.get("request_type", "openai") == "openai":
+                full_answer = self.call_model_open_ai(
+                    prompt=messages[-1]["content"][0]["text"]
+                )
+            else:
+                full_answer = self.call_model_requests(messages)
             prompt_item.add(
                 message={
                     "role": "assistant",

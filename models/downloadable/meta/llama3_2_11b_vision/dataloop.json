@@ -92,6 +92,7 @@
           "scope": "project",
           "status": "pre-trained",
           "configuration": {
+            "request_type": "requests",
             "nim_model_name": "meta/llama3-2-11b-vision",
             "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
             "max_tokens": 1024,
