@@ -59,10 +59,13 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise Exception("Model name is missing in configuration")
         self.guided_json = self.configuration.get("guided_json", None)
         if self.guided_json is not None:
-            item = dl.items.get(item_id=self.guided_json)
-            path = item.download(save_locally=True)
-            self.guided_json = json.loads(path)
-            logger.info(f"Guided json: {self.guided_json}")
+            try:
+                item = dl.items.get(item_id=self.guided_json)
+                binaries = item.download(save_locally=False)
+                self.guided_json = json.loads(binaries.getvalue().decode('utf-8'))
+                logger.info(f"Guided json: {self.guided_json}")
+            except Exception as e:
+                logger.error(f"Error loading guided json: {e}")
 
     @staticmethod
     def get_gpu_memory():
@@ -167,3 +170,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                 },
             )
         return []
+
+
+
+
+
