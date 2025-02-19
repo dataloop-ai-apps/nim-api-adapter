@@ -62,7 +62,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             try:
                 item = dl.items.get(item_id=self.guided_json)
                 binaries = item.download(save_locally=False)
-                self.guided_json = json.loads(binaries.getvalue().decode('utf-8'))
+                self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
                 logger.info(f"Guided json: {self.guided_json}")
             except Exception as e:
                 logger.error(f"Error loading guided json: {e}")
@@ -139,7 +139,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             "max_tokens": max_tokens,
         }
         if self.guided_json is not None:
-            data["nvext"] = {"guided_json": self.json_schema}
+            data["nvext"] = {"guided_json": self.guided_json}
         response = requests.post(url, headers=headers, json=data)
         response_json = response.json()
         full_answer = response_json["choices"][0]["message"]["content"]
@@ -170,8 +170,3 @@ class ModelAdapter(dl.BaseModelAdapter):
                 },
             )
         return []
-
-
-
-
-
