@@ -29,12 +29,12 @@
           "name": "nim-downloadable-deploy",
           "driverId": "us-faas",
           "runtime": {
-            "podType": "gpu-a100-s",
-            "concurrency": 10,
+            "podType": "gpu-a100-m",
+            "concurrency": 1,
             "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/llama3-2-11b-vision:0.1.15",
             "autoscaler": {
               "type": "rabbitmq",
-              "minReplicas": 0,
+              "minReplicas": 1,
               "maxReplicas": 2
             }
           }
@@ -81,6 +81,25 @@
               "displayName": "Predict Items",
               "displayIcon": "",
               "description": "NIM llama3 predict items"
+            },
+            {
+              "name": "predict_dataset",
+              "input": [
+                {
+                  "type": "Dataset",
+                  "name": "dataset",
+                  "description": ""
+                },
+                {
+                  "type": "Json",
+                  "name": "filters",
+                  "description": "Dataloop Filter DQL"
+                }
+              ],
+              "output": [],
+              "displayName": "Predict Dataset",
+              "displayIcon": "",
+              "description": "Function to run llama3.2 vision inference on a dataset."
             }
           ]
         }
