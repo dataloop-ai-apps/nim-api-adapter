@@ -2,6 +2,9 @@
 dpks:
     - name: nim-api-llama3-8b-instruct-meta
       install_app: True
+      integrations:
+        - key: "dl-ngc-api-key"  # integration key
+          value: "NGC_API_KEY"  # integration value (integration name or id)
 
 # ordered list of datasets to create from local assets or to get from installed apps
 datasets:

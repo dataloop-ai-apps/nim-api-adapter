@@ -1,25 +1,29 @@
 # ordered list of dpks to publish and install
 dpks:
-    - phi-3-medium-128k-instruct:
-        install_app: True
+    - name: phi-3-medium-128k-instruct
+      install_app: True
+      integrations:
+          - key: "dl-ngc-api-key"  # integration key
+            value: "NGC_API_KEY"  # integration value (integration name or id)
 
-# ordered list of datasets to create from local assets
-local_datasets:
-    - text_prompt_text_answer
+# ordered list of datasets to create from local assets or to get from installed apps
+datasets:
+    - name: text_prompt_text_answer
+      type: local
 
 # ordered list of models to get from apps
 models:
-    - phi-3-medium-128k-instruct:
-        deploy_model: False
-        source_app: phi-3-medium-128k-instruct
+    - name: phi-3-medium-128k-instruct
+      deploy_model: False
+      source_app: phi-3-medium-128k-instruct
 
 # list of pipeline variables to update with reference
 variables:
-    dataset:
-        text_prompt_text_answer:
-            resource_type: datasets
-            entity_field: id
-    model:
-        phi-3-medium-128k-instruct:
-            resource_type: models
-            entity_field: id
+    - name: dataset
+      resource_type: datasets
+      resource_value:
+          resource_name: text_prompt_text_answer
+    - name: model
+      resource_type: models
+      resource_value:
+          resource_name: phi-3-medium-128k-instruct

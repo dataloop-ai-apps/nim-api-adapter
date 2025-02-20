@@ -2,6 +2,9 @@
 dpks:
     - name: google-gemma2-27b
       install_app: True
+      integrations:
+        - key: "dl-ngc-api-key"  # integration key
+          value: "NGC_API_KEY"  # integration value (integration name or id)
 
 # ordered list of datasets to create from local assets or to get from installed apps
 datasets:
