@@ -177,6 +177,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             payload["model"] = self.nim_model_name
         if self.json_schema is not None:
             payload["nvext"] = {"guided_json": self.json_schema}
+        logger.info(f"Payload sent to model: {payload}")
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
@@ -269,6 +270,6 @@ if __name__ == '__main__':
     project = dl.projects.get(project_name="InspectionAnalyticsDemo")
     model = dl.models.get(model_name="llama-3-2-90b-vision-instruct")
     dataset = project.datasets.get("TrialMLSImagery")
-    item = dataset.items.get(item_id="67b9be75396c561cd8fefb1f")
+    item = dataset.items.get(item_id="67bb2c80acf8a830e94e175d")
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
