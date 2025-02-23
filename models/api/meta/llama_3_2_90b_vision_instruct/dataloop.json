@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-2-90b-vision-instruct-meta-apps-1703-llama-3.2-0",
   "displayName": "llama-3.2-90b-vision-instruct",
-  "version": "0.3.6",
+  "version": "0.3.15",
   "scope": "project",
   "description": "Cutting-edge vision-language model exceling in high-quality reasoning from images.",
   "attributes": {

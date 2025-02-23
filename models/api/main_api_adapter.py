@@ -257,7 +257,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                                 model_info={'name': self.model_entity.name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
-        return batch
+        return []
 
 
 if __name__ == '__main__':
@@ -265,7 +265,10 @@ if __name__ == '__main__':
 
     dotenv.load_dotenv()
 
-    model = dl.models.get(model_id='67b45294073b3c88ab48ccbf')
-    item = dl.items.get(item_id='67b444fabe640c0a1bf467b4')
+    dl.setenv('prod')
+    project = dl.projects.get(project_name="InspectionAnalyticsDemo")
+    model = dl.models.get(model_name="llama-3-2-90b-vision-instruct")
+    dataset = project.datasets.get("TrialMLSImagery")
+    item = dataset.items.get(item_id="67b9be75396c561cd8fefb1f")
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])

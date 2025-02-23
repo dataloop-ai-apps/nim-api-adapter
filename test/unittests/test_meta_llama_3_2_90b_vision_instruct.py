@@ -3,7 +3,6 @@ import json
 import dotenv
 import unittest
 import dtlpy as dl
-from pydantic_core.core_schema import json_schema
 
 from models.api.main_api_adapter import ModelAdapter
 
@@ -40,7 +39,7 @@ class TestModelAdapter(unittest.TestCase):
                                          project=None,
                                          package=dl.Package())
         dummy_model.configuration['stream'] = False
-        dummy_model.configuration['json_schema'] = json_schema
+        dummy_model.configuration['guided_json'] = json_schema
         adapter = ModelAdapter(model_entity=dummy_model)
 
         adapter.load('./')
