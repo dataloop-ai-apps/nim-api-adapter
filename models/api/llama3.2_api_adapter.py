@@ -1,10 +1,7 @@
-from Tools.scripts.parse_html5_entities import entities_url
-from openai import OpenAI
 import dtlpy as dl
 import requests
 import logging
 import json
-import os
 from main_api_adapter import ModelAdapter
 
 logger = logging.getLogger("NIM Adapter")
