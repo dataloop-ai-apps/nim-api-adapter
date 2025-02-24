@@ -22,7 +22,18 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.top_p = self.configuration.get('top_p', 0.7)
         self.seed = self.configuration.get('seed', 0)
         self.stream = self.configuration.get('stream', True)
-        self.json_schema = self.configuration.get('json_schema', None)
+        self.guided_json = self.configuration.get("guided_json", None)
+        if self.guided_json is not None:
+            try:
+                item = dl.items.get(item_id=self.guided_json)
+                binaries = item.download(save_locally=False)
+                self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
+                logger.info(f"Guided json: {self.guided_json}")
+            except Exception as e:
+                try:
+                    self.guided_json = json.loads(self.guided_json)
+                except Exception as e:
+                    logger.error(f"Error loading guided json: {e}")
 
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
@@ -119,7 +130,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         return str(reward_dict)
 
     def call_chat_model(self, messages, client):
-        if self.json_schema is not None:
+        if self.guided_json is not None:
             completion = client.chat.completions.create(
                 model=self.nim_model_name,
                 messages=messages,
@@ -127,7 +138,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 top_p=self.top_p,
                 max_tokens=self.max_token,
                 stream=self.stream,
-                extra_body={"nvext": {"guided_json": self.json_schema}}
+                extra_body={"nvext": {"guided_json": self.guided_json}}
             )
         else:
             completion = client.chat.completions.create(
@@ -164,7 +175,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Accept": "application/json"
+            "Content-Type": "application/json",
+            "accept": "application/json",
         }
         payload = {
             "messages": messages,
@@ -175,8 +187,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
-        if self.json_schema is not None:
-            payload["nvext"] = {"guided_json": self.json_schema}
+        if self.guided_json is not None:
+            payload["nvext"] = {"guided_json": self.guided_json}
         logger.info(f"Payload sent to model: {payload}")
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
@@ -268,8 +280,14 @@ if __name__ == '__main__':
 
     dl.setenv('prod')
     project = dl.projects.get(project_name="InspectionAnalyticsDemo")
-    model = dl.models.get(model_name="llama-3-2-90b-vision-instruct")
+    # model = project.models.get(model_name="llama-3-2-90b-vision-instruct")
     dataset = project.datasets.get("TrialMLSImagery")
-    item = dataset.items.get(item_id="67bb2c80acf8a830e94e175d")
+    # item = dataset.items.get(item_id="67bc57e3acf8a88e0e4f2eca")  # 783 photo4
+    model = project.models.get(model_name="kosmos-2")
+    model.configuration['stream'] = True
+    item = dataset.items.get(item_id="67bc772b13b6fb55b48db731")
+
+    anns = item.annotations.list().delete()
+
     adapter = ModelAdapter(model)
     adapter.predict_items(items=[item])
