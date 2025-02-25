@@ -1,8 +1,8 @@
 {
-  "name": "nim-api-llama3-2-90b-vision-instruct-meta-apps-1703-llama-3.2-0",
+  "name": "nim-api-llama3-2-90b-vision-instruct-meta",
   "displayName": "llama-3.2-90b-vision-instruct",
-  "version": "0.3.25",
-  "scope": "project",
+  "version": "0.3.4",
+  "scope": "public",
   "description": "Cutting-edge vision-language model exceling in high-quality reasoning from images.",
   "attributes": {
     "Hub": [
@@ -22,6 +22,11 @@
       "Multi Modal"
     ],
     "NLP": "Conversational"
+  },
+    "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.4"
   },
   "components": {
     "computeConfigs": [

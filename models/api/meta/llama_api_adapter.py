@@ -63,18 +63,15 @@ class LlamaAdapter(ModelAdapter):
 
 if __name__ == '__main__':
     import dotenv
-
     dotenv.load_dotenv()
 
     dl.setenv('prod')
-    project = dl.projects.get(project_name="InspectionAnalyticsDemo")
-    dataset = project.datasets.get("TrialMLSImagery")
+    project = dl.projects.get(project_name="")
+    dataset = project.datasets.get("")
 
-    # model = project.models.get(model_name="llama-3-2-90b-vision-instruct") # step 1 model
-    # item = dataset.items.get(item_id="67bc772b13b6fb55b48db731")  # image analysis
-    model = project.models.get(model_name="llama-3-1-70b-instruct") # step 2 model
-    item = dataset.items.get(item_id="67bdcd5713b6fb75b9900379")  # summary item
+    model = project.models.get(model_name="")
+    item = dataset.items.get(item_id="")
     anns = item.annotations.list().delete()
-    model.configuration['stream'] = True
+
     adapter = LlamaAdapter(model)
     adapter.predict_items(items=[item])
