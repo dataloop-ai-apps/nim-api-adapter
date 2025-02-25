@@ -1,8 +1,8 @@
-import dtlpy as dl
-import requests
-import logging
 import json
-from main_api_adapter import ModelAdapter
+import logging
+import requests
+import dtlpy as dl
+from models.api.main_api_adapter import ModelAdapter
 
 logger = logging.getLogger("NIM Adapter")
 
@@ -33,31 +33,32 @@ class LlamaAdapter(ModelAdapter):
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
 
         if self.stream is True:
-            with response:  # To properly closed The response object after the block of code is executed
+            with (response):  # To properly closed The response object after the block of code is executed
                 logger.info("Streaming the response")
                 for line in response.iter_lines():
                     if line:
-                        line = line.decode('utf-8').replace("data: ", "")
+                        line = line.decode('utf-8')
+                        lookup_key = "delta" if line[0:4] == "data" else "messages"
+                        line = line.replace("data: ", "") # specific to llama3.2 vision instruct output
                         if "[DONE]" not in line:
                             decoded_line = json.loads(line)
-                        yield self.extract_content(decoded_line) or ""
+                        yield self.extract_content(decoded_line, lookup_key) or ""
         else:
             yield response.json().get('choices')[0].get('message').get('content')
 
     @staticmethod
-    def extract_content(line):
+    def extract_content(line, response_key="messages"):
         output = {"content": "", "entities": []}
         choices = line.get("choices", [{}])
         choices = choices[0]
-        if "delta" in choices:
-            content = choices.get("delta", {}).get("content", "")
-            entities = []
+        if response_key in choices:
+            content = choices.get(response_key, {}).get("content", "")
+            entities = choices.get(response_key, {}).get("entities", [])
             output = {"content": content, "entities": entities}
         else:
             logger.warning("Message not found in response's json")
 
         return output
-
 
 
 if __name__ == '__main__':
@@ -67,12 +68,13 @@ if __name__ == '__main__':
 
     dl.setenv('prod')
     project = dl.projects.get(project_name="InspectionAnalyticsDemo")
-    model = project.models.get(model_name="llama-3-2-90b-vision-instruct")
     dataset = project.datasets.get("TrialMLSImagery")
-    # model.configuration['stream'] = True
-    item = dataset.items.get(item_id="67bc772b13b6fb55b48db731")
 
+    # model = project.models.get(model_name="llama-3-2-90b-vision-instruct") # step 1 model
+    # item = dataset.items.get(item_id="67bc772b13b6fb55b48db731")  # image analysis
+    model = project.models.get(model_name="llama-3-1-70b-instruct") # step 2 model
+    item = dataset.items.get(item_id="67bdcd5713b6fb75b9900379")  # summary item
     anns = item.annotations.list().delete()
-
-    adapter =LlamaAdapter(model)
+    model.configuration['stream'] = True
+    adapter = LlamaAdapter(model)
     adapter.predict_items(items=[item])
