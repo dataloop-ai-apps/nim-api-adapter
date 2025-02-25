@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-1-70b-instruct-meta-apps-1703-llama-3.2",
   "displayName": "llama-3.1-70b-instruct-cape",
-  "version": "0.3.8",
+  "version": "0.3.10",
   "scope": "project",
   "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation.",
   "attributes": {
@@ -41,7 +41,7 @@
       {
         "name": "nim-api-module",
         "entryPoint": "models/api/main_api_adapter.py",
-        "className": "ModelAdapter",
+        "className": "LlamaAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "llama3.1 70b instruct NIM API Adapter",
         "integrations": [
