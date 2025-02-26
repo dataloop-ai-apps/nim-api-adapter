@@ -1,9 +1,9 @@
 {
-  "name": "nim-api-llama3-1-70b-instruct-meta",
-  "displayName": "llama-3.1-70b-instruct",
+  "name": "nim-api-llama3-2-90b-vision-instruct-meta",
+  "displayName": "llama-3.2-90b-vision-instruct",
   "version": "0.3.4",
   "scope": "public",
-  "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation.",
+  "description": "Cutting-edge vision-language model exceling in high-quality reasoning from images.",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -15,13 +15,15 @@
       "Model",
       "NIM"
     ],
-    "Gen AI": "LLM",
+    "Gen AI": "LMM",
     "Media Type": [
-      "Text"
+      "Image",
+      "Text",
+      "Multi Modal"
     ],
     "NLP": "Conversational"
   },
-  "codebase": {
+    "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
     "gitTag": "0.3.4"
@@ -30,6 +32,7 @@
     "computeConfigs": [
       {
         "name": "nim-api-deploy",
+        "driverId": "us-faas",
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
@@ -48,7 +51,7 @@
         "entryPoint": "models/api/meta/llama_api_adapter.py",
         "className": "LlamaAdapter",
         "computeConfig": "nim-api-deploy",
-        "description": "llama3.1 70b instruct NIM API Adapter",
+        "description": "llama3.2 90b instruct NIM API Adapter",
         "integrations": [
           "dl-ngc-api-key"
         ],
@@ -82,19 +85,20 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "NIM API llama3.1 predict items"
+            "description": "NIM API llama3.2 predict items"
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "llama-3-1-70b-instruct",
+        "name": "llama-3-2-90b-vision-instruct",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "meta/llama-3.1-70b-instruct",
+          "nim_model_name": "meta/llama-3.2-90b-vision-instruct",
+          "nim_invoke_url": "gr/meta/llama-3.2-90b-vision-instruct/chat/completions",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.2,
@@ -102,7 +106,7 @@
           "seed": 0,
           "stream": true
         },
-        "description": "The Meta Llama 3.1 collection of multilingual large language models (LLMs) is a collection of pretrained and instruction tuned generative models."
+        "description": "The Meta Llama 3.2 collection of multilingual large language models (LLMs) is a collection of pretrained and instruction tuned generative models."
       }
     ]
   }

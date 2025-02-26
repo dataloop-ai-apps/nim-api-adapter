@@ -22,10 +22,23 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.top_p = self.configuration.get('top_p', 0.7)
         self.seed = self.configuration.get('seed', 0)
         self.stream = self.configuration.get('stream', True)
+        self.guided_json = self.configuration.get("guided_json", None)
+        if self.guided_json is not None:
+            try:
+                item = dl.items.get(item_id=self.guided_json)
+                binaries = item.download(save_locally=False)
+                self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
+                logger.info(f"Guided json: {self.guided_json}")
+            except Exception as e:
+                try:
+                    self.guided_json = json.loads(self.guided_json)
+                except Exception as e:
+                    logger.error(f"Error loading guided json: {e}")
 
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
+        self.nim_invoke_url = self.configuration.get("nim_invoke_url", self.nim_model_name)
 
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item)
@@ -117,14 +130,26 @@ class ModelAdapter(dl.BaseModelAdapter):
         return str(reward_dict)
 
     def call_chat_model(self, messages, client):
-        completion = client.chat.completions.create(
-            model=self.nim_model_name,
-            messages=messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            max_tokens=self.max_token,
-            stream=self.stream
-        )
+        if self.guided_json is not None:
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream,
+                extra_body={"nvext": {"guided_json": self.guided_json}}
+            )
+        else:
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream
+            )
+
         if self.stream is True:
             for chunk in completion:
                 yield chunk.choices[0].delta.content or ""
@@ -147,10 +172,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             yield code.choices[0].text
 
     def call_multimodal(self, messages):
-        url = f"https://ai.api.nvidia.com/v1/{self.nim_model_name}"
+        url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Accept": "application/json"
+            "Content-Type": "application/json",
+            "accept": "application/json",
         }
         payload = {
             "messages": messages,
@@ -159,6 +185,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             "top_p": self.top_p,
             "stream": self.stream
         }
+        if self.nim_invoke_url != self.nim_model_name:
+            payload["model"] = self.nim_model_name
+        if self.guided_json is not None:
+            payload["nvext"] = {"guided_json": self.guided_json}
+        logger.info(f"Payload sent to model: {payload}")
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
@@ -194,7 +225,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 logger.info(f"Nearest items Context: {context}")
                 messages.append({"role": "assistant", "content": context})
 
-            if self.nim_model_name.startswith('vlm/'):
+            if self.nim_invoke_url.startswith('vlm/') or self.nim_invoke_url.startswith('gr/'):
                 # VLM (Vision Language Model) - Multimodal models
                 messages = self.process_multimodal_messages(messages)
                 stream_response = self.call_multimodal(messages=messages)
@@ -240,14 +271,3 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
-
-
-if __name__ == '__main__':
-    import dotenv
-
-    dotenv.load_dotenv()
-
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
-    adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])

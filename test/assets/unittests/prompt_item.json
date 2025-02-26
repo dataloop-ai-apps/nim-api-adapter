@@ -1,0 +1,24 @@
+{
+  "shebang": "dataloop",
+  "metadata": {
+    "dltype": "prompt"
+  },
+  "prompts": {
+    "1": [
+      {
+        "mimetype": "application/text",
+        "value": "Analyze the provided image from a property. Describe the image based on the properties in the schema. Return a valid JSON response following this exact schema:\n\n{'type': 'object', 'description': 'Schema for property inspection details', 'properties': {'windows': {'type': 'object', 'properties': {'broken_or_bars': {'type': 'boolean', 'description': 'Whether any windows are broken or have bars on them'}, 'boarded': {'type': 'boolean', 'description': 'Whether any doors or windows are boarded up'}}, 'required': ['broken_or_bars', 'boarded']}, 'electrical_panel': {'type': 'object', 'properties': {'concerns': {'type': 'boolean', 'description': 'Whether there are concerns with the electrical panel such as exposed wires, rounded fuses, missing panel covers, or rust'}, 'manufacturer': {'type': 'string', 'description': 'Manufacturer of the electrical panel'}}, 'required': ['concerns', 'manufacturer']}, 'garage': {'type': 'object', 'properties': {'size': {'type': 'string', 'description': 'Size of the garage'}, 'type': {'type': 'string', 'description': 'Type of garage (attached, detached, built-in, basement, carport)'}}, 'required': ['size', 'type']}, 'stories': {'type': 'integer', 'description': 'Number of stories (including partial stories) in the property'}, 'foundation': {'type': 'string', 'description': 'Description of the property foundation'}, 'pool_or_hot_tub': {'type': 'object', 'properties': {'present': {'type': 'boolean', 'description': 'Whether a pool or hot tub is present'}, 'condition': {'type': 'string', 'description': 'Condition of the pool or hot tub'}}, 'required': ['present', 'condition']}, 'interior_walls_damage': {'type': 'array', 'items': {'type': 'string', 'enum': ['holes', 'cracking', 'crumbling', 'missing siding', 'significant peeling paint', 'staining', 'wood rot', 'plant growth']}, 'description': 'Evidence of damage to interior walls'}, 'sidewalks_walkways_driveways': {'type': 'boolean', 'description': 'Whether there is significant cracking or crumbling in the sidewalks, walkways, or driveways'}, 'porches_patios_decks': {'type': 'boolean', 'description': 'Whether there is significant cracking, crumbling, or lifting to the porches, patios, or decks'}, 'outdoor_appliances': {'type': 'array', 'items': {'type': 'string'}, 'description': 'Outdoor appliances present on the property'}}, 'required': ['windows', 'electrical_panel', 'garage', 'stories', 'foundation', 'pool_or_hot_tub', 'interior_walls_damage', 'sidewalks_walkways_driveways', 'porches_patios_decks', 'outdoor_appliances']}"
+      },
+      {
+        "mimetype": "image/*",
+        "value": "https://rc-gate.dataloop.ai/api/v1/items/67acff7fd709a5c4be564e90/stream"
+      },
+      {
+        "mimetype": "metadata",
+        "value": {
+          "role": "user"
+        }
+      }
+    ]
+  }
+}
