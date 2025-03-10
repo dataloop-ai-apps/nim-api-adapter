@@ -129,28 +129,12 @@ class ModelAdapter(dl.BaseModelAdapter):
             collection = dl.AnnotationCollection()
             if 'yolox' in self.model_entity.name:
                 collection = self.extract_annotations_yolox(img, image_b64, collection)
-            # elif 'paddleocr' in self.model_entity.name:
-            elif 'paddleocr' in self.model_entity.configuration.get('name'):
+            elif 'paddleocr' in self.model_entity.name:
                 collection = self.extract_annotations_paddleocr(img, image_b64, collection)
-            # elif 'cached' in self.model_entity.name:
-            elif 'cached' in self.model_entity.configuration.get('name'):
+            elif 'cached' in self.model_entity.name:
                 collection = self.extract_annotations_cached(item, image_b64, collection)
             
             batch_annotations.append(collection)
 
         return batch_annotations
             
-
-
-if __name__ == "__main__":
-    import dotenv
-    dotenv.load_dotenv(r"C:\Users\Roni\Desktop\Projects\nim-api-adapter\models\.env")
-    dl.setenv('rc')
-    model = dl.models.get(model_id="67cdbb5b6085460697ad586f")
-    model.configuration['name'] = 'cached'
-    model.update()
-    adapter = ModelAdapter(model)
-    item = dl.items.get(item_id="67ce9e2b7aad42fbd0a67cfc")
-    # img, image_b64 = adapter.prepare_item_func(item)
-    adapter.predict_items([item])
-    # print(response)
