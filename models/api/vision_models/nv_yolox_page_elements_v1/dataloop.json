@@ -91,7 +91,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "invoke_url": "cv/nvidia/nv-yolox-page-elements-v1"
+          "nim_invoke_url": "cv/nvidia/nv-yolox-page-elements-v1"
         },
         "description": "YOLOX-L model for document element detection, served by NIM API."
       }

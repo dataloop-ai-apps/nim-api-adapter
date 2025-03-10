@@ -19,7 +19,9 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         self.api_key = os.environ.get("NGC_API_KEY", None)
 
-        self.nim_invoke_url = self.configuration.get("nim_invoke_url", "https://ai.api.nvidia.com/v1/cv/university-at-buffalo/cached")
+        self.nim_invoke_url = self.configuration.get("nim_invoke_url")
+        if self.nim_invoke_url is None:
+            raise ValueError("nim_invoke_url is not set! Insert the nim url in the model configuration.")
 
     def prepare_item_func(self, item: dl.Item):
         buffer = item.download(save_locally=False)

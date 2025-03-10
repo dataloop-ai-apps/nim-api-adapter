@@ -91,7 +91,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "invoke_url": "cv/baidu/paddleocr"
+          "nim_invoke_url": "cv/baidu/paddleocr"
         },
         "description": "PaddleOCR model for OCR, served by NIM API."
       }
