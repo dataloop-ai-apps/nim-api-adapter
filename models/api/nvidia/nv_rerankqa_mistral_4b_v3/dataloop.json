@@ -1,0 +1,107 @@
+{
+  "name": "nv-rerankqa-mistral-4b-v3",
+  "displayName": "nv-rerankqa-mistral-4b-v3",
+  "version": "0.3.6",
+  "scope": "public",
+  "description": "NVIDIA Retrieval QA Mistral 4B Reranking providing a logit score that represents how relevant a document(s) is to a given query. Served by NIM API.",
+  "attributes": {
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
+    "Category": [
+      "Model",
+      "NIM"
+    ],
+    "Gen AI": [
+      "LLM",
+      "Reward"
+    ],
+    "Media Type": [
+      "Text"
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.6"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/api/main_api_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "nv-rerankqa-mistral-4b-v3 NIM API Adapter",
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API nv-rerankqa-mistral-4b-v3 predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nv-rerankqa-mistral-4b-v3",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "nvidia/nv-rerankqa-mistral-4b-v3",
+          "model_to_reward": "nemotron-4-340b-reward",
+          "stream": true
+        },
+        "description": "The nv-rerankqa-mistral-4b-v3 providing a logit score that represents how relevant a document(s) is to a given query."
+      }
+    ]
+  }
+}
