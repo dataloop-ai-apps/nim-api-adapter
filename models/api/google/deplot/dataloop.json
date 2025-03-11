@@ -15,8 +15,13 @@
       "Model",
       "NIM"
     ],
-    "Computer Vision": "Object Detection",
-    "Media Type": ["Image"]
+    "Gen AI": "LMM",
+    "Media Type": [
+      "Image",
+      "Text",
+      "Multi Modal"
+    ],
+    "NLP": "Conversational"
   },
   "codebase": {
     "type": "git",
@@ -42,8 +47,8 @@
     "modules": [
       {
         "name": "nim-api-module",
-        "entryPoint": "models/api/main_model_adapter.py",
-        "className": "ModelAdapter",
+        "entryPoint": "models/api/meta/llama_api_adapter.py",
+        "className": "LlamaAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "NIM API Adapter for Google DePlot, facilitating the conversion of plot or chart images into structured tables.",
         "integrations": [
@@ -91,11 +96,11 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "invoke_url": "vlm/google/deplot",
+          "nim_invoke_url": "vlm/google/deplot",
           "max_tokens": 1024,
           "temperature": 0.20,
           "top_p": 0.20,
-          "stream": false
+          "stream": true
         },
         "description": "Google DePlot model for transforming plot or chart images into structured tables, served by NIM API."
       }
