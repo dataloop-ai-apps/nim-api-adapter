@@ -129,12 +129,14 @@ class ModelAdapter(dl.BaseModelAdapter):
         batch_annotations = list()
         for item, img, image_b64 in batch:
             collection = dl.AnnotationCollection()
-            if 'yolox' in self.model_entity.name:
+            if 'nv-yolox-page-elements-v1' in self.model_entity.name:
                 collection = self.extract_annotations_yolox(img, image_b64, collection)
-            elif 'paddleocr' in self.model_entity.name:
+            elif 'baidu-paddleocr' in self.model_entity.name:
                 collection = self.extract_annotations_paddleocr(img, image_b64, collection)
-            elif 'cached' in self.model_entity.name:
+            elif 'university-at-buffalo-cached' in self.model_entity.name:
                 collection = self.extract_annotations_cached(item, image_b64, collection)
+            else:
+                raise ValueError(f"Model {self.model_entity.name} not supported")
             
             batch_annotations.append(collection)
 
