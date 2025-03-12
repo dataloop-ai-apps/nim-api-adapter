@@ -9,7 +9,7 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Provider": "NVIDIA",
+    "Provider": "Google",
     "Deployed By": "NVIDIA",
     "Category": [
       "Model",
@@ -97,6 +97,7 @@
         "status": "pre-trained",
         "configuration": {
           "nim_invoke_url": "vlm/google/deplot",
+          "nim_model_name": "google/deplot",
           "max_tokens": 1024,
           "temperature": 0.20,
           "top_p": 0.20,
