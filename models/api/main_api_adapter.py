@@ -264,10 +264,10 @@ class ModelAdapter(dl.BaseModelAdapter):
 
                 # Other models responses
                 response += chunk
-            prompt_item.add(message={"role": "assistant",
-                                        "content": [{"mimetype": dl.PromptType.TEXT,
-                                                    "value": response}]},
-                            model_info={'name': self.model_entity.name,
-                                        'confidence': 1.0,
-                                        'model_id': self.model_entity.id})
+                prompt_item.add(message={"role": "assistant",
+                                            "content": [{"mimetype": dl.PromptType.TEXT,
+                                                        "value": response}]},
+                                model_info={'name': self.model_entity.name,
+                                            'confidence': 1.0,
+                                            'model_id': self.model_entity.id})
         return []
