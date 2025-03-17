@@ -1,7 +1,7 @@
 {
   "name": "baidu-paddleocr",
   "displayName": "baidu-paddleocr",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "scope": "public",
   "description": "PaddleOCR is an ultra-lightweight OCR system by Baidu, supporting advanced OCR algorithms, served by NIM API.",
   "attributes": { 
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.8"
+    "gitTag": "0.3.9"
   },
   "components": {
     "computeConfigs": [
