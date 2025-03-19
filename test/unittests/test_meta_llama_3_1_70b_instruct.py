@@ -38,11 +38,7 @@ class TestModelAdapter(unittest.TestCase):
         messages = [{"role": "user", "content": "What is the most important thing a hitchhiker can carry?"}]
         output = adapter.call_multimodal(messages)
 
-        print(
-            f"model `{dummy_model.name}`,\n\n"
-            f"{adapter.nim_model_name}.\n\n"
-            f" output: {[print(out) for out in output]}"
-        )
+        print(f"model `{dummy_model.name}`,\n\n" f"{dummy_model.name}.\n\n" f" output: {output}")
         print()
 
 
