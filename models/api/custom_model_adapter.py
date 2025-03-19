@@ -2,12 +2,12 @@ import json
 import logging
 import requests
 import dtlpy as dl
-from models.api.main_api_adapter import ModelAdapter
+from main_api_adapter import ModelAdapter
 
 logger = logging.getLogger("NIM Adapter")
 
 
-class LlamaAdapter(ModelAdapter):
+class CustomModelAdapter(ModelAdapter):
     def call_multimodal(self, messages):
         url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
@@ -73,5 +73,5 @@ if __name__ == '__main__':
     item = dataset.items.get(item_id="")
     anns = item.annotations.list().delete()
 
-    adapter = LlamaAdapter(model)
+    adapter = CustomModelAdapter(model)
     adapter.predict_items(items=[item])
