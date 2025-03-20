@@ -47,8 +47,8 @@
     "modules": [
       {
         "name": "nim-api-module",
-        "entryPoint": "models/api/meta/llama_api_adapter.py",
-        "className": "LlamaAdapter",
+        "entryPoint": "models/api/custom_model_adapter.py",
+        "className": "CustomModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "NIM API Adapter for Google DePlot, facilitating the conversion of plot or chart images into structured tables.",
         "integrations": [

@@ -1,8 +1,8 @@
 import json
-
+import base64
 import dotenv
 import unittest
-from models.api.main_api_adapter import ModelAdapter
+from models.api.vision_models.vision_model_adapter import ModelAdapter
 import dtlpy as dl
 
 dotenv.load_dotenv(".env")
@@ -12,15 +12,16 @@ dotenv.load_dotenv(".env")
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        with open("models/api/ibm/granite_34b_code_instruct/dataloop.json") as f:
+        with open("models/api/vision_models/nv_yolox_page_elements_v1/dataloop.json") as f:
             manifest = json.load(f)
+        with open("test/assets/unittests/sample_image.png", "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode()
         model_json = manifest["components"]["models"][0]
         dummy_model = dl.Model.from_json(_json=model_json, client_api=dl.client_api, project=None, package=dl.Package())
         adapter = ModelAdapter(model_entity=dummy_model)
         adapter.load("./")
-        messages = [{"role": "user", "content": "What is the most important thing a hitchhiker can carry?"}]
-        output = adapter.call_model_open_ai(messages)
-        print(f"model `{dummy_model.name}`, {adapter.nim_model_name}. output: {output}")
+        output = adapter.call_model(image_b64)
+        print(f"model `{dummy_model.name}`, {adapter.nim_invoke_url}. output: {output}")
 
 
 if __name__ == "__main__":
