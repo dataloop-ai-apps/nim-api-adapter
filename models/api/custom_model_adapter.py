@@ -2,7 +2,7 @@ import json
 import logging
 import requests
 import dtlpy as dl
-from .main_api_adapter import ModelAdapter
+from models.api.main_api_adapter import ModelAdapter
 
 logger = logging.getLogger("NIM Adapter")
 
@@ -67,12 +67,8 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
 
     dl.setenv("prod")
-    project = dl.projects.get(project_name="")
-    dataset = project.datasets.get("")
-
-    model = project.models.get(model_name="")
-    item = dataset.items.get(item_id="")
-    anns = item.annotations.list().delete()
+    model = dl.models.get(model_id="")
+    item = dl.items.get(item_id="")
 
     adapter = CustomModelAdapter(model)
     adapter.predict_items(items=[item])
