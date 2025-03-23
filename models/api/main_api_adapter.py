@@ -2,6 +2,7 @@ from openai import OpenAI
 import dtlpy as dl
 import requests
 import logging
+import time
 import json
 import os
 
@@ -23,6 +24,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.seed = self.configuration.get('seed', 0)
         self.stream = self.configuration.get('stream', True)
         self.guided_json = self.configuration.get("guided_json", None)
+        self.stream_debounce = self.configuration.get("stream_debounce", 2)
         if self.guided_json is not None:
             try:
                 item = dl.items.get(item_id=self.guided_json)
@@ -233,6 +235,8 @@ class ModelAdapter(dl.BaseModelAdapter):
                 stream_response = self.call_model_open_ai(messages=messages)
 
             response = ""
+            last_update = time.time()
+            final_update_required = True
             for chunk in stream_response:
                 #  Multimodal responses
                 if isinstance(chunk, dict):
@@ -261,13 +265,19 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0})
                         image_item.annotations.upload(image_annotations)
                         logger.info("Uploaded bounding box annotations")
-
                 # Other models responses
                 response += chunk
-                prompt_item.add(message={"role": "assistant",
-                                            "content": [{"mimetype": dl.PromptType.TEXT,
-                                                        "value": response}]},
-                                model_info={'name': self.model_entity.name,
-                                            'confidence': 1.0,
-                                            'model_id': self.model_entity.id})
+                final_update_required = True
+                if time.time() - last_update > self.stream_debounce:
+                    final_update_required = False
+                    self.add_annotation(item=prompt_item, value=response)
+                    last_update = time.time()
+            if final_update_required:
+                self.add_annotation(item=prompt_item, value=response)
         return []
+
+    def add_annotation(self, item, value):
+        item.add(
+            message={"role": "assistant", "content": [{"mimetype": dl.PromptType.TEXT, "value": value}]},
+            model_info={'name': self.model_entity.name, 'confidence': 1.0, 'model_id': self.model_entity.id}
+        )
