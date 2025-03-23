@@ -1,9 +1,9 @@
 {
-  "name": "nim-llama3-8b-instruct-meta",
-  "displayName": "llama3-8b-instruct",
-  "version": "0.3.15",
+  "name": "nim-llama3-2-90b-vision-meta",
+  "displayName": "llama3-2-90b-vision",
+  "version": "0.3.4",
   "scope": "public",
-  "description": "Downloadable meta/llama3-8b-instruct from NIM",
+  "description": "Downloadable meta/llama3-2-90b-vision from NIM",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.15"
+    "gitTag": "0.3.4"
   },
   "components": {
     "computeConfigs": [
@@ -30,7 +30,7 @@
         "runtime": {
           "podType": "gpu-a100-s",
           "concurrency": 10,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/llama3-8b-instruct:0.1.5",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/llama3-2-90b-vision:0.1.5",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -86,20 +86,19 @@
     ],
     "models": [
       {
-        "name": "llama3-8b-instruct",
+        "name": "llama3-2-90b-vision",
         "moduleName": "nim-downloadable-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "request_type": "openai",
-          "nim_model_name": "meta/llama3-8b-instruct",
+          "nim_model_name": "meta/llama3-2-90b-vision",
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
           "max_tokens": 1024,
           "temperature": 0.5,
           "top_p": 1,
           "seed": 0
         },
-        "description": "Downloadable meta/llama3-8b-instruct from NIM"
+        "description": "Downloadable meta/llama3-2-90b-vision from NIM"
       }
     ]
   }
