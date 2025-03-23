@@ -20,5 +20,6 @@
   "meta/llama-3.1-405b-instruct": "chat",
   "meta/llama-3.2-90b-vision-instruct": "chat",
   "meta/llama-3.3-70b-instruct": "chat",
-  "deepseek-ai/deepseek-r1": "chat"
+  "deepseek-ai/deepseek-r1": "chat",
+  "vlm/nvidia/vila": "chat"
 }

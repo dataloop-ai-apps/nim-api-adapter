@@ -24,6 +24,10 @@ class CustomModelAdapter(ModelAdapter):
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
+        if self.seed is not None:
+            payload["seed"] = self.seed
+        if self.num_frames_per_inference is not None:
+            payload["num_frames_per_inference"] = self.num_frames_per_inference
         if self.guided_json is not None:
             payload["messages"][0]["content"] += f" {self.guided_json}"
             payload["nvext"] = {"guided_json": self.guided_json}
