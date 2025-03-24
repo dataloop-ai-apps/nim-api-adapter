@@ -20,8 +20,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.max_token = self.configuration.get('max_token', 1024)
         self.temperature = self.configuration.get('temperature', 0.2)
         self.top_p = self.configuration.get('top_p', 0.7)
-        self.seed = self.configuration.get('seed', 0)
+        self.seed = self.configuration.get('seed', None)
         self.stream = self.configuration.get('stream', True)
+        self.num_frames_per_inference = self.configuration.get('num_frames_per_inference', None)
         self.guided_json = self.configuration.get("guided_json", None)
         if self.guided_json is not None:
             try:
@@ -183,10 +184,14 @@ class ModelAdapter(dl.BaseModelAdapter):
             "max_tokens": self.max_token,
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "stream": self.stream
+            "stream": self.stream,
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
+        if self.seed is not None:
+            payload["seed"] = self.seed
+        if self.num_frames_per_inference is not None:
+            payload["num_frames_per_inference"] = self.num_frames_per_inference
         if self.guided_json is not None:
             payload["nvext"] = {"guided_json": self.guided_json}
         logger.info(f"Payload sent to model: {payload}")
@@ -271,3 +276,4 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
+    
