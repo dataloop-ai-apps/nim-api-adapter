@@ -3,7 +3,7 @@
   "displayName": "vila",
   "version": "0.3.15",
   "scope": "public",
-  "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
+  "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world (currently only images are supported).",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -93,12 +93,13 @@
         "scope": "public",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "vlm/nvidia/vila",
+          "nim_model_name": "nvidia/vila",
+          "invoke_url": "vlm/nvidia/vila",
           "max_tokens": 1024,
           "temperature": 0.20,
           "top_p": 0.70,
-          "seed": 0,
-          "stream": true
+          "seed": 50,
+          "stream": false
         },
         "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world."
       }

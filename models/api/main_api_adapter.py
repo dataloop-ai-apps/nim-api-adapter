@@ -20,8 +20,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.max_token = self.configuration.get('max_token', 1024)
         self.temperature = self.configuration.get('temperature', 0.2)
         self.top_p = self.configuration.get('top_p', 0.7)
-        self.seed = self.configuration.get('seed', 0)
+        self.seed = self.configuration.get('seed', None)
         self.stream = self.configuration.get('stream', True)
+        self.num_frames_per_inference = self.configuration.get('num_frames_per_inference', None)
         self.guided_json = self.configuration.get("guided_json", None)
         if self.guided_json is not None:
             try:
@@ -183,12 +184,16 @@ class ModelAdapter(dl.BaseModelAdapter):
             "max_tokens": self.max_token,
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "stream": self.stream
+            "stream": self.stream,
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
         if self.guided_json is not None:
             payload["nvext"] = {"guided_json": self.guided_json}
+        if self.num_frames_per_inference is not None:
+            payload["num_frames_per_inference"] = self.num_frames_per_inference
+        if self.seed is not None:
+            payload["seed"] = self.seed
         logger.info(f"Payload sent to model: {payload}")
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
@@ -271,3 +276,20 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
+
+
+if __name__ == "__main__":
+    dl.setenv("rc")
+    with open("models/api/nvidia/vila/dataloop.json") as f:
+        manifest = json.load(f)
+    model = dl.Model.from_json(_json=manifest["components"]["models"][0], client_api=dl.client_api, project=None, package=dl.Package()) 
+    
+    project = dl.projects.get(project_name="Model mgmt demo")
+    dataset = project.datasets.get(dataset_name="llama_testing")
+    item = dataset.items.get(item_id="67e134a47f1d88facb696edd")  #"67e12b54a1b877ef21db3b1d")
+
+    adapter = ModelAdapter(model)
+    items, annotations = adapter.predict_items(items=[item])
+
+    print(annotations)
+

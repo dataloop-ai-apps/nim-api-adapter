@@ -362,5 +362,7 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,data,pycharm+all
 
-scripts/*
-.vscode/*
+scripts/
+.vscode/
+.dataloop/
+.github/

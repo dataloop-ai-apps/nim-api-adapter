@@ -147,16 +147,12 @@ class ModelAdapter(dl.BaseModelAdapter):
         pass
 
     def prepare_item_func(self, item: dl.Item):
-        if (
-            "json" not in item.mimetype
-            or item.metadata.get("system", dict()).get("shebang", dict()).get("dltype")
-            != "prompt"
-        ):
-            logger.warning(f"Item is not a JSON file or a Prompt item.")
-            return None
-
-        buffer = item.download(save_locally=False)
-        return buffer
+        if "video" in item.mimetype:
+            raise ValueError("Item is a video file.")
+        else:
+            logger.info("Item is an image file.")
+            buffer = item.download(save_locally=False)
+        return item
 
     def predict(self, batch, **kwargs):
         for prompt_item in batch:
