@@ -90,7 +90,7 @@
       {
         "name": "vila",
         "moduleName": "nim-api-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "nvidia/vila",
