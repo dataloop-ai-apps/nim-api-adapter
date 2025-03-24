@@ -94,7 +94,7 @@
         "status": "pre-trained",
         "configuration": {
           "nim_model_name": "nvidia/vila",
-          "invoke_url": "vlm/nvidia/vila",
+          "nim_invoke_url": "vlm/nvidia/vila",
           "max_tokens": 1024,
           "temperature": 0.20,
           "top_p": 0.70,
