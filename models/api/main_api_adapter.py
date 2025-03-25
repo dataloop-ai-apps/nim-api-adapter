@@ -2,8 +2,10 @@ from openai import OpenAI
 import dtlpy as dl
 import requests
 import logging
+import base64
 import json
 import os
+import re
 
 logger = logging.getLogger("NIM Adapter")
 
@@ -73,12 +75,49 @@ class ModelAdapter(dl.BaseModelAdapter):
             text = next(
                 (content['text'] for content in message['content'] if content['type'] == 'text'), "")
 
-            reformatted_content = f'{text} <img src="{image_url}" />'
+            # Check if there is a video url in the text
+            text, video_url = ModelAdapter.check_video_url(text)
+
+            if video_url is not None:
+                reformatted_content = (f'{text} <video src="{video_url}" />')
+            else:
+                reformatted_content = (f'{text} <img src="{image_url}" />')
 
             # Append to reformatted list
-            reformatted_messages.append({"role": message['role'], "content": reformatted_content})
+            reformatted_messages.append(
+                {"role": message["role"], "content": reformatted_content}
+            )
 
         return reformatted_messages
+
+    @staticmethod
+    def check_video_url(text: str):
+        """
+        Extracts all URLs from a given text string.
+
+        :param text: The input text.
+        :return: A list of extracted URLs.
+        """
+        clean_text = text
+        video_b64 = None
+
+        url_pattern = r"https?://[^\s)]+"
+        links = re.findall(url_pattern, text)
+        for link in links:
+            if "gate.dataloop.ai/api/v1/items/" in link:
+                try:
+                    clean_text = clean_text.replace(link, "")
+                    item = dl.items.get(item_id=link.split("/")[-1])
+                    if item.mimetype == "video/mp4":
+                        binaries = item.download(save_locally=False)
+                        buffer= binaries.getvalue()
+                        video_b64 = base64.b64encode(buffer).decode('utf-8')
+                        video_b64 = f"data:video/mp4;base64,{video_b64}"
+                    else:
+                        logger.error(f"Video item type must be mp4, got {item.mimetype} for link: {link}")
+                except Exception as e:
+                    logger.error(f"Error downloading video: {e}. Ignoring link: {link}")
+        return clean_text, video_b64
 
     @staticmethod
     def extract_content(line):
@@ -276,4 +315,20 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
+
+
+if __name__ == "__main__":
+    dl.setenv("rc")
+    with open("models/api/nvidia/vila/dataloop.json") as f:
+        manifest = json.load(f)
+    model = dl.Model.from_json(_json=manifest["components"]["models"][0], client_api=dl.client_api, project=None, package=dl.Package()) 
     
+    project = dl.projects.get(project_name="Model mgmt demo")
+    dataset = project.datasets.get(dataset_name="llama_testing")
+    item = dataset.items.get(item_id="67e2aa938d574df4e1c299c9")
+    item.annotations.list().delete()
+
+    adapter = ModelAdapter(model)
+    items, annotations = adapter.predict_items(items=[item])
+
+    print(annotations)
