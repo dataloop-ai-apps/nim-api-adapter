@@ -108,7 +108,8 @@ class VideoModelAdapter(ModelAdapter):
 
 if __name__ == "__main__":
     dl.setenv("rc")
-    with open("models/api/nvidia/vila/dataloop.json") as f:
+    # with open("models/api/nvidia/vila/dataloop.json") as f:
+    with open(r"C:\Users\Yaya Tang\PycharmProjects\nim-api-adapter\models\api\nvidia\vila\dataloop.json") as f:
         manifest = json.load(f)
     model = dl.Model.from_json(
         _json=manifest["components"]["models"][0],
