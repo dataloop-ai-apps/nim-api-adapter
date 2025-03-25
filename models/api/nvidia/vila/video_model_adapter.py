@@ -8,10 +8,8 @@ sys.path.append(
     )
 )
 
-import re
 import json
 import logging
-import requests
 import dtlpy as dl
 from models.api.main_api_adapter import ModelAdapter
 

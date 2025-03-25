@@ -14,7 +14,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         if os.environ.get("NGC_API_KEY", None) is None:
-            raise ValueError(f"Missing API key")
+            raise ValueError("Missing API key")
 
         self.adapter_defaults.upload_annotations = False
 
