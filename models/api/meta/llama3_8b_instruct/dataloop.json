@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-8b-instruct-meta",
   "displayName": "llama3-8b-instruct",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "scope": "public",
   "description": "Advanced state-of-the-art LLM with language understanding, superior reasoning, and text generation.",
   "attributes": {
@@ -24,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.16"
+    "gitTag": "0.3.17"
   },
   "components": {
     "computeConfigs": [
