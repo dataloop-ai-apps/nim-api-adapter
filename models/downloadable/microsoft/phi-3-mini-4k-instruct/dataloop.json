@@ -114,7 +114,8 @@
           "seed": 20,
           "frequency_penalty": 0.0,
           "presence_penalty": 0.0,
-          "stream": true
+          "stream": true,
+          "debounce_interval": 2.0
         },
         "description": "Downloadable microsoft/phi-3-mini-4k-instruct from NIM"
       }

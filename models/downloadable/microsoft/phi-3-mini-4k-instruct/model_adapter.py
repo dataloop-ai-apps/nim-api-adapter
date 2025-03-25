@@ -2,7 +2,7 @@ import os
 import logging
 import openai
 import dtlpy as dl
-
+import time
 
 
 from models.downloadable.base_model import BaseDownloadableModel
@@ -20,6 +20,7 @@ class ModelAdapter(BaseDownloadableModel):
         self.frequency_penalty = self.model_entity.configuration.get('frequency_penalty', 0.0)
         self.presence_penalty = self.model_entity.configuration.get('presence_penalty', 0.0)
         self.stream = self.model_entity.configuration.get('stream', True)
+        self.debounce_interval = self.model_entity.configuration.get('debounce_interval', 2.0)
 
         self.client = openai.OpenAI(base_url="http://0.0.0.0:8000/v1", api_key=os.environ.get("NGC_API_KEY"))
         logger.info("Model config loaded successfully and client created")
@@ -54,16 +55,30 @@ class ModelAdapter(BaseDownloadableModel):
 
             if self.stream:
                 response = ""
+                last_update_time = time.time()
+                
                 for chunk in response_stream:
                     if chunk.choices:
                         response += chunk.choices[0].delta.content or ""
 
-                    prompt_item.add(message={"role": "assistant",
+                    current_time = time.time()
+                    # Only update the prompt_item if 2 seconds have passed since the last update
+                    if current_time - last_update_time >= self.debounce_interval:
+                        prompt_item.add(message={"role": "assistant",
                                                 "content": [{"mimetype": dl.PromptType.TEXT,
                                                             "value": response}]},
                                     model_info={'name': self.model_entity.name,
                                                 'confidence': 1.0,
                                                 'model_id': self.model_entity.id})
+                        last_update_time = current_time
+                
+                # Make sure to add the final response after the stream is complete
+                prompt_item.add(message={"role": "assistant",
+                                        "content": [{"mimetype": dl.PromptType.TEXT,
+                                                    "value": response}]},
+                                model_info={'name': self.model_entity.name,
+                                            'confidence': 1.0,
+                                            'model_id': self.model_entity.id})
             else:
                 prompt_item.add(message={"role": "assistant",
                                         "content": [{"mimetype": dl.PromptType.TEXT,
