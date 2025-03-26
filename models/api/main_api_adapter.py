@@ -25,6 +25,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.seed = self.configuration.get('seed', None)
         self.stream = self.configuration.get('stream', True)
         self.num_frames_per_inference = self.configuration.get('num_frames_per_inference', None)
+
         self.guided_json = self.configuration.get("guided_json", None)
         if self.guided_json is not None:
             try:
@@ -93,10 +94,10 @@ class ModelAdapter(dl.BaseModelAdapter):
     @staticmethod
     def check_video_url(text: str):
         """
-        Extracts all URLs from a given text string.
+        Extracts first URL from a given text string.
 
         :param text: The input text.
-        :return: A list of extracted URLs.
+        :return: The cleaned text and the video url.
         """
         clean_text = text
         video_b64 = None
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     
     project = dl.projects.get(project_name="Model mgmt demo")
     dataset = project.datasets.get(dataset_name="llama_testing")
-    item = dataset.items.get(item_id="67e2aa938d574df4e1c299c9")
+    item = dataset.items.get(item_id="67e3a08189c66c5882331017")
     item.annotations.list().delete()
 
     adapter = ModelAdapter(model)
