@@ -32,7 +32,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 binaries = item.download(save_locally=False)
                 self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
                 logger.info(f"Guided json: {self.guided_json}")
-            except Exception as e:
+            except Exception as e:  # noqa: F841
                 try:
                     self.guided_json = json.loads(self.guided_json)
                 except Exception as e:
@@ -107,7 +107,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             if "gate.dataloop.ai/api/v1/items/" in link:
                 try:
                     clean_text = clean_text.replace(link, "")
-                    item = dl.items.get(item_id=link.split("/")[-1])
+                    # Extract item ID from URL after "items/"
+                    item_id = link.split("items/")[1].split("/")[0]
+                    item = dl.items.get(item_id=item_id)
                     if item.mimetype == "video/mp4":
                         binaries = item.download(save_locally=False)
                         buffer= binaries.getvalue()
