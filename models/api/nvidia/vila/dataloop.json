@@ -1,8 +1,8 @@
 {
-  "name": "nim-api-vila",
-  "displayName": "vila",
-  "version": "0.3.15",
-  "scope": "public",
+  "name": "nim-api-vila-video",
+  "displayName": "vila-video",
+  "version": "0.3.22",
+  "scope": "project",
   "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
   "attributes": {
     "Hub": [
@@ -19,11 +19,6 @@
     "Media Type": [
       "Multi Modal"
     ]
-  },
-  "codebase": {
-    "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.15"
   },
   "components": {
     "computeConfigs": [
@@ -84,11 +79,40 @@
             "description": "NIM API vila predict items"
           }
         ]
+      },
+      {
+        "name": "video_to_prompt",
+        "entryPoint": "models/api/nvidia/vila/main.py",
+        "className": "VideoToPrompt",
+        "initInputs": [],
+        "functions": [
+          {
+            "name": "convert_video_to_prompt",
+            "input": [
+              {
+                "type": "Item",
+                "name": "item"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item",
+                "name": "prompt_item"
+              }
+            ],
+            "displayName": "Convert Video to Prompt Item",
+            "displayIcon": "icon-dl-conversation",
+            "description": "Converts a video item into a link in prompt item for processing."
+          }
+        ],
+        "computeConfig": "nim-api-deploy",
+        "description": "Pipeline node for converting video items into prompt items with video link.",
+        "integrations": []
       }
     ],
     "models": [
       {
-        "name": "vila",
+        "name": "vila-video",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
@@ -102,6 +126,80 @@
           "stream": false
         },
         "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world."
+      }
+    ],
+    "pipelineNodes": [
+      {
+        "invoke": {
+          "type": "function",
+          "namespace": "video_to_prompt.convert_video_to_prompt"
+        },
+        "name": "Convert Video Item to Prompt Item",
+        "displayName": "Convert Video Item to Prompt Item",
+        "description": "Converts a video item into a prompt item for processing.",
+        "categories": ["Prompt Item Tools"],
+        "scope": "node",
+        "configuration": {
+          "fields": [
+            {
+              "name": "name",
+              "title": "Node Name",
+              "props": {
+                "title": true,
+                "type": "string",
+                "default": "Create Prompt from Item",
+                "required": true,
+                "placeholder": "Insert node name"
+              },
+              "rules": [
+                {
+                  "type": "required",
+                  "effect": "error"
+                }
+              ],
+              "widget": "dl-input"
+            },
+            {
+              "name": "prompt_text",
+              "title": "Prompt Context",
+              "props": {
+                "title": true,
+                "type": "string",
+                "default": "Describe what is happening in the video below.\n\n",
+                "required": false,
+                "placeholder": "Context string to be used around the input that will be turned into prompt"
+              },
+              "rules": [],
+              "widget": "dl-input"
+            },
+            {
+              "name": "prefix",
+              "title": "Prefix",
+              "props": {
+                "title": true,
+                "type": "string",
+                "default": "prompt-",
+                "required": false,
+                "placeholder": "Prefix to the prompt item name"
+              },
+              "rules": [],
+              "widget": "dl-input"
+            },
+            {
+              "name": "directory",
+              "title": "Directory",
+              "props": {
+                "title": true,
+                "type": "string",
+                "default": "/.dataloop/prompts",
+                "required": false,
+                "placeholder": "Directory where prompt item will be saved."
+              },
+              "rules": [],
+              "widget": "dl-input"
+            }
+          ]
+        }
       }
     ]
   }
