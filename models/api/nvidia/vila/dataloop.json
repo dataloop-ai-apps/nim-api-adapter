@@ -1,7 +1,7 @@
 {
-  "name": "nim-api-vila-video",
-  "displayName": "vila-video",
-  "version": "0.3.22",
+  "name": "nim-api-vila-demo",
+  "displayName": "vila-demo",
+  "version": "0.3.15",
   "scope": "project",
   "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
   "attributes": {
@@ -97,7 +97,7 @@
             "output": [
               {
                 "type": "Item",
-                "name": "prompt_item"
+                "name": "new_item"
               }
             ],
             "displayName": "Convert Video to Prompt Item",
@@ -112,10 +112,12 @@
     ],
     "models": [
       {
-        "name": "vila-video",
+        "name": "vila-demo",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
+        "inputType": "video",
+        "outputType": "text",
         "configuration": {
           "nim_model_name": "nvidia/vila",
           "nim_invoke_url": "vlm/nvidia/vila",
@@ -147,7 +149,7 @@
               "props": {
                 "title": true,
                 "type": "string",
-                "default": "Create Prompt from Item",
+                "default": "Create Prompt Item for Video",
                 "required": true,
                 "placeholder": "Insert node name"
               },
