@@ -1,7 +1,7 @@
 {
   "name": "nv-embedqa-e5v5",
   "displayName": "nv-embedqa-e5-v5",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "GPU-accelerated generation of text embeddings used for question-answering retrieval.",
   "scope": "project",
   "attributes": {
@@ -23,7 +23,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "gitTag": "0.3.18"
+    "gitTag": "0.3.19"
   },
   "components": {
     "computeConfigs": [
