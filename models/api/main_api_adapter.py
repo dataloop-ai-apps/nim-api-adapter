@@ -33,7 +33,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 binaries = item.download(save_locally=False)
                 self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
                 logger.info(f"Guided json: {self.guided_json}")
-            except Exception as e: 
+            except Exception as e:
                 try:
                     self.guided_json = json.loads(self.guided_json)
                 except Exception as e:
