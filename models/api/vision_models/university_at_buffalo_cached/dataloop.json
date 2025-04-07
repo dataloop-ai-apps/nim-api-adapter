@@ -1,7 +1,7 @@
 {
   "name": "university-at-buffalo-cached",
   "displayName": "university-at-buffalo-cached",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "scope": "public",
   "description": "CACHED, a chart element detection model from University at Buffalo, served by NIM API.",
   "attributes": {
@@ -21,7 +21,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.17"
+    "gitTag": "0.3.18"
   },
   "components": {
     "computeConfigs": [
