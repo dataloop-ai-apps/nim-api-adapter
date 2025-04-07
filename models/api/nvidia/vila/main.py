@@ -41,7 +41,7 @@ class VideoToPrompt:
         prompt_item.prompts.append(prompt)
 
         # Upload the prompt item
-        new_item = item.dataset.items.upload(prompt_item, remote_name=new_name, remote_path=directory, overwrite=True)
+        new_item = item.dataset.items.upload(prompt_item, remote_name=new_name, remote_path=directory, overwrite=True, item_metadata={"user": {"original_item": item.id}})
         # new_item.metadata["user"] = new_item.metadata.get("user", {})
         # new_item.metadata["user"]["original_item"] = item.id
         # new_item = new_item.update()
@@ -59,15 +59,17 @@ if __name__ == '__main__':
     dotenv.load_dotenv()
 
     # Set up Dataloop environment
-    ENV = 'rc'
+    ENV = 'prod'
+    DATASET_NAME = 'prompts testing'
+    ITEM_ID = '67f3b298baf34cfad702420b'
     dl.setenv(ENV)
     
     # Get project and dataset
     project = dl.projects.get(project_name="Model mgmt demo")
-    dataset = project.datasets.get("llama_testing")
+    dataset = project.datasets.get(dataset_name=DATASET_NAME)
 
     # Example: Convert a video item to a prompt item
-    video_item = dataset.items.get(item_id='67e1088ba1b8778d70db2490')  # Example video item ID
+    video_item = dataset.items.get(item_id=ITEM_ID)  # Example video item ID
 
     class DummyNode:
         def __init__(self, metadata):
