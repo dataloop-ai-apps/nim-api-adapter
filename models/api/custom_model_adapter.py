@@ -20,11 +20,12 @@ class CustomModelAdapter(ModelAdapter):
             "max_tokens": self.max_token,
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "stream": self.stream,
-            "seed": self.seed,
+            "stream": self.stream
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
+        if self.seed is not None:
+            payload["seed"] = self.seed
         if self.num_frames_per_inference is not None:
             payload["num_frames_per_inference"] = self.num_frames_per_inference
         if self.guided_json is not None:
