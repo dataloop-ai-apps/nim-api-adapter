@@ -33,7 +33,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 binaries = item.download(save_locally=False)
                 self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
                 logger.info(f"Guided json: {self.guided_json}")
-            except Exception as e:  # noqa: F841
+            except Exception as e: 
                 try:
                     self.guided_json = json.loads(self.guided_json)
                 except Exception as e:
@@ -226,7 +226,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             "max_tokens": self.max_token,
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "stream": self.stream
+            "stream": self.stream,
         }
         if self.nim_invoke_url != self.nim_model_name:
             payload["model"] = self.nim_model_name
@@ -318,21 +318,3 @@ class ModelAdapter(dl.BaseModelAdapter):
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
-
-
-if __name__ == "__main__":
-    dl.setenv("rc")
-    with open("models/api/nvidia/vila/dataloop.json") as f:
-        manifest = json.load(f)
-    model = dl.Model.from_json(_json=manifest["components"]["models"][0], client_api=dl.client_api, project=None, package=dl.Package()) 
-    model.configuration["seed"] = None
-    
-    project = dl.projects.get(project_name="Model mgmt demo")
-    dataset = project.datasets.get(dataset_name="llama_testing")
-    item = dataset.items.get(item_id="67e409c811a30628e9b8b85d") # dasgh....json
-    item.annotations.list().delete()
-
-    adapter = ModelAdapter(model)
-    items, annotations = adapter.predict_items(items=[item])
-
-    print(annotations)
