@@ -1,27 +1,22 @@
 {
   "name": "nim-llama3-2-90b-vision-meta",
   "displayName": "llama3-2-90b-vision",
-  "version": "0.3.4",
+  "version": "0.3.17",
   "scope": "public",
   "description": "Downloadable meta/llama3-2-90b-vision from NIM",
   "attributes": {
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
+    "Hub": ["Nvidia", "Dataloop"],
     "Provider": "Meta",
     "Deployed By": "Dataloop",
     "Category": ["Model", "NIM"],
     "Gen AI": "LLM",
-    "Media Type": [
-      "Text"
-    ],
+    "Media Type": ["Text"],
     "NLP": "Conversational"
   },
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.4"
+    "gitTag": "0.3.17"
   },
   "components": {
     "computeConfigs": [
@@ -45,9 +40,7 @@
         "entryPoint": "models/downloadable/main_downloadable_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-downloadable-deploy",
-        "integrations": [
-          "dl-ngc-api-key"
-        ],
+        "integrations": ["dl-ngc-api-key"],
         "description": "Downloadable llama3 NIM Adapter module",
         "initInputs": [
           {
