@@ -46,7 +46,7 @@
       {
         "name": "nim-api-module",
         "entryPoint": "models/api/main_api_adapter.py",
-        "className": "LlamaAdapter",
+        "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "llama3.3 70b instruct NIM API Adapter",
         "integrations": [
