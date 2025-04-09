@@ -1,7 +1,7 @@
 {
   "name": "phi-3-medium-128k-instruct",
   "displayName": "phi-3-medium-128k-instruct",
-  "version": "0.3.22",
+  "version": "0.3.23",
   "scope": "public",
   "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.",
   "attributes": {
@@ -24,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.22"
+    "gitTag": "0.3.23"
   },
   "components": {
     "computeConfigs": [
