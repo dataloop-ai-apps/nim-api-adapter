@@ -1,7 +1,7 @@
 {
   "name": "nemotron-4-340b-reward",
   "displayName": "nemotron-4-340b-reward",
-  "version": "0.3.25",
+  "version": "0.3.26",
   "scope": "public",
   "description": "Grades responses on five attributes helpfulness, correctness, coherence, complexity and verbosity.",
   "attributes": {
@@ -26,7 +26,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.25"
+    "gitTag": "0.3.26"
   },
   "components": {
     "computeConfigs": [
