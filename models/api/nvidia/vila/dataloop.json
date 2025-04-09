@@ -1,7 +1,7 @@
 {
   "name": "nim-api-vila",
   "displayName": "vila",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "scope": "public",
   "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
   "attributes": {

@@ -1,7 +1,7 @@
 {
   "name": "nim-api-mistralai-mistral-large",
   "displayName": "mistral-large",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "scope": "public",
   "description": "Excels in complex multilingual reasoning tasks, including text understanding, and code generation.",
   "attributes": {
@@ -24,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.21"
+    "gitTag": "0.3.22"
   },
   "components": {
     "computeConfigs": [
