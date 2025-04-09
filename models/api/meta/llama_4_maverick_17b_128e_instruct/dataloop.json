@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama-4-maverick-17b-128e-instruct-meta",
   "displayName": "llama-4-maverick-17b-128e-instruct",
-  "version": "0.3.24",
+  "version": "0.3.25",
   "scope": "public",
   "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation using Llama 4 Maverick 17B Instruct.",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.24"
+    "gitTag": "0.3.25"
   },
   "components": {
     "computeConfigs": [
