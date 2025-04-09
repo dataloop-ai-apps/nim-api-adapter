@@ -21,5 +21,7 @@
   "meta/llama-3.2-90b-vision-instruct": "chat",
   "meta/llama-3.3-70b-instruct": "chat",
   "deepseek-ai/deepseek-r1": "chat",
-  "vlm/nvidia/vila": "chat"
+  "vlm/nvidia/vila": "chat",
+  "meta/llama-4-scout-17b-16e-instruct": "multimodal",
+  "meta/llama-4-maverick-17b-128e-instruct": "multimodal"
 }

@@ -25,7 +25,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.seed = self.configuration.get('seed', None)
         self.stream = self.configuration.get('stream', True)
         self.num_frames_per_inference = self.configuration.get('num_frames_per_inference', None)
-
         self.guided_json = self.configuration.get("guided_json", None)
         if self.guided_json is not None:
             try:
@@ -147,9 +146,10 @@ class ModelAdapter(dl.BaseModelAdapter):
             model_configs = json.load(f)
 
         model_type = model_configs.get(self.nim_model_name, None)
-        messages = self.process_chat_messages(messages)
+        if model_type != 'multimodal':
+            messages = self.process_chat_messages(messages)
 
-        if model_type == 'instruct' or model_type == 'chat':
+        if model_type == 'instruct' or model_type == 'chat' or model_type == 'multimodal':
             full_answer = self.call_chat_model(messages=messages, client=client)
         elif model_type == 'reward':
             full_answer = self.call_reward_model(messages=messages, client=client)
