@@ -2,8 +2,10 @@ from openai import OpenAI
 import dtlpy as dl
 import requests
 import logging
+import base64
 import json
 import os
+import re
 
 logger = logging.getLogger("NIM Adapter")
 
@@ -12,7 +14,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
     def load(self, local_path, **kwargs):
         if os.environ.get("NGC_API_KEY", None) is None:
-            raise ValueError(f"Missing API key")
+            raise ValueError("Missing API key")
 
         self.adapter_defaults.upload_annotations = False
 
@@ -20,12 +22,26 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.max_token = self.configuration.get('max_token', 1024)
         self.temperature = self.configuration.get('temperature', 0.2)
         self.top_p = self.configuration.get('top_p', 0.7)
-        self.seed = self.configuration.get('seed', 0)
+        self.seed = self.configuration.get('seed', None)
         self.stream = self.configuration.get('stream', True)
+        self.num_frames_per_inference = self.configuration.get('num_frames_per_inference', None)
+        self.guided_json = self.configuration.get("guided_json", None)
+        if self.guided_json is not None:
+            try:
+                item = dl.items.get(item_id=self.guided_json)
+                binaries = item.download(save_locally=False)
+                self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
+                logger.info(f"Guided json: {self.guided_json}")
+            except Exception as e:
+                try:
+                    self.guided_json = json.loads(self.guided_json)
+                except Exception as e:
+                    logger.error(f"Error loading guided json: {e}")
 
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
+        self.nim_invoke_url = self.configuration.get("nim_invoke_url", self.nim_model_name)
 
     def prepare_item_func(self, item: dl.Item):
         prompt_item = dl.PromptItem.from_item(item)
@@ -59,12 +75,51 @@ class ModelAdapter(dl.BaseModelAdapter):
             text = next(
                 (content['text'] for content in message['content'] if content['type'] == 'text'), "")
 
-            reformatted_content = f'{text} <img src="{image_url}" />'
+            # Check if there is a video url in the text
+            text, video_url = ModelAdapter.check_video_url(text)
+
+            if video_url is not None:
+                reformatted_content = (f'{text} <video src="{video_url}" />')
+            else:
+                reformatted_content = (f'{text} <img src="{image_url}" />')
 
             # Append to reformatted list
-            reformatted_messages.append({"role": message['role'], "content": reformatted_content})
+            reformatted_messages.append(
+                {"role": message["role"], "content": reformatted_content}
+            )
 
         return reformatted_messages
+
+    @staticmethod
+    def check_video_url(text: str):
+        """
+        Extracts first URL from a given text string.
+
+        :param text: The input text.
+        :return: The cleaned text and the video url.
+        """
+        clean_text = text
+        video_b64 = None
+
+        url_pattern = r"https?://[^\s)]+"
+        links = re.findall(url_pattern, text)
+        for link in links:
+            if "gate.dataloop.ai/api/v1/items/" in link:
+                try:
+                    clean_text = clean_text.replace(link, "")
+                    # Extract item ID from URL after "items/"
+                    item_id = link.split("items/")[1].split("/")[0]
+                    item = dl.items.get(item_id=item_id)
+                    if item.mimetype == "video/mp4":
+                        binaries = item.download(save_locally=False)
+                        buffer= binaries.getvalue()
+                        video_b64 = base64.b64encode(buffer).decode('utf-8')
+                        video_b64 = f"data:video/mp4;base64,{video_b64}"
+                    else:
+                        logger.error(f"Video item type must be mp4, got {item.mimetype} for link: {link}")
+                except Exception as e:
+                    logger.error(f"Error downloading video: {e}. Ignoring link: {link}")
+        return clean_text, video_b64
 
     @staticmethod
     def extract_content(line):
@@ -91,9 +146,10 @@ class ModelAdapter(dl.BaseModelAdapter):
             model_configs = json.load(f)
 
         model_type = model_configs.get(self.nim_model_name, None)
-        messages = self.process_chat_messages(messages)
+        if model_type != 'multimodal':
+            messages = self.process_chat_messages(messages)
 
-        if model_type == 'instruct' or model_type == 'chat':
+        if model_type == 'instruct' or model_type == 'chat' or model_type == 'multimodal':
             full_answer = self.call_chat_model(messages=messages, client=client)
         elif model_type == 'reward':
             full_answer = self.call_reward_model(messages=messages, client=client)
@@ -117,14 +173,26 @@ class ModelAdapter(dl.BaseModelAdapter):
         return str(reward_dict)
 
     def call_chat_model(self, messages, client):
-        completion = client.chat.completions.create(
-            model=self.nim_model_name,
-            messages=messages,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            max_tokens=self.max_token,
-            stream=self.stream
-        )
+        if self.guided_json is not None:
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream,
+                extra_body={"nvext": {"guided_json": self.guided_json}}
+            )
+        else:
+            completion = client.chat.completions.create(
+                model=self.nim_model_name,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=self.max_token,
+                stream=self.stream
+            )
+
         if self.stream is True:
             for chunk in completion:
                 yield chunk.choices[0].delta.content or ""
@@ -147,18 +215,28 @@ class ModelAdapter(dl.BaseModelAdapter):
             yield code.choices[0].text
 
     def call_multimodal(self, messages):
-        url = f"https://ai.api.nvidia.com/v1/{self.nim_model_name}"
+        url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Accept": "application/json"
+            "Content-Type": "application/json",
+            "accept": "application/json",
         }
         payload = {
             "messages": messages,
             "max_tokens": self.max_token,
             "temperature": self.temperature,
             "top_p": self.top_p,
-            "stream": self.stream
+            "stream": self.stream,
         }
+        if self.nim_invoke_url != self.nim_model_name:
+            payload["model"] = self.nim_model_name
+        if self.seed is not None:
+            payload["seed"] = self.seed
+        if self.num_frames_per_inference is not None:
+            payload["num_frames_per_inference"] = self.num_frames_per_inference
+        if self.guided_json is not None:
+            payload["nvext"] = {"guided_json": self.guided_json}
+        logger.info(f"Payload sent to model: {payload}")
         response = requests.post(url=url, headers=headers, json=payload, stream=self.stream)
         if not response.ok:
             raise ValueError(f'error:{response.status_code}, message: {response.text}')
@@ -194,7 +272,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 logger.info(f"Nearest items Context: {context}")
                 messages.append({"role": "assistant", "content": context})
 
-            if self.nim_model_name.startswith('vlm/'):
+            if self.nim_invoke_url.startswith('vlm/') or self.nim_invoke_url.startswith('gr/'):
                 # VLM (Vision Language Model) - Multimodal models
                 messages = self.process_multimodal_messages(messages)
                 stream_response = self.call_multimodal(messages=messages)
@@ -234,20 +312,9 @@ class ModelAdapter(dl.BaseModelAdapter):
                 # Other models responses
                 response += chunk
                 prompt_item.add(message={"role": "assistant",
-                                         "content": [{"mimetype": dl.PromptType.TEXT,
-                                                      "value": response}]},
+                                            "content": [{"mimetype": dl.PromptType.TEXT,
+                                                        "value": response}]},
                                 model_info={'name': self.model_entity.name,
                                             'confidence': 1.0,
                                             'model_id': self.model_entity.id})
         return []
-
-
-if __name__ == '__main__':
-    import dotenv
-
-    dotenv.load_dotenv()
-
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id='')
-    adapter = ModelAdapter(model)
-    adapter.predict_items(items=[item])

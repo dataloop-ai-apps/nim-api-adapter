@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-1-70b-instruct-meta",
   "displayName": "llama-3.1-70b-instruct",
-  "version": "0.3.4",
+  "version": "0.3.26",
   "scope": "public",
   "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation.",
   "attributes": {
@@ -24,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.4"
+    "gitTag": "0.3.26"
   },
   "components": {
     "computeConfigs": [
@@ -45,8 +45,8 @@
     "modules": [
       {
         "name": "nim-api-module",
-        "entryPoint": "models/api/main_api_adapter.py",
-        "className": "ModelAdapter",
+        "entryPoint": "models/api/custom_model_adapter.py",
+        "className": "CustomModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "llama3.1 70b instruct NIM API Adapter",
         "integrations": [
