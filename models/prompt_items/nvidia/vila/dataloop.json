@@ -86,7 +86,9 @@
           "temperature": 0.2,
           "top_p": 0.7,
           "seed": 50,
-          "stream": false
+          "stream": false,
+          "is_downloadable": false,
+          "model_type": "multimodal"
         },
         "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world."
       }

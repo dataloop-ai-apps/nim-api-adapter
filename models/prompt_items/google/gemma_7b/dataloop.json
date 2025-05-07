@@ -91,7 +91,8 @@
           "seed": 0,
           "stream": true,
           "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
-          "model_type": "chat_only_text"
+          "model_type": "chat_only_text",
+          "is_downloadable": false
         },
         "description": "Gemma is a family of lightweight, state-of-the art open models from Google, built from the same research and technology used to create the Gemini models."
       }
