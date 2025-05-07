@@ -1,0 +1,101 @@
+{
+  "name": "nim-api-ibm-granite-34b-code-instruct",
+  "displayName": "granite-34b-code-instruct",
+  "version": "0.3.26",
+  "scope": "public",
+  "description": "Software programming LLM for code generation, completion, explanation, and multi-turn conversion.",
+  "attributes": {
+    "Hub": ["Nvidia", "Dataloop"],
+    "Provider": "IBM",
+    "Deployed By": "NVIDIA",
+    "Category": ["Model", "NIM"],
+    "Gen AI": "LLM",
+    "Media Type": ["Text"],
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.26"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/prompt_items/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "granite-34b NIM API Adapter",
+        "integrations": ["dl-ngc-api-key"],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API granite-34b predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "granite-34b-code-instruct",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "ibm/granite-34b-code-instruct",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "max_tokens": 1024,
+          "temperature": 0.5,
+          "top_p": 1,
+          "seed": 0,
+          "stream": true,
+          "model_type": "chat_only_text",
+          "is_downloadable": false
+        },
+        "description": "Granite-34B-Code-Instruct generates, explains, and translates code from a natural language prompt."
+      }
+    ]
+  }
+}

@@ -62,12 +62,3 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         return embeddings
 
-
-if __name__ == '__main__':
-    import dotenv
-
-    dotenv.load_dotenv()
-    model = dl.models.get(model_id='')
-    item = dl.items.get(item_id="")
-    adapter = ModelAdapter(model)
-    adapter.embed_items(items=[item])
