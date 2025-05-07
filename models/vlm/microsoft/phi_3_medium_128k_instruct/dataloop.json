@@ -1,0 +1,101 @@
+{
+  "name": "phi-3-medium-128k-instruct",
+  "displayName": "phi-3-medium-128k-instruct",
+  "version": "0.3.26",
+  "scope": "public",
+  "description": "Cutting-edge lightweight open language model exceling in high-quality reasoning.",
+  "attributes": {
+    "Hub": ["Nvidia", "Dataloop"],
+    "Provider": "Microsoft",
+    "Deployed By": "NVIDIA",
+    "Category": ["Model", "NIM"],
+    "Gen AI": "LLM",
+    "Media Type": ["Text"],
+    "NLP": "Conversational"
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.26"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 10,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/vlm/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "phi-3-medium-128k NIM API Adapter",
+        "integrations": ["dl-ngc-api-key"],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API phi-3-medium-128k predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "phi-3-medium-128k-instruct",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "microsoft/phi-3-medium-128k-instruct",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": 0,
+          "stream": true,
+          "model_type": "chat_only_text",
+          "is_downloadable": false,
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer"
+        },
+        "description": "Phi-3 Medium is a lightweight, state-of-the-art open model built upon datasets used for Phi-2 - synthetic data and filtered publicly available websites - with a focus on very high-quality, reasoning dense data."
+      }
+    ]
+  }
+}

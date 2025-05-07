@@ -1,0 +1,97 @@
+{
+  "name": "nim-api-vila",
+  "displayName": "vila",
+  "version": "0.3.26",
+  "scope": "public",
+  "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
+  "attributes": {
+    "Hub": ["NVIDIA", "Dataloop"],
+    "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
+    "Category": ["Model", "NIM"],
+    "Gen AI": "LMM",
+    "Media Type": ["Multi Modal"]
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/vlm/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "Vila NIM API Adapter for summarizing images and videos (.jpg, .jpeg, .png, .mp4).",
+        "integrations": ["dl-ngc-api-key"],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "NIM API vila predict items"
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "vila",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "video",
+        "outputType": "text",
+        "configuration": {
+          "nim_model_name": "nvidia/vila",
+          "nim_invoke_url": "vlm/nvidia/vila",
+          "max_tokens": 1024,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": 50,
+          "stream": false,
+          "is_downloadable": false,
+          "model_type": "multimodal"
+        },
+        "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world."
+      }
+    ]
+  }
+}
