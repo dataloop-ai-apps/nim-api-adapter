@@ -39,7 +39,7 @@ class ModelAdapter(dl.BaseModelAdapter):
     
     def call_model(self, image_b64, payload=None):
         url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
-        assert len(image_b64) < 400_000, "To upload larger images, use the assets API (see docs)"
+        assert len(image_b64) < 800_000, "To upload larger images, use the assets API (see docs)"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json"
