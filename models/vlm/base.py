@@ -201,11 +201,9 @@ class ModelAdapter(dl.BaseModelAdapter):
                     current_time = time.time()
                     # Debounce updates for streaming
                     if current_time - last_update_time >= self.debounce_interval:
-                        print(f"Adding response to prompt: {full_response_text}")
                         self.add_response_to_prompt(prompt_item, full_response_text)
                         last_update_time = current_time
-     
-            print(f"Adding final response to prompt: {full_response_text}")
+    
             self.add_response_to_prompt(prompt_item, full_response_text)
         else:
             # Handle non-streaming response
@@ -222,7 +220,6 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         # check if video url is in the messages
         buffer, clean_text = self.check_video_url(messages[0].get("content"))
-        print(f"buffer: {buffer}")
         if buffer:
             asset_id = self.upload_video_to_nvidia(buffer)
             headers["NVCF-INPUT-ASSET-REFERENCES"] = asset_id

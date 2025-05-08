@@ -64,7 +64,6 @@ class ModelAdapter(dl.BaseModelAdapter):
     
     def extract_annotations_yolox(self, img, image_b64, collection):
         response = self.call_model(image_b64)
-        print(response)
         for box in response.get('data', []): 
             for label,values in box['bounding_boxes'].items():
                 for value in values:
