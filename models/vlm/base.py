@@ -394,6 +394,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         upload_url = res["uploadUrl"]
         asset_id = res["assetId"]
 
+        logger.info(f"Uploading video to nvidia with asset id: {asset_id}")
+
         # Step 2: Upload the binary to S3
         
 
@@ -422,7 +424,10 @@ class ModelAdapter(dl.BaseModelAdapter):
         response = requests.delete(
             assert_url, headers=headers, timeout=30
         )
-        response.raise_for_status() 
+        try:
+            response.raise_for_status() 
+        except Exception as e:
+            logger.error(f"Error deleting asset with id: {asset_id} error: {e}")
         return True
     
 
