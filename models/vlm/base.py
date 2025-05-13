@@ -217,38 +217,42 @@ class ModelAdapter(dl.BaseModelAdapter):
             "Content-Type": "application/json",
             "accept": "application/json",
         }
+        asset_id = None
+        try:
+            
+            # check if video url is in the messages
+            buffer, clean_text = self.check_video_url(messages[0].get("content"))
+            if buffer:
+                asset_id = self.upload_video_to_nvidia(buffer)
+                headers["NVCF-INPUT-ASSET-REFERENCES"] = asset_id
+                headers["NVCF-FUNCTION-ASSET-IDS"] = asset_id
+                messages[0]["content"] = clean_text + f'<video src="data:video/mp4;asset_id,{asset_id}" />'
 
-        # check if video url is in the messages
-        buffer, clean_text = self.check_video_url(messages[0].get("content"))
-        if buffer:
-            asset_id = self.upload_video_to_nvidia(buffer)
-            headers["NVCF-INPUT-ASSET-REFERENCES"] = asset_id
-            headers["NVCF-FUNCTION-ASSET-IDS"] = asset_id
-            messages[0]["content"] = clean_text + f'<video src="data:video/mp4;asset_id,{asset_id}" />'
 
-
-        payload = {
-            "messages": messages,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "top_p": self.top_p,
-            "stream": self.stream,
-        }
-        if self.nim_invoke_url != self.nim_model_name:
-            payload["model"] = self.nim_model_name
-        if self.seed is not None:
-            payload["seed"] = self.seed
-        if self.num_frames_per_inference is not None:
-            payload["num_frames_per_inference"] = self.num_frames_per_inference
-        if self.guided_json is not None:
-            payload["nvext"] = {"guided_json": self.guided_json}
-        logger.info(f"Payload sent to model: {payload}")
-        response = requests.post(url=url, headers=headers, json=payload, timeout=120)
-        if not response.ok:
-            raise ValueError(f'error:{response.status_code}, message: {response.text}')
-        
-        if buffer:
-            self._delete_asset(asset_id)
+            payload = {
+                "messages": messages,
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                "top_p": self.top_p,
+                "stream": self.stream,
+            }
+            if self.nim_invoke_url != self.nim_model_name:
+                payload["model"] = self.nim_model_name
+            if self.seed is not None:
+                payload["seed"] = self.seed
+            if self.num_frames_per_inference is not None:
+                payload["num_frames_per_inference"] = self.num_frames_per_inference
+            if self.guided_json is not None:
+                payload["nvext"] = {"guided_json": self.guided_json}
+            logger.info(f"Payload sent to model: {payload}")
+            response = requests.post(url=url, headers=headers, json=payload, timeout=120)
+            if not response.ok:
+                raise ValueError(f'error:{response.status_code}, message: {response.text}')
+        except Exception as e:
+            raise ValueError(f"Error calling multimodal: {e}") from e
+        finally:
+            if buffer:
+                self._delete_asset(asset_id)
         return response.iter_lines() if self.stream else response
 
     @staticmethod
