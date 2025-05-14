@@ -1,7 +1,7 @@
 {
   "name": "google-gemma2-27b",
   "displayName": "gemma-2-27b-it",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "scope": "public",
   "description": "Cutting-edge text generation model text understanding, transformation, and code generation.",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.28"
+    "gitTag": "0.3.29"
   },
   "components": {
     "computeConfigs": [

@@ -1,7 +1,7 @@
 {
   "name": "nim-llama3-2-90b-vision-meta-downloadable",
   "displayName": "llama-3.2-90b-vision-instruct-downloadable",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "scope": "public",
   "description": "Downloadable meta/llama3-2-90b-vision from NIM",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.28"
+    "gitTag": "0.3.29"
   },
   "components": {
     "computeConfigs": [
