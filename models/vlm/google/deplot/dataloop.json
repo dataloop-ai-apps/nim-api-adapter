@@ -38,7 +38,7 @@
       {
         "name": "nim-api-module",
         "entryPoint": "models/vlm/base.py",
-        "className": "CustomModelAdapter",
+        "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "NIM API Adapter for Google DePlot, facilitating the conversion of plot or chart images into structured tables.",
         "integrations": ["dl-ngc-api-key"],
