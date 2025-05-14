@@ -1,7 +1,7 @@
 {
   "name": "mamba-codestral-7b-v01",
   "displayName": "mamba-codestral-7b-v01",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "scope": "public",
   "description": "Model for writing and interacting with code across a wide range of programming languages and tasks.",
   "attributes": {
@@ -15,7 +15,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.27"
+    "gitTag": "0.3.28"
   },
   "components": {
     "computeConfigs": [
