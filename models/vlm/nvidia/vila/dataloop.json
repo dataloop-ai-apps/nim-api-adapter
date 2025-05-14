@@ -5,7 +5,7 @@
   "scope": "public",
   "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
   "attributes": {
-    "Hub": ["NVIDIA", "Dataloop"],
+    "Hub": ["Nvidia", "Dataloop"],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
     "Category": ["Model", "NIM"],
