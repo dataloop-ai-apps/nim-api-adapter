@@ -1,29 +1,21 @@
 {
   "name": "nv-embedqa-mistral-7bv2",
   "displayName": "nv-embedqa-mistral-7b-v2",
-  "version": "0.3.26",
+  "version": "0.3.29",
   "description": "GPU-accelerated generation of text embeddings used for question-answering retrieval.",
   "scope": "project",
   "attributes": {
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
+    "Hub": ["Nvidia", "Dataloop"],
     "Provider": "NVIDIA",
     "Deployed By": "NVIDIA",
-    "Category": [
-      "Model",
-      "NIM"
-    ],
+    "Category": ["Model", "NIM"],
     "NLP": "Embeddings",
-    "Media Type": [
-      "Text"
-    ]
+    "Media Type": ["Text"]
   },
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "gitTag": "0.3.26"
+    "gitTag": "0.3.29"
   },
   "components": {
     "computeConfigs": [
@@ -44,13 +36,11 @@
     "modules": [
       {
         "name": "nim-embeddings-module",
-        "entryPoint": "models/embeddings/main_embeddings_adapter.py",
+        "entryPoint": "models/embeddings/base.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
-        "integrations": [
-          "dl-ngc-api-key"
-        ],
+        "integrations": ["dl-ngc-api-key"],
         "initInputs": [
           {
             "type": "Model",
