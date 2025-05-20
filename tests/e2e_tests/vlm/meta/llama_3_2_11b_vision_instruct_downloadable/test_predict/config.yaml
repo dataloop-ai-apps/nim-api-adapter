@@ -1,0 +1,29 @@
+# ordered list of dpks to publish and install
+dpks:
+    - name: nim-llama3-2-11b-vision-meta-downloadable
+      install_app: True
+      integrations:
+        - key: "dl-ngc-api-key"  # integration key
+          value: "NGC_API_KEY"  # integration value (integration name or id)
+
+# ordered list of datasets to create from local assets or to get from installed apps
+datasets:
+    - name: text_prompt_text_answer
+      type: local
+
+# ordered list of models to get from apps
+models:
+    - name: meta/llama-3.2-11b-vision-instruct-downloadable
+      deploy_model: False
+      source_app: nim-llama3-2-11b-vision-meta-downloadable
+
+# list of pipeline variables to update with reference
+variables:
+    - name: dataset
+      resource_type: datasets
+      resource_value:
+          resource_name: text_prompt_text_answer
+    - name: model
+      resource_type: models
+      resource_value:
+          resource_name: meta/llama-3.2-11b-vision-instruct-downloadable
