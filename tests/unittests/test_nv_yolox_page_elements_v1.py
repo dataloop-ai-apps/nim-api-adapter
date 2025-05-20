@@ -12,20 +12,15 @@ dotenv.load_dotenv(".env")
 class TestModelAdapter(unittest.TestCase):
 
     def test_inference(self):
-        with open("models/api/vision_models/university_at_buffalo_cached/dataloop.json") as f:
+        with open("models/api/vision_models/nv_yolox_page_elements_v1/dataloop.json") as f:
             manifest = json.load(f)
-        with open("test/assets/unittests/sample_image.png", "rb") as f:
+        with open("tests/assets/unittests/sample_image.png", "rb") as f:
             image_b64 = base64.b64encode(f.read()).decode()
         model_json = manifest["components"]["models"][0]
         dummy_model = dl.Model.from_json(_json=model_json, client_api=dl.client_api, project=None, package=dl.Package())
-        payload = {
-            "messages": [
-                {"content": [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}}]}
-            ]
-        }
         adapter = ModelAdapter(model_entity=dummy_model)
         adapter.load("./")
-        output = adapter.call_model(image_b64, payload)
+        output = adapter.call_model(image_b64)
         print(f"model `{dummy_model.name}`, {adapter.nim_invoke_url}. output: {output}")
 
 
