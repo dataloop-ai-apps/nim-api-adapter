@@ -1,6 +1,6 @@
 # ordered list of dpks to publish and install
 dpks:
-    - name: nim-api-mistralai-mistral-large
+    - name: nim-api-mistralai-mistral-small-24b-instruct
       install_app: True
       integrations:
           - key: "dl-ngc-api-key"  # integration key
@@ -13,9 +13,9 @@ datasets:
 
 # ordered list of models to get from apps
 models:
-    - name: mistral-large
+    - name: mistral-small-24b-instruct
       deploy_model: False
-      source_app: nim-api-mistralai-mistral-large
+      source_app: nim-api-mistralai-mistral-small-24b-instruct
 
 # list of pipeline variables to update with reference
 variables:
@@ -26,4 +26,4 @@ variables:
     - name: model
       resource_type: models
       resource_value:
-          resource_name: mistral-large
+          resource_name: mistral-small-24b-instruct

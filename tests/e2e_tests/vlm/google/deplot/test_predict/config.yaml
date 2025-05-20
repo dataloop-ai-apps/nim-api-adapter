@@ -1,10 +1,10 @@
 # ordered list of dpks to publish and install
 dpks:
-    - name: codestral-22b-instruct
+    - name: google-deplot
       install_app: True
       integrations:
-          - key: "dl-ngc-api-key"  # integration key
-            value: "NGC_API_KEY"  # integration value (integration name or id)
+        - key: "dl-ngc-api-key"  # integration key
+          value: "NGC_API_KEY"  # integration value (integration name or id)
 
 # ordered list of datasets to create from local assets or to get from installed apps
 datasets:
@@ -13,9 +13,9 @@ datasets:
 
 # ordered list of models to get from apps
 models:
-    - name: codestral-22b-instruct-v01
+    - name: google-deplot
       deploy_model: False
-      source_app: codestral-22b-instruct
+      source_app: google-deplot
 
 # list of pipeline variables to update with reference
 variables:
@@ -26,4 +26,4 @@ variables:
     - name: model
       resource_type: models
       resource_value:
-          resource_name: codestral-22b-instruct-v01
+          resource_name: google-deplot

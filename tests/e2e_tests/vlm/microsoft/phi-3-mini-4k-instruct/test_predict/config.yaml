@@ -1,6 +1,6 @@
 # ordered list of dpks to publish and install
 dpks:
-    - name: nemotron-4-340b-instruct
+    - name: phi-3-mini-4k-instruct
       install_app: True
       integrations:
           - key: "dl-ngc-api-key"  # integration key
@@ -13,9 +13,9 @@ datasets:
 
 # ordered list of models to get from apps
 models:
-    - name: nemotron-4-340b-instruct
+    - name: phi-3-mini-4k-instruct
       deploy_model: False
-      source_app: nemotron-4-340b-instruct
+      source_app: phi-3-mini-4k-instruct
 
 # list of pipeline variables to update with reference
 variables:
@@ -26,4 +26,4 @@ variables:
     - name: model
       resource_type: models
       resource_value:
-          resource_name: nemotron-4-340b-instruct
+          resource_name: phi-3-mini-4k-instruct
