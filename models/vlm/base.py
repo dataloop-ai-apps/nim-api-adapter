@@ -32,6 +32,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.guided_json = self.configuration.get("guided_json", None)
         self.debounce_interval = self.configuration.get('debounce_interval', 2)
         self.system_prompt = self.configuration.get('system_prompt', None)
+        self.add_metadata = self.configuration.get("add_metadata", False)
         if self.guided_json is not None:
             try:
                 item = dl.items.get(item_id=self.guided_json)
@@ -63,28 +64,46 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
-    def _get_prompt_data(self, prompt_item):
+    def _get_prompt_data(self, prompt_item: dl.PromptItem):
         """Prepares the prompt data based on the model type."""
+        def add_context_and_system_prompt(prompt_data, context_to_add):
+            if self.system_prompt:
+                prompt_data.insert(0, {"role": "system", "content": self.system_prompt})
+            if context_to_add:
+                prompt_data.append({"role": "assistant", "content": context_to_add})
+            return prompt_data
+        
+        prompt_data = None
+        context_to_add = None
+        nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
+        if len(nearest_items) > 0:
+            context_to_add = prompt_item.build_context(nearest_items=nearest_items,
+                                                        add_metadata=self.add_metadata)
+            if context_to_add:
+                logger.info(f"Nearest items Context: {context_to_add}")
+
         if self.model_type == "completions":
             # For completions, we typically need the last text prompt
             messages = prompt_item.to_messages(include_assistant=False)
             if messages and messages[-1]['content'] and isinstance(messages[-1]['content'], list) and messages[-1]['content'][0].get('type') == 'text':
-                 return messages[-1]['content'][0]['text']
+                 prompt_data = messages[-1]['content'][0]['text']
             else:
                  raise ValueError(f"Could not extract text prompt for completions from item {prompt_item.id}")
         elif self.model_type == "chat":
-            messages = prompt_item.to_messages()
-            if self.system_prompt:
-                messages.insert(0, {"role": "system", "content": self.system_prompt})
-            return messages
+            prompt_data = prompt_item.to_messages()
+            prompt_data = add_context_and_system_prompt(prompt_data, context_to_add)
+                
         elif self.model_type == "chat_only_text":
             messages = prompt_item.to_messages()
-            return self.flatten_messages(messages)
+            prompt_data = self.flatten_messages(messages) # flatten_messages already handles system_prompt
+            prompt_data = add_context_and_system_prompt(prompt_data, context_to_add)
         elif self.model_type == "multimodal":
             messages = prompt_item.to_messages(include_assistant=False)
-            return self.prepare_vlm_messages(messages[-1]['content'])
+            prompt_data = self.prepare_vlm_messages(messages[-1]['content'])
+            prompt_data = add_context_and_system_prompt(prompt_data, context_to_add)
         else:
             raise ValueError(f"Unsupported model type for prompt data extraction: {self.model_type}")
+        return prompt_data
 
     def _call_completions(self, prompt_data):
         """Calls the OpenAI completions API."""
