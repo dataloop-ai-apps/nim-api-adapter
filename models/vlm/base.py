@@ -32,7 +32,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         self.guided_json = self.configuration.get("guided_json", None)
         self.debounce_interval = self.configuration.get('debounce_interval', 2)
         self.system_prompt = self.configuration.get('system_prompt', None)
-        self.add_metadata = self.configuration.get("add_metadata", False)
+        self.add_metadata = self.configuration.get("add_metadata", ["system.document.source"])
         if self.guided_json is not None:
             try:
                 item = dl.items.get(item_id=self.guided_json)
@@ -72,7 +72,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             if context_to_add:
                 prompt_data.append({"role": "assistant", "content": context_to_add})
             return prompt_data
-        
+
         prompt_data = None
         context_to_add = None
         nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
@@ -86,13 +86,13 @@ class ModelAdapter(dl.BaseModelAdapter):
             # For completions, we typically need the last text prompt
             messages = prompt_item.to_messages(include_assistant=False)
             if messages and messages[-1]['content'] and isinstance(messages[-1]['content'], list) and messages[-1]['content'][0].get('type') == 'text':
-                 prompt_data = messages[-1]['content'][0]['text']
+                prompt_data = messages[-1]['content'][0]['text']
             else:
-                 raise ValueError(f"Could not extract text prompt for completions from item {prompt_item.id}")
+                raise ValueError(f"Could not extract text prompt for completions from item {prompt_item.id}")
         elif self.model_type == "chat":
             prompt_data = prompt_item.to_messages()
             prompt_data = add_context_and_system_prompt(prompt_data, context_to_add)
-                
+
         elif self.model_type == "chat_only_text":
             messages = prompt_item.to_messages()
             prompt_data = self.flatten_messages(messages) # flatten_messages already handles system_prompt
@@ -167,8 +167,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                     decoded_line = json.loads(line)
                     return self.extract_content(decoded_line, lookup_key)['content']
 
-
-            
         else:
             # Optional: Add logging for unexpected model types
             logger.warning(f"Chunk text extraction not implemented for model type: {self.model_type}")
@@ -212,7 +210,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         if self.stream:
             full_response_text = ""
             last_update_time = time.time()
-            
+
             for chunk in response_stream_or_obj:
                 chunk_text = self._extract_chunk_text(chunk)
                 if chunk_text: # Only process if text was extracted
@@ -222,7 +220,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                     if current_time - last_update_time >= self.debounce_interval:
                         self.add_response_to_prompt(prompt_item, full_response_text)
                         last_update_time = current_time
-    
+
             self.add_response_to_prompt(prompt_item, full_response_text)
         else:
             # Handle non-streaming response
@@ -238,7 +236,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         }
         asset_id = None
         try:
-            
+
             # check if video url is in the messages
             buffer, clean_text = self.check_video_url(messages[0].get("content"))
             if buffer:
@@ -246,7 +244,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                 headers["NVCF-INPUT-ASSET-REFERENCES"] = asset_id
                 headers["NVCF-FUNCTION-ASSET-IDS"] = asset_id
                 messages[0]["content"] = clean_text + f'<video src="data:video/mp4;asset_id,{asset_id}" />'
-
 
             payload = {
                 "messages": messages,
@@ -287,8 +284,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             logger.warning("Message not found in response's json")
 
         return output
-    
-    
+
     def flatten_messages(self, messages: list[dict]) -> list[dict]:
         """
         Flattens a list of OpenAI-style chat messages so that each message's 'content' is a plain string,
@@ -324,7 +320,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             else:
                 break
         return flattened
-    
+
     @staticmethod
     def prepare_vlm_messages(blocks):
         content = ""
@@ -335,7 +331,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 url = item["image_url"]["url"]
                 content += f'<img src="{url}" /> '
         return [{"role": "user", "content": content.strip()}]
-    
+
     @staticmethod
     def check_video_url(text: str):
         """
@@ -376,16 +372,15 @@ class ModelAdapter(dl.BaseModelAdapter):
             try:
                 prompt_data = self._get_prompt_data(prompt_item)
                 if not prompt_data: # Skip if prompt data could not be extracted
-                     raise ValueError(f"Prompt data could not be extracted for item.")
+                    raise ValueError(f"Prompt data could not be extracted for item.")
 
                 response = self._call_api(prompt_data)
                 self._handle_response(prompt_item, response)
 
             except Exception as e:
-                 raise ValueError(f"Error processing prompt item: {e}")
-               
+                raise ValueError(f"Error processing prompt item: {e}")
+
         return predictions # Return empty list as per Dataloop adapter standard for LLMs
-    
 
     def upload_video_to_nvidia(self,video_binary: str,  description="Reference video") -> str:
         """
@@ -420,7 +415,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         logger.info(f"Uploading video to nvidia with asset id: {asset_id}")
 
         # Step 2: Upload the binary to S3
-        
 
         put_headers = {
             "x-amz-meta-nvcf-asset-description": description,
@@ -438,7 +432,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         # Return the VILA-compatible video tag
         return asset_id
 
-
     def _delete_asset(self,asset_id):
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -452,7 +445,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         except Exception as e:
             logger.error(f"Error deleting asset with id: {asset_id} error: {e}")
         return True
-    
 
     @staticmethod
     def get_gpu_memory():
@@ -504,7 +496,6 @@ class ModelAdapter(dl.BaseModelAdapter):
             return True
         except OSError:
             return False
-        
 
     def start_and_wait_for_server(self):
         threading.Thread(target=self.keep, daemon=True).start()
@@ -540,5 +531,5 @@ class ModelAdapter(dl.BaseModelAdapter):
         logger.info("Done Trying")
         if self.is_port_available(host="0.0.0.0", port=8000) is True:
             raise Exception("Unable to start inference server")
-        
+
         return True
