@@ -11,6 +11,7 @@ import select
 import threading
 import json
 import dtlpy as dl
+import re
 logger = logging.getLogger("NIM Adapter")
 
 
