@@ -42,12 +42,6 @@
       "name": "model",
       "type": "Model",
       "description": null
-    },
-    {
-      "name": "label",
-      "type": "String",
-      "value": "free-text",
-      "description": null
     }
   ],
   "description": "",
@@ -169,16 +163,6 @@
           "type": "Item",
           "name": "item",
           "displayName": "item",
-          "io": "input"
-        },
-        {
-          "portId": "1a3bc0d0-41d6-47d2-b297-867cde12f262",
-          "nodeId": "1a3bc0d0-41d6-47d2-b297-867cde12f262",
-          "type": "String",
-          "name": "label",
-          "displayName": "label",
-          "defaultValue": "",
-          "variableName": "label",
           "io": "input"
         }
       ],
