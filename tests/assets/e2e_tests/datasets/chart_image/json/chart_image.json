@@ -1,39 +1,38 @@
 {
-  "id": "6832dcccf3c4d6e8dad53a25",
+  "id": "6832f0d405f2fbc17b38007a",
   "datasetId": "6832dc835e70cf2c8895c762",
-  "url": "https://rc-gate.dataloop.ai/api/v1/items/6832dcccf3c4d6e8dad53a25",
+  "url": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a",
   "dataset": "https://rc-gate.dataloop.ai/api/v1/datasets/6832dc835e70cf2c8895c762",
-  "createdAt": "2025-05-25T09:03:08.720Z",
+  "createdAt": "2025-05-25T10:28:35.690Z",
   "dir": "/",
-  "filename": "/chart_image.png",
+  "filename": "/chart_image.jpg",
   "type": "file",
   "hidden": false,
   "metadata": {
     "system": {
       "channels": 3,
       "encoding": "7bit",
-      "height": 1491,
+      "height": 599,
       "isBinary": true,
-      "mimetype": "image/png",
-      "originalname": "pie_chart_employee_count.png",
+      "mimetype": "image/jpeg",
+      "originalname": "chart_image.jpg",
       "refs": [],
-      "size": 37699,
+      "size": 34094,
       "taskStatusLog": [],
-      "thumbnailId": "6832dccf5a38327df3b1c042",
-      "width": 2413
+      "thumbnailId": "6832f0d545230793dc4aa4f4",
+      "width": 922
     },
     "tags": {
       "predict": true
     }
   },
-  "name": "chart_image.png",
+  "name": "chart_image.jpg",
   "creator": "ofir.g@dataloop.ai",
-  "updatedAt": "2025-05-25T09:03:11.103Z",
+  "updatedAt": "2025-05-25T10:28:37.273Z",
   "updatedBy": "ofir.g@dataloop.ai",
-  "stream": "https://rc-gate.dataloop.ai/api/v1/items/6832dcccf3c4d6e8dad53a25/stream",
-  "thumbnail": "https://rc-gate.dataloop.ai/api/v1/items/6832dcccf3c4d6e8dad53a25/thumbnail",
-  "annotations": [
-  ],
+  "stream": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a/stream",
+  "thumbnail": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a/thumbnail",
+  "annotations": [],
   "annotationsCount": 0,
-  "annotated": true
+  "annotated": false
 }
