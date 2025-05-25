@@ -1,7 +1,7 @@
 {
   "name": "nv-yolox-page-elements-v1",
   "displayName": "nv-yolox-page-elements-v1",
-  "version": "0.3.29",
+  "version": "0.3.30",
   "scope": "public",
   "description": "YOLOX-L model fine-tuned for detecting tables, charts, and titles in documents, served by NIM API.",
   "attributes": {
@@ -15,7 +15,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.29"
+    "gitTag": "0.3.30"
   },
   "components": {
     "computeConfigs": [
