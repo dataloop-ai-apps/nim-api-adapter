@@ -204,7 +204,7 @@
       "projectId": null,
       "config": {
         "package": {
-          "code": "import dtlpy as dl\n\nclass ServiceRunner:\n    @staticmethod\n    def run(item: dl.Item, label: str):\n        annotations = item.annotations.list()\n        for annotation in annotations:\n            if annotation.label != label:\n                raise ValueError(f\"Expected the model to predict: {label}, but got: {annotation.label} instead\")\n            if len(annotation.coordinates) == 0:\n                raise ValueError(f\"Model answer is empty\")\n",
+          "code": "import dtlpy as dl\n\nclass ServiceRunner:\n    @staticmethod\n    def run(item: dl.Item):\n        labels_list = list(item.dataset.labels_flat_dict.keys())\n        annotations = item.annotations.list()\n        for annotation in annotations:\n            if annotation.label not in labels_list:\n                raise ValueError(f\"Expected the model to predict labels from: {labels_list}, but got: {annotation.label} instead\")\n            if len(annotation.coordinates) == 0:\n                raise ValueError(f\"Model answer is empty\")\n",
           "name": "run",
           "type": "code",
           "codebase": {
