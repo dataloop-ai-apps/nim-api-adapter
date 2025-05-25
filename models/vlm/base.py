@@ -218,8 +218,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             "accept": "application/json",
         }
         asset_id = None
+        buffer = None
         try:
-            
             # check if video url is in the messages
             buffer, clean_text = self.check_video_url(messages[0].get("content"))
             if buffer:
