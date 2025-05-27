@@ -1,7 +1,7 @@
 {
   "name": "google-deplot",
   "displayName": "google-deplot",
-  "version": "0.3.31",
+  "version": "0.3.32",
   "scope": "public",
   "description": "Google DePlot, a one-shot solution for visual language understanding, converting images of plots or charts into structured tables, served by NIM API.",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.31"
+    "gitTag": "0.3.32"
   },
   "components": {
     "computeConfigs": [
