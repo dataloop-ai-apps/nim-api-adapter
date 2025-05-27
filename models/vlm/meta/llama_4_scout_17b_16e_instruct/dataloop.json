@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama-4-scout-17b-16e-instruct-meta",
   "displayName": "llama-4-scout-17b-16e-instruct",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "scope": "public",
   "description": "Powers complex conversations with superior contextual understanding, reasoning and text generation using Llama 4 Scout 17B Instruct.",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.30"
+    "gitTag": "0.3.31"
   },
   "components": {
     "computeConfigs": [

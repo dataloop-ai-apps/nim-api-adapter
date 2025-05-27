@@ -1,7 +1,7 @@
 {
   "name": "nim-api-llama3-1-405b-instruct-meta",
   "displayName": "llama-3.1-405b-instruct",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "scope": "public",
   "description": "Advanced LLM for synthetic data generation, distillation, and inference for chatbots, coding, and domain-specific tasks.",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.30"
+    "gitTag": "0.3.31"
   },
   "components": {
     "computeConfigs": [
