@@ -104,7 +104,7 @@
         "inputType": "text",
         "configuration": {
           "nim_model_name": "nvidia/nv-embedqa-mistral-7b-v2",
-          "embeddings_size": 1024
+          "embeddings_size": 4096
         },
         "description": "The NVIDIA Retrieval QA Mistral 7B Embedding model is an embedding model optimized for text question-answering retrieval."
       }
