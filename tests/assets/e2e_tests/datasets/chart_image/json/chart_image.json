@@ -1,0 +1,38 @@
+{
+  "id": "6832f0d405f2fbc17b38007a",
+  "datasetId": "6832dc835e70cf2c8895c762",
+  "url": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a",
+  "dataset": "https://rc-gate.dataloop.ai/api/v1/datasets/6832dc835e70cf2c8895c762",
+  "createdAt": "2025-05-25T10:28:35.690Z",
+  "dir": "/",
+  "filename": "/chart_image.jpg",
+  "type": "file",
+  "hidden": false,
+  "metadata": {
+    "system": {
+      "channels": 3,
+      "encoding": "7bit",
+      "height": 599,
+      "isBinary": true,
+      "mimetype": "image/jpeg",
+      "originalname": "chart_image.jpg",
+      "refs": [],
+      "size": 34094,
+      "taskStatusLog": [],
+      "thumbnailId": "6832f0d545230793dc4aa4f4",
+      "width": 922
+    },
+    "tags": {
+      "predict": true
+    }
+  },
+  "name": "chart_image.jpg",
+  "creator": "ofir.g@dataloop.ai",
+  "updatedAt": "2025-05-25T10:28:37.273Z",
+  "updatedBy": "ofir.g@dataloop.ai",
+  "stream": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a/stream",
+  "thumbnail": "https://rc-gate.dataloop.ai/api/v1/items/6832f0d405f2fbc17b38007a/thumbnail",
+  "annotations": [],
+  "annotationsCount": 0,
+  "annotated": false
+}
