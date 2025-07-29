@@ -64,6 +64,20 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
+    def _get_item_data(self, item):
+        """Prepares data from a regular video Item based on the model type."""
+        if item.mimetype.startswith('video/'):
+            prompt_text = self.system_prompt if self.system_prompt else "Describe this video"
+            
+            if self.model_type == "multimodal":
+                video_url = f"https://gate.dataloop.ai/api/v1/items/{item.id}/stream"
+                content = f"{prompt_text} {video_url}"
+                return [{"role": "user", "content": content}]
+            else:
+                return prompt_text
+        else:
+            raise ValueError(f"Unsupported item mimetype: {item.mimetype}")
+
     def _get_prompt_data(self, prompt_item):
         """Prepares the prompt data based on the model type."""
         if self.model_type == "completions":
@@ -211,6 +225,21 @@ class ModelAdapter(dl.BaseModelAdapter):
             full_response_text = self._extract_full_response_text(response_stream_or_obj)
             self.add_response_to_prompt(prompt_item, full_response_text)
 
+    def _handle_video_response(self, item, response_stream_or_obj):
+        """Handles response for video items by extracting text and updating item description."""
+        if self.stream:
+            full_response_text = ""
+            for chunk in response_stream_or_obj:
+                chunk_text = self._extract_chunk_text(chunk)
+                if chunk_text:
+                    full_response_text += chunk_text
+        else:
+            full_response_text = self._extract_full_response_text(response_stream_or_obj)
+        
+        if full_response_text:
+            item.description = full_response_text
+            item.update()
+
     def call_multimodal(self, messages):
         url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
         headers = {
@@ -348,25 +377,37 @@ class ModelAdapter(dl.BaseModelAdapter):
         return buffer, clean_text
 
     def prepare_item_func(self, item: dl.Item):
-        prompt_item = dl.PromptItem.from_item(item=item)
-        return prompt_item
+        if item.mimetype.startswith('video/'):
+            return item
+        else:
+            prompt_item = dl.PromptItem.from_item(item=item)
+            return prompt_item
 
     def predict(self, batch, **kwargs):
-        """Runs prediction on a batch of prompts."""
-        predictions = [] # Adapters should return a list of annotations, often empty for LLMs
-        for prompt_item in batch:
+        predictions = []
+        for item in batch:
             try:
-                prompt_data = self._get_prompt_data(prompt_item)
-                if not prompt_data: # Skip if prompt data could not be extracted
-                     raise ValueError(f"Prompt data could not be extracted for item.")
+                if hasattr(item, 'mimetype') and item.mimetype.startswith('video/'):
+                    item_data = self._get_item_data(item)
+                    if not item_data:
+                         raise ValueError(f"Item data could not be extracted for video item {item.id}")
+                     
+                    response = self._call_api(item_data)
+                    self._handle_video_response(item, response)
+                    logger.info(f"Generated response and added to item description for video item {item.id}")
+                    
+                else:
+                    prompt_data = self._get_prompt_data(item)
+                    if not prompt_data:
+                         raise ValueError(f"Prompt data could not be extracted for item.")
 
-                response = self._call_api(prompt_data)
-                self._handle_response(prompt_item, response)
+                    response = self._call_api(prompt_data)
+                    self._handle_response(item, response)
 
             except Exception as e:
-                 raise ValueError(f"Error processing prompt item: {e}")
+                 raise ValueError(f"Error processing item: {e}")
                
-        return predictions # Return empty list as per Dataloop adapter standard for LLMs
+        return predictions
     
 
     def upload_video_to_nvidia(self,video_binary: str,  description="Reference video") -> str:
