@@ -1,0 +1,110 @@
+{
+  "name": "nim-api-nvclip-husam",
+  "displayName": "nvclip-husam",
+  "version": "0.0.2",
+  "scope": "project",
+  "description": "NVIDIA NV-CLIP is a leading multimodal embeddings model that enables powerful image-text similarity matching and search capabilities.",
+  "attributes": {
+    "Hub": ["Nvidia", "Dataloop"],
+    "Provider": "NVIDIA",
+    "Deployed By": "Dataloop",
+    "Category": ["Model", "NIM"],
+    "Gen AI": "LMM",
+    "Media Type": ["Multi Modal"],
+    "NLP": "Conversational"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-api-deploy",
+        "runtime": {
+          "podType": "gpu-t4",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/nim-nvclip:0.0.3",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-api-module",
+        "entryPoint": "models/embeddings/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-api-deploy",
+        "description": "nvclip NIM API Adapter",
+        "integrations": ["dl-ngc-api-key"],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "embed_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The input items for embeddings."
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input items for embeddings."
+              },
+              {
+                "type": "Json",
+                "name": "json",
+                "description": "Embeddings of items."
+              }
+            ],
+            "displayName": "Embed Items",
+            "displayIcon": "",
+            "description": "The inference function of the model."
+          },
+          {
+            "name": "embed_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "The input dataset of the items required for prediction."
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "The DQL in json format to get all the items required for prediction."
+              }
+            ],
+            "output": [],
+            "displayName": "Embed Dataset",
+            "displayIcon": "",
+            "description": "Inference function of the model on a dataset."
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nvclip",
+        "moduleName": "nim-api-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "configuration": {
+          "nim_model_name": "nvidia/nvclip-vit-h-14",
+          "stream": true,
+          "model_type": "multimodal",
+          "is_downloadable": true
+        },
+        "description": "NVIDIA NV-CLIP is a leading multimodal embeddings model that enables powerful image-text similarity matching and search capabilities."
+      }
+    ]
+  }
+}
