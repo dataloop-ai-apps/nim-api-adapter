@@ -367,6 +367,15 @@ class ModelAdapter(dl.BaseModelAdapter):
                  raise ValueError(f"Error processing prompt item: {e}")
                
         return predictions # Return empty list as per Dataloop adapter standard for LLMs
+
+    def embed(self, batch, **kwargs):
+        embeddings = []
+        for item in batch:
+            prompt_item = dl.PromptItem.from_item(item=item)
+            prompt_data = self._get_prompt_data(prompt_item)
+            response = self._call_api(prompt_data)
+            self._handle_response(prompt_item, response)
+        return embeddings
     
 
     def upload_video_to_nvidia(self,video_binary: str,  description="Reference video") -> str:
@@ -524,3 +533,5 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise Exception("Unable to start inference server")
         
         return True
+    
+
