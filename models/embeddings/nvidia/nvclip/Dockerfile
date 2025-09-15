@@ -2,30 +2,24 @@ FROM nvcr.io/nim/nvidia/nvclip:2.0.0
 
 USER root
 
-RUN apt update && apt install -y python3-dev python3-pip curl git sudo docker.io && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# add python3-venv so we can create our own env
+RUN apt update && apt install -y python3-dev python3-pip python3-venv curl git sudo docker.io && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-
-# Give newuser sudo privileges
+# create non-root user
 RUN useradd -m newuser && \
     echo "newuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/newuser && \
     chmod 0440 /etc/sudoers.d/newuser
 
-RUN chown -R newuser:newuser /opt/nim/llm/.venv
+# create a private venv (avoid PEP 668), then hand it to newuser
+RUN python3 -m venv /opt/venv && chown -R newuser:newuser /opt/venv
 
 USER newuser
-
-
-RUN curl -o /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
-RUN /opt/nim/llm/.venv/bin/python /tmp/get-pip.py
-
 ENV HOME=/tmp
+ENV PATH="/opt/venv/bin:$PATH"
 
-RUN /opt/nim/llm/.venv/bin/python -m pip install dtlpy --upgrade
-RUN pip install https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.105.6.100-py3-none-any.whl --upgrade
-RUN /opt/nim/llm/.venv/bin/python -m pip install openai prometheus-client==0.20.0
-
-# docker build -t gcr.io/viewo-g/piper/agent/runner/gpu/llama3-2-11b-vision:0.1.15 -f Dockerfile .
-# docker push gcr.io/viewo-g/piper/agent/runner/gpu/llama3-2-11b-vision:0.1.15
-# docker run -it gcr.io/viewo-g/piper/agent/runner/gpu/llama3-2-11b-vision:0.1.15 bash
+# install deps into our venv (no --user, no get-pip)
+RUN python -m pip install --upgrade pip \
+ && pip install --upgrade dtlpy \
+ && pip install --upgrade https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.105.6.100-py3-none-any.whl \
+ && pip install openai prometheus-client==0.20.0
