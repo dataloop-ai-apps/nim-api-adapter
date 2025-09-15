@@ -2,9 +2,10 @@ FROM nvcr.io/nim/nvidia/nvclip:2.0.0
 
 USER root
 
-# add python3-venv so we can create our own env
-RUN apt update && apt install -y python3-dev python3-pip python3-venv curl git sudo docker.io && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y \
+    python3-dev python3-pip python3-venv curl git sudo docker.io \
+    libgl1 libglib2.0-0 libsm6 libxrender1 libxext6 \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # create non-root user
 RUN useradd -m newuser && \
