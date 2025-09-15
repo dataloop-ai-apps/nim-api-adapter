@@ -103,8 +103,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "nvidia/nvclip",
-          "nim_invoke_url": "embeddings/nvidia/nvclip",
+          "nim_model_name": "nvidia/nvclip-vit-h-14",
           "stream": true,
           "model_type": "multimodal",
           "is_downloadable": true

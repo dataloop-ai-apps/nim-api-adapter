@@ -14,21 +14,16 @@ logger = logging.getLogger("NIM Adapter")
 
 
 class ModelAdapter(dl.BaseModelAdapter):
-
     def load(self, local_path, **kwargs):
         if os.environ.get("NGC_API_KEY", None) is None:
             raise ValueError("Missing API key")
-
-        self.adapter_defaults.upload_annotations = False
 
         self.api_key = os.environ.get("NGC_API_KEY", None)
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
         self.base_url = "http://0.0.0.0:8000/v1"
-        # TODO : i'm not sure if this start and wait for sever is needed or the docker file will do it
-        # automatically
-        # self.start_and_wait_for_server()
+        self.start_and_wait_for_server()
 
     def embed(self, batch, **kwargs):
         """
@@ -163,6 +158,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             return False
 
     def start_and_wait_for_server(self):
+        """
+        Start the inference server and wait for it to start.
+        """
         threading.Thread(target=ModelAdapter.keep, daemon=True).start()
 
         logger.info("Starting inference server")
@@ -174,7 +172,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         max_retries = 0
         while max_retries < 20 and ModelAdapter.is_port_available(host="0.0.0.0", port=8000) is True:
             logger.info(f"Waiting for inference server to start sleep iteration {max_retries} sleeping for 5 minutes")
-            time.sleep(30)
+            time.sleep(60*5)
             max_retries += 1
             logger.info("Still waiting current logs: ")
             readable, _, _ = select.select([run_api_server.stdout, run_api_server.stderr], [], [], 0.1)
@@ -187,30 +185,3 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise Exception("Unable to start inference server")
 
         return True
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-
-    
-    print("start")
-    use_rc_env = False
-    if use_rc_env:
-        dl.setenv('rc')
-    else:
-        dl.setenv('prod')
-    # dl.logout()
-    if dl.token_expired():
-        dl.login()
-    print("login done")
-    proejct  = dl.projects.get(project_name="ShadiDemo")
-    model_entity = proejct.models.get(model_name="rf-detr-abd0d")
-    model_entity.configuration['nim_model_name'] = "nvidia/nvclip"
-    print("-HHH- 1")
-    model = ModelAdapter(model_entity)
-    print("-HHH- 2")
-    dataset = proejct.datasets.get(dataset_id="680c97da8580d18187236c95")
-    print("-HHH- 3")
-    # dataset.open_in_web()
-    model.embed_dataset(dataset=dataset)
-    print("-HHH- 4")
