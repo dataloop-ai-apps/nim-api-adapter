@@ -23,3 +23,5 @@ RUN python -m pip install --upgrade pip \
  && pip install --upgrade dtlpy \
  && pip install --upgrade https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.105.6.100-py3-none-any.whl \
  && pip install openai prometheus-client==0.20.0
+
+ENTRYPOINT []
