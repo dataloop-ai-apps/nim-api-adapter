@@ -15,6 +15,9 @@ RUN useradd -m newuser && \
 # create a private venv (avoid PEP 668), then hand it to newuser
 RUN python3 -m venv /opt/venv && chown -R newuser:newuser /opt/venv
 
+ENV LOCAL_NIM_CACHE=/tmp/nim_cache
+RUN mkdir -p ${LOCAL_NIM_CACHE}
+
 USER newuser
 ENV HOME=/tmp
 ENV PATH="/opt/venv/bin:$PATH"

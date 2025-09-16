@@ -1,22 +1,26 @@
-from openai import OpenAI
-import dtlpy as dl
-import subprocess
-import time
-import socket
-import select
-import threading
+import base64
+import io
 import logging
 import os
+import select
+import socket
+import subprocess
+import threading
+import time
+
+import dtlpy as dl
+import numpy as np
+from openai import OpenAI
+from PIL import Image
 
 logger = logging.getLogger("NIM Adapter")
 
-
 class ModelAdapter(dl.BaseModelAdapter):
     def __init__(self, model_entity: dl.Model):
-        if os.environ.get("NGC_API_KEY", None) is None:
-            raise ValueError(f"Missing API key")
-        self.api_key = os.environ.get("NGC_API_KEY", None)
-        print(f'-HHH- api key: {self.api_key}')
+        ngc_api_key = os.environ.get("NGC_API_KEY", None)
+        if ngc_api_key is None:
+            raise ValueError("Missing API key")
+        self.api_key = ngc_api_key
         super().__init__(model_entity)
 
     def load(self, local_path, **kwargs):
@@ -25,12 +29,11 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
 
         self.is_downloadable = self.configuration.get("is_downloadable", False)
-        print(f'-HHH- is_downloadable: {self.is_downloadable}')
         if self.is_downloadable:
             self.base_url = "http://0.0.0.0:8000/v1"
-            print(f"-HHH- starting server")
-            self.start_and_wait_for_server()
-            print(f"-HHH- server started")
+            print("-HHH_ start server")
+            ModelAdapter.start_and_wait_for_server()
+            print("-HHH_ start server done")
         else:
             self.base_url = "https://integrate.api.nvidia.com/v1"
 
@@ -46,12 +49,23 @@ class ModelAdapter(dl.BaseModelAdapter):
         embedding = response.data[0].embedding
         return embedding
 
+    def call_model_open_ai_batch(self, inputs_list):
+        response = self.client.embeddings.create(
+            input=inputs_list,
+            model=self.nim_model_name,
+            encoding_format="float",
+            extra_body={"input_type": "query", "truncate": "NONE"}
+        )
+        return [d.embedding for d in response.data]
+
     def embed(self, batch, **kwargs):
-        embeddings = []
+        input_list = []
         for item in batch:
             if isinstance(item, str):
                 self.adapter_defaults.upload_features = True
                 text = item
+            elif isinstance(item, np.ndarray):
+                text = ModelAdapter.np_to_base64(item)
             else:
                 self.adapter_defaults.upload_features = False
                 try:
@@ -68,13 +82,19 @@ class ModelAdapter(dl.BaseModelAdapter):
                         text = messages['content'][0]['text']
 
                 except ValueError as e:
-                    raise ValueError(f'Only mimetype text or prompt items are supported {e}')
-
-            embedding = self.call_model_open_ai(text)
+                    raise ValueError(f'Only mimetype text , image or prompt items are supported {e}')
+            input_list.append(text)
+        embedding = self.call_model_open_ai_batch(input_list)
+        for item, embedding in zip(batch, embedding):
             logger.info(f'Extracted embeddings for text {item}: {embedding}')
-            embeddings.append(embedding)
+        return embedding
 
-        return embeddings
+    @staticmethod
+    def np_to_base64(img_array: np.ndarray) -> str:
+        buf = io.BytesIO()
+        Image.fromarray(img_array.astype("uint8")).save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        return f"data:image/png;base64,{b64}"
 
     @staticmethod
     def get_gpu_memory():
@@ -101,9 +121,10 @@ class ModelAdapter(dl.BaseModelAdapter):
         used = [int(x.split()[0]) for i, x in enumerate(info)]
         return free, total, used
 
-    def keep(self):
+    @staticmethod
+    def keep():
         while True:
-            free, total, used = self.get_gpu_memory()
+            free, total, used = ModelAdapter.get_gpu_memory()
             logger.info(f"gpu memory - total: {total}, used: {used}, free: {free}")
             time.sleep(5)
 
@@ -128,8 +149,9 @@ class ModelAdapter(dl.BaseModelAdapter):
             return False
         
 
-    def start_and_wait_for_server(self):
-        threading.Thread(target=self.keep, daemon=True).start()
+    @staticmethod
+    def start_and_wait_for_server():
+        threading.Thread(target=ModelAdapter.keep, daemon=True).start()
 
         logger.info("Starting inference server")
         run_api_server_command = "/bin/bash -c /opt/nim/start_server.sh"
@@ -145,7 +167,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         max_retries = 0
         while (
             max_retries < 20
-            and self.is_port_available(host="0.0.0.0", port=8000) is True
+            and ModelAdapter.is_port_available(host="0.0.0.0", port=8000) is True
         ):
             logger.info(
                 f"Waiting for inference server to start sleep iteration {max_retries} sleeping for 5 minutes"
@@ -161,7 +183,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 if line:
                     print(f"Output: {line.strip()}")
         logger.info("Done Trying")
-        if self.is_port_available(host="0.0.0.0", port=8000) is True:
+        if ModelAdapter.is_port_available(host="0.0.0.0", port=8000) is True:
             raise Exception("Unable to start inference server")
         
         return True
