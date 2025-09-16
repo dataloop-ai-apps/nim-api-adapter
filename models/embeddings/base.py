@@ -25,9 +25,12 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
 
         self.is_downloadable = self.configuration.get("is_downloadable", False)
+        print(f'-HHH- is_downloadable: {self.is_downloadable}')
         if self.is_downloadable:
             self.base_url = "http://0.0.0.0:8000/v1"
+            print(f"-HHH- starting server")
             self.start_and_wait_for_server()
+            print(f"-HHH- server started")
         else:
             self.base_url = "https://integrate.api.nvidia.com/v1"
 
@@ -173,13 +176,17 @@ if __name__ == "__main__":
         dl.setenv('rc')
     else:
         dl.setenv('prod')
-    # dl.logout()
-    if dl.token_expired():
-        dl.login()
+    # # dl.logout()
+    # if dl.token_expired():
+    #     dl.login()
+    dl.login_api_key(api_key='eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6Imh1c2FtLm1AZGF0YWxvb3AuYWkiLCJpc3MiOiJodHRwczovL2dhdGUuZGF0YWxvb3AuYWkvMSIsImF1ZCI6Imh0dHBzOi8vZ2F0ZS5kYXRhbG9vcC5haS9hcGkvdjEiLCJpYXQiOjE3NTc5NDM4NzksImV4cCI6MTc4ODcwMjI3OSwic3ViIjoiYXBpa2V5fDE3YTJlOWZkLWE4OTYtNGQ2MS04YTUwLTg3ODE4MWM1OGEzYSIsImh0dHBzOi8vZGF0YWxvb3AuYWkvYXV0aG9yaXphdGlvbiI6eyJ1c2VyX3R5cGUiOiJhcGlrZXkiLCJyb2xlcyI6W119fQ.ExOLuyHVLLtWy1FRNiLDCWq4_WNnuYc8_4PdEc8d12xilQuotyasFnVaHEXTT6zOY74NJ7F6SHVeyikoHfzDCUt5GzcotMJRz3YaCdEZKGLmyw3yMhCw2tJxtMjSTtrybOZx5AkBbkySJpcGX5k0DqPJsV-wvpJQrRO73USr2IAkSdlqQ1s01D2kGitUxJeJw5FcCDhpewASX4qEPtEXaWmsEb6xGCtOb386c6JPrmg4mauiS1W11jUcpzCIiRCrECq0g2oIqmPJapn7LmvxV5AjncNnI7WhbspwAH-7Y0gSgDWyJ1NG5xOASd9weRffV7wUpAuJfWlgsrE1R_Bhbw')
+
     print("login done")
     proejct  = dl.projects.get(project_name="ShadiDemo")
     model_entity = proejct.models.get(model_name="rf-detr-abd0d")
     model_entity.configuration['nim_model_name'] = "nvidia/nvclip"
+    model_entity.configuration['is_downloadable'] = True
+
     print("-HHH- 1")
     model = ModelAdapter(model_entity)
     print("-HHH- 2")

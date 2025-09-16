@@ -501,7 +501,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         threading.Thread(target=self.keep, daemon=True).start()
 
         logger.info("Starting inference server")
-        run_api_server_command = "bash /opt/nim/start-server.sh"
+        run_api_server_command = "/bin/bash -c /opt/nim/start_server.sh"
         run_api_server = subprocess.Popen(
             run_api_server_command,
             stdout=subprocess.PIPE,
@@ -535,3 +535,28 @@ class ModelAdapter(dl.BaseModelAdapter):
         return True
     
 
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
+    
+    print("start")
+    use_rc_env = False
+    if use_rc_env:
+        dl.setenv('rc')
+    else:
+        dl.setenv('prod')
+    # dl.logout()
+    if dl.token_expired():
+        dl.login()
+    print("login done")
+    proejct  = dl.projects.get(project_name="ShadiDemo")
+    model_entity = proejct.models.get(model_name="rf-detr-abd0d")
+    model_entity.configuration['nim_model_name'] = "nvidia/nvclip"
+    print("-HHH- 1")
+    model = ModelAdapter(model_entity)
+    print("-HHH- 2")
+    dataset = proejct.datasets.get(dataset_id="680c97da8580d18187236c95")
+    print("-HHH- 3")
+    # dataset.open_in_web()
+    model.embed_dataset(dataset=dataset)
+    print("-HHH- 4")
