@@ -39,3 +39,6 @@ ENV HOME=/tmp
 # docker push gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.15
 # docker run -it --gpus all gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.10 bash
 
+
+# # To run the server locally inside the docker container
+# docker run -it --rm --entrypoint /bin/bash gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.10

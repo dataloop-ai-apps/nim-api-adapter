@@ -29,7 +29,22 @@ class ModelAdapter(dl.BaseModelAdapter):
             raise ValueError("Missing NGC_API_KEY")
 
         # Start the NIM server (equivalent to the container entrypoint)
-        cmd = "bash /opt/nim/start-server.sh"
+        cmd = "bash /opt/nim/start_server.sh"
+        # Enforce system Python 3.10 for any python invocations inside the script
+        runtime_env = {
+            **os.environ,
+            "NGC_API_KEY": api_key,
+            "PATH": f"/usr/bin:{os.environ.get('PATH', '')}",
+            "PYTHON": "/usr/bin/python3",
+            "PYTHONEXECUTABLE": "/usr/bin/python3",
+        }
+
+        # Sanity check the interpreter
+        try:
+            subprocess.run(["/usr/bin/python3", "-V"], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        except Exception as e:
+            raise RuntimeError(f"/usr/bin/python3 not available or not working: {e}")
+
         logger.info("Starting NV-CLIP NIM server: %s", cmd)
         self._server_proc = subprocess.Popen(
             cmd,
@@ -37,7 +52,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            env={**os.environ, "NGC_API_KEY": api_key},
+            env=runtime_env,
         )
 
         # Wait for readiness on the OpenAI-compatible endpoint
