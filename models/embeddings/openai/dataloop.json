@@ -1,7 +1,7 @@
 {
   "name": "nv-clip",
   "displayName": "nv-clip",
-  "version": "0.3.34",
+  "version": "0.3.36",
   "description": "NVIDIA CLIP is a model that can generate text embeddings for text and images.",
   "scope": "project",
   "attributes": {
@@ -19,7 +19,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.12",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.15",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -31,7 +31,7 @@
     "modules": [
       {
         "name": "nim-embeddings-module",
-        "entryPoint": "models/embeddings/openai/model_adapter.py",
+        "entryPoint": "model_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",

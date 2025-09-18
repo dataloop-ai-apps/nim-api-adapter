@@ -8,7 +8,8 @@ RUN apt-get update && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      python3.10 python3.10-venv python3.10-distutils python3.10-dev build-essential && \
+      python3.10 python3.10-venv python3.10-distutils python3.10-dev build-essential \
+      libffi-dev libssl-dev pkg-config rustc cargo && \
     rm -rf /var/lib/apt/lists/* && \
     curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && \
     python3.10 /tmp/get-pip.py && \
@@ -17,6 +18,8 @@ RUN apt-get update && \
     python3 -V && \
     python3 -m pip install --no-cache-dir --upgrade "pip<25" "setuptools<70" wheel && \
     python3 -m pip install --no-cache-dir \
+      cffi \
+      cryptography \
       docopt==0.6.2 \
       openai \
       requests \
@@ -32,7 +35,7 @@ ENV HOME=/tmp
 
 
 
-# docker build --no-cache -t gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.14 -f Dockerfile .
-# docker push gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.14
+# docker build --no-cache -t gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.15 -f Dockerfile .
+# docker push gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.15
 # docker run -it --gpus all gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.10 bash
 

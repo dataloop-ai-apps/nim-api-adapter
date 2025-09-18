@@ -6,8 +6,6 @@ from typing import Optional
 import io
 import base64
 from PIL import Image
-import torch
-import clip
 import requests
 import dtlpy as dl
 
