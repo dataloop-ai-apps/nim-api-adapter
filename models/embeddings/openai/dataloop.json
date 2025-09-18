@@ -1,0 +1,108 @@
+{
+  "name": "nv-clip",
+  "displayName": "nv-clip",
+  "version": "0.3.34",
+  "description": "NVIDIA CLIP is a model that can generate text embeddings for text and images.",
+  "scope": "project",
+  "attributes": {
+    "Hub": ["Nvidia", "Dataloop"],
+    "Provider": "NVIDIA",
+    "Deployed By": "NVIDIA",
+    "Category": ["Model", "NIM"],
+    "NLP": "Embeddings",
+    "Media Type": ["Text", "Image"]
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-embeddings-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.12",
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2
+          }
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-embeddings-module",
+        "entryPoint": "models/embeddings/openai/model_adapter.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-embeddings-deploy",
+        "description": "NIM embeddings module",
+        "integrations": ["dl-ngc-api-key"],
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "embed_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The input items for embeddings."
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input items for embeddings."
+              },
+              {
+                "type": "Json",
+                "name": "json",
+                "description": "Embeddings of items."
+              }
+            ],
+            "displayName": "Embed Items",
+            "displayIcon": "",
+            "description": "The inference function of the model."
+          },
+          {
+            "name": "embed_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "The input dataset of the items required for prediction."
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "The DQL in json format to get all the items required for prediction."
+              }
+            ],
+            "output": [],
+            "displayName": "Embed Dataset",
+            "displayIcon": "",
+            "description": "Inference function of the model on a dataset."
+          }
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nv-clip",
+        "moduleName": "nim-embeddings-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "configuration": {
+          "nim_model_name": "nvidia/nv-clip",
+          "embeddings_size": 4096
+        },
+        "description": "The NVIDIA CLIP model is a model that can generate text embeddings for text and images."
+      }
+    ]
+  }
+}
