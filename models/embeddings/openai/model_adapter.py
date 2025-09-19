@@ -10,7 +10,6 @@ import requests
 import dtlpy as dl
 import select
 
-
 logger = logging.getLogger("NIM Adapter")
 
 
@@ -37,13 +36,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             ),
         ]
         # Enforce system Python 3.10 for any python invocations inside the script
-        NVIDIA_API_KEY="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"
-        runtime_env = {
-            **os.environ,
-            "NGC_API_KEY": NVIDIA_API_KEY,
-            "NVIDIA_API_KEY": NVIDIA_API_KEY,
-            "ACCEPT_EULA": os.environ.get("ACCEPT_EULA", "Y")
-        }
+        NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
+        runtime_env = {**os.environ, "NGC_API_KEY": NVIDIA_API_KEY, "NVIDIA_API_KEY": NVIDIA_API_KEY, "ACCEPT_EULA": os.environ.get("ACCEPT_EULA", "Y")}
         # Extra diagnostics and backtraces for better error reporting
         runtime_env.setdefault("NIM_LOG_LEVEL", "debug")
         runtime_env.setdefault("RUST_BACKTRACE", "1")
@@ -52,7 +46,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             val = os.environ.get(var)
             if val:
                 runtime_env[var] = val
-       # Ensure working directory is /opt/nim as some assets/configs are relative
+        # Ensure working directory is /opt/nim as some assets/configs are relative
         workdir = "/opt/nim"
         if not os.path.isdir(workdir):
             raise RuntimeError(f"Required workdir not found: {workdir}")
@@ -79,9 +73,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 while time.time() - start_time < timeout_sec:
                     # Stream any available output from the process
                     try:
-                        readable, _, _ = select.select(
-                            [self._server_proc.stdout, self._server_proc.stderr], [], [], 0.1
-                        )
+                        readable, _, _ = select.select([self._server_proc.stdout, self._server_proc.stderr], [], [], 0.1)
                         for f in readable:
                             line = f.readline()
                             if line:
@@ -98,7 +90,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                         try:
                             rem_out = self._server_proc.stdout.read() or ""
                             rem_err = self._server_proc.stderr.read() or ""
-                            for line in (rem_out.splitlines() + rem_err.splitlines()):
+                            for line in rem_out.splitlines() + rem_err.splitlines():
                                 if line:
                                     msg = f"[nim] {line}"
                                     print(msg)
@@ -109,14 +101,17 @@ class ModelAdapter(dl.BaseModelAdapter):
                         rc = self._server_proc.returncode
                         raise RuntimeError(f"NV-CLIP server exited early (code {rc}). See log at {log_path}")
 
-                    # Probe readiness every ~5s
+                    # Probe readiness every ~5s (prefer health/ready, fallback to models)
                     if i % 50 == 0:
                         try:
                             elapsed = int(time.time() - start_time)
-                            print(f"Checking if NV-CLIP server is ready at {base_url}/v1/models (elapsed {elapsed}s)")
-                            r = requests.get(f"{base_url}/v1/models", timeout=2)
-                            if r.ok:
-                                ready = True
+                            for path in ("health/ready", "models"):
+                                print(f"Checking readiness at {base_url}/v1/{path} (elapsed {elapsed}s)")
+                                r = requests.get(f"{base_url}/v1/{path}", timeout=2)
+                                if r.ok:
+                                    ready = True
+                                    break
+                            if ready:
                                 break
                         except Exception:
                             pass
@@ -184,6 +179,3 @@ if __name__ == "__main__":
     adapter.load(None)
     adapter.embed(["Hello, world!"])
     print(adapter.embed(["Hello, world!"]))
-
-
-
