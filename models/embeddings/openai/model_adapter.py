@@ -8,6 +8,7 @@ import base64
 from PIL import Image
 import requests
 import dtlpy as dl
+import select
 
 
 logger = logging.getLogger("NIM Adapter")
@@ -24,68 +25,110 @@ class ModelAdapter(dl.BaseModelAdapter):
     _server_proc: Optional[subprocess.Popen] = None
 
     def load(self, local_path, **kwargs):
-        api_key = os.environ.get("NGC_API_KEY", "")
-        if not api_key:
-            raise ValueError("Missing NGC_API_KEY")
-
-        # Start the NIM server (equivalent to the container entrypoint)
-        cmd = "bash /opt/nim/start_server.sh"
+        # Start the NIM server using Python 3.12 to ensure correct env/packages
+        cmd = [
+            "/usr/bin/python3.12",
+            "-u",
+            "-c",
+            (
+                "import re, sys; from nimlib.start_server import main; "
+                "sys.argv[0] = re.sub(r'(-script\\.pyw|\\.exe)?$', '', sys.argv[0]); "
+                "sys.exit(main())"
+            ),
+        ]
         # Enforce system Python 3.10 for any python invocations inside the script
+        NVIDIA_API_KEY="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"
         runtime_env = {
             **os.environ,
-            "NGC_API_KEY": api_key,
-            "PATH": f"/usr/bin:{os.environ.get('PATH', '')}",
-            "PYTHON": "/usr/bin/python3",
-            "PYTHONEXECUTABLE": "/usr/bin/python3",
+            "NGC_API_KEY": NVIDIA_API_KEY,
+            "NVIDIA_API_KEY": NVIDIA_API_KEY,
+            "ACCEPT_EULA": os.environ.get("ACCEPT_EULA", "Y")
         }
+        # Extra diagnostics and backtraces for better error reporting
+        runtime_env.setdefault("NIM_LOG_LEVEL", "debug")
+        runtime_env.setdefault("RUST_BACKTRACE", "1")
+        # Pass-through optional org/team/cache settings if provided
+        for var in ("NGC_ORG", "NGC_TEAM", "NIM_CACHE_ROOT"):
+            val = os.environ.get(var)
+            if val:
+                runtime_env[var] = val
+       # Ensure working directory is /opt/nim as some assets/configs are relative
+        workdir = "/opt/nim"
+        if not os.path.isdir(workdir):
+            raise RuntimeError(f"Required workdir not found: {workdir}")
 
-        # Sanity check the interpreter
-        try:
-            subprocess.run(["/usr/bin/python3", "-V"], check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        except Exception as e:
-            raise RuntimeError(f"/usr/bin/python3 not available or not working: {e}")
-
-        logger.info("Starting NV-CLIP NIM server: %s", cmd)
+        print(f"Starting NV-CLIP NIM server via Python code: {cmd[0]} (cwd={workdir})")
         self._server_proc = subprocess.Popen(
             cmd,
-            shell=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             text=True,
             env=runtime_env,
+            cwd=workdir,
         )
 
-        # Wait for readiness on the OpenAI-compatible endpoint
+        # Wait for readiness on the OpenAI-compatible endpoint; stream logs while waiting
         base_url = "http://127.0.0.1:8000"
         ready = False
-        for _ in range(300):  # up to ~300 seconds
-            # If the process died early, surface logs
-            if self._server_proc.poll() is not None:
-                output = ""
-                try:
-                    if self._server_proc.stdout:
-                        output = self._server_proc.stdout.read()
-                except Exception:
-                    pass
-                raise RuntimeError(f"NV-CLIP server exited early. Logs:\n{output}")
-            try:
-                r = requests.get(f"{base_url}/v1/models", timeout=1)
-                if r.ok:
-                    ready = True
-                    break
-            except Exception:
-                time.sleep(1)
+        log_path = "/tmp/nim_startup.log"
+        try:
+            with open(log_path, "a") as _log:
+                start_time = time.time()
+                timeout_sec = int(os.environ.get("NIM_STARTUP_TIMEOUT_SEC", "5400"))  # default 90m
+                i = 0
+                while time.time() - start_time < timeout_sec:
+                    # Stream any available output from the process
+                    try:
+                        readable, _, _ = select.select(
+                            [self._server_proc.stdout, self._server_proc.stderr], [], [], 0.1
+                        )
+                        for f in readable:
+                            line = f.readline()
+                            if line:
+                                output = f"[nim] {line.strip()}"
+                                print(output)
+                                _log.write(output + "\n")
+                                _log.flush()
+                    except Exception:
+                        pass
+
+                    # If the process died early, surface last logs path
+                    if self._server_proc.poll() is not None:
+                        # Drain remaining output to log
+                        try:
+                            rem_out = self._server_proc.stdout.read() or ""
+                            rem_err = self._server_proc.stderr.read() or ""
+                            for line in (rem_out.splitlines() + rem_err.splitlines()):
+                                if line:
+                                    msg = f"[nim] {line}"
+                                    print(msg)
+                                    _log.write(msg + "\n")
+                            _log.flush()
+                        except Exception:
+                            pass
+                        rc = self._server_proc.returncode
+                        raise RuntimeError(f"NV-CLIP server exited early (code {rc}). See log at {log_path}")
+
+                    # Probe readiness every ~5s
+                    if i % 50 == 0:
+                        try:
+                            elapsed = int(time.time() - start_time)
+                            print(f"Checking if NV-CLIP server is ready at {base_url}/v1/models (elapsed {elapsed}s)")
+                            r = requests.get(f"{base_url}/v1/models", timeout=2)
+                            if r.ok:
+                                ready = True
+                                break
+                        except Exception:
+                            pass
+                    i += 1
+                    time.sleep(0.1)
+        finally:
+            pass
 
         if not ready:
-            output = ""
-            try:
-                if self._server_proc and self._server_proc.stdout:
-                    output = "".join(self._server_proc.stdout.readlines()[-200:])
-            except Exception:
-                pass
-            raise RuntimeError(f"NV-CLIP server did not become ready on {base_url}. Last logs:\n{output}")
+            raise RuntimeError(f"NV-CLIP server did not become ready on {base_url}. See log at {log_path}")
 
-        logger.info("NV-CLIP NIM is ready at %s/v1", base_url)
+        print(f"NV-CLIP NIM is ready at {base_url}/v1")
         # Persist for later calls
         self.base_url = base_url
         # Default to the concrete NV-CLIP variant used by the local server
@@ -134,3 +177,13 @@ class ModelAdapter(dl.BaseModelAdapter):
                 result[idx] = outputs[pos]
 
         return result
+
+
+if __name__ == "__main__":
+    adapter = ModelAdapter()
+    adapter.load(None)
+    adapter.embed(["Hello, world!"])
+    print(adapter.embed(["Hello, world!"]))
+
+
+

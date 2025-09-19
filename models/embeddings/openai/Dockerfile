@@ -42,3 +42,4 @@ ENV HOME=/tmp
 
 # # To run the server locally inside the docker container
 # docker run -it --rm --entrypoint /bin/bash gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.10
+# docker run -it --gpus all --rm -v E:\Applications\nim-api-adapter\models\embeddings\openai:/opt/nim/app --entrypoint /bin/bash gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.10
