@@ -19,7 +19,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.15",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nvclip:0.1.16",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,

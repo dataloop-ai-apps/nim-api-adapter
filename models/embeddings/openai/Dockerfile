@@ -28,6 +28,9 @@ RUN apt-get update && \
       https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.114.17.100-py3-none-any.whl \
       psutil
 
+COPY .cache /opt/nim/.cache
+RUN chown -R 1000:1000 /opt/nim/.cache
+
 # Drop privileges for runtime
 USER 1000
 ENV HOME=/tmp
