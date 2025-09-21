@@ -37,7 +37,9 @@ class ModelAdapter(dl.BaseModelAdapter):
         ]
         # Enforce system Python 3.10 for any python invocations inside the script
         NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
+
         runtime_env = {**os.environ, "NGC_API_KEY": NVIDIA_API_KEY, "NVIDIA_API_KEY": NVIDIA_API_KEY, "ACCEPT_EULA": os.environ.get("ACCEPT_EULA", "Y")}
+        runtime_env["SETUPTOOLS_USE_DISTUTILS"] = "local"
         # Extra diagnostics and backtraces for better error reporting
         runtime_env.setdefault("NIM_LOG_LEVEL", "debug")
         runtime_env.setdefault("RUST_BACKTRACE", "1")
