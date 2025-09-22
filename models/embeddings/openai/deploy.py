@@ -6,7 +6,7 @@ import dtlpy as dl
 
 
 def clean():
-    dpk = dl.dpks.get(dpk_name='gpu-check')
+    dpk = dl.dpks.get(dpk_name='nv-clip')
 
     apps_filters = dl.Filters(field='dpkName', values=dpk.name, resource='apps')
     for app in dl.apps.list(filters=apps_filters).all():
@@ -54,7 +54,7 @@ def publish_and_install(project: dl.Project, manifest):
 
 def test_model():
     import dtlpy as dl
-    model = dl.models.get(model_id="68cc61db9d08bfddf8692b31")
+    model = dl.models.get(model_id="68d0d86521dcf3c99b9d0059")
     ex = model.embed(item_ids=['68b82bdeac49960cb06800bf'])
 
 if __name__ == "__main__":
