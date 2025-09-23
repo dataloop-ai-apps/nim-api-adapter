@@ -26,8 +26,6 @@ class ModelAdapter(dl.BaseModelAdapter):
     _log_thread: Optional[threading.Thread] = None
 
     def load(self, local_path, **kwargs):
-        self.configuration['embeddings_size'] = 512
-
         # Start the NIM server using Python 3.12 to ensure correct env/packages
         cmd = [
             "/usr/bin/python3.12",

@@ -16,7 +16,7 @@
     "computeConfigs": [
       {
         "name": "nim-embeddings-deploy",
-        "runtime": {  
+        "runtime": {
           "podType": "gpu-t4",
           "concurrency": 1,
           "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/cpu/nvclip:0.1.22",
@@ -99,7 +99,7 @@
         "inputType": "text",
         "configuration": {
           "nim_model_name": "nvidia/nv-clip",
-          "embeddings_size": 512
+          "embeddings_size": 1024
         },
         "description": "The NVIDIA CLIP model is a model that can generate text embeddings for text and images."
       }
