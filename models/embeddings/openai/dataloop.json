@@ -1,7 +1,7 @@
 {
   "name": "nv-clip",
   "displayName": "nv-clip",
-  "version": "0.3.53",
+  "version": "0.3.58",
   "description": "NVIDIA CLIP is a model that can generate text embeddings for text and images.",
   "scope": "project",
   "attributes": {
