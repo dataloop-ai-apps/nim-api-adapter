@@ -25,7 +25,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 10,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.1.11",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
