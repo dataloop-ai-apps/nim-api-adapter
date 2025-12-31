@@ -57,7 +57,6 @@ USER 1000
 ENV HOME=/tmp
 
 # Provide NGC key at build time to prefetch model weights into cache (do NOT hardcode)
-ARG NGC_API_KEY
 ENV NGC_API_KEY=${NGC_API_KEY}
 ENV NVIDIA_API_KEY=${NGC_API_KEY}
 ENV ACCEPT_EULA=Y
