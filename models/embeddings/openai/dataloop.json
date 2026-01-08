@@ -1,8 +1,8 @@
 {
-  "name": "nv-embedqa-e5v5",
-  "displayName": "nv-embedqa-e5-v5",
-  "version": "0.3.34",
-  "description": "GPU-accelerated generation of text embeddings used for question-answering retrieval.",
+  "name": "nv-clip",
+  "displayName": "nv-clip",
+  "version": "0.3.58",
+  "description": "NVIDIA CLIP is a model that can generate text embeddings for text and images.",
   "scope": "project",
   "attributes": {
     "Hub": ["Nvidia", "Dataloop"],
@@ -10,21 +10,16 @@
     "Deployed By": "NVIDIA",
     "Category": ["Model", "NIM"],
     "NLP": "Embeddings",
-    "Media Type": ["Text"]
-  },
-  "codebase": {
-    "type": "git",
-    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "gitTag": "0.3.34"
+    "Media Type": ["Text", "Image"]
   },
   "components": {
     "computeConfigs": [
       {
         "name": "nim-embeddings-deploy",
         "runtime": {
-          "podType": "regular-xs",
+          "podType": "gpu-t4",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.1.11",
+          "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/cpu/nvclip:0.1.22",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -36,7 +31,7 @@
     "modules": [
       {
         "name": "nim-embeddings-module",
-        "entryPoint": "models/embeddings/base.py",
+        "entryPoint": "model_adapter.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-embeddings-deploy",
         "description": "NIM embeddings module",
@@ -97,16 +92,16 @@
     ],
     "models": [
       {
-        "name": "nv-embedqa-e5v5",
+        "name": "nv-clip",
         "moduleName": "nim-embeddings-module",
         "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
         "configuration": {
-          "nim_model_name": "nvidia/nv-embedqa-e5-v5",
+          "nim_model_name": "nvidia/nv-clip",
           "embeddings_size": 1024
         },
-        "description": "The NVIDIA Retrieval QA E5 Embedding Model is an embedding model optimized for text question-answering retrieval."
+        "description": "The NVIDIA CLIP model is a model that can generate text embeddings for text and images."
       }
     ]
   }

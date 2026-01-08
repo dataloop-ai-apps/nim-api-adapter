@@ -1,7 +1,7 @@
 {
   "name": "nim-api-neva-22b",
   "displayName": "neva-22b",
-  "version": "0.3.29",
+  "version": "0.3.34",
   "scope": "public",
   "description": "Multi-modal vision-language model that understands text/images and generates informative responses",
   "attributes": {
@@ -16,7 +16,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.29"
+    "gitTag": "0.3.34"
   },
   "components": {
     "computeConfigs": [
@@ -25,7 +25,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.1.11",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,

@@ -1,7 +1,7 @@
 {
   "name": "nim-api-vila",
   "displayName": "vila",
-  "version": "0.3.29",
+  "version": "0.3.34",
   "scope": "public",
   "description": "NVIDIA Vila is a leading vision language model (VLMs) that enables the ability to query and summarize images and video from the physical or virtual world.",
   "attributes": {
@@ -15,7 +15,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.29"
+    "gitTag": "0.3.34"
   },
   "components": {
     "computeConfigs": [
@@ -24,7 +24,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.10",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.1.11",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
