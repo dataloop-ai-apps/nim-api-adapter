@@ -15,45 +15,53 @@ from mcp.client.stdio import stdio_client
 load_dotenv()
 
 # MCP server config - set via environment variables
-# DPK_MCP_PYTHON: Path to Python executable for MCP server
-# DPK_MCP_SERVER: Path to MCP server script
-PYTHON_PATH = os.environ.get("DPK_MCP_PYTHON", "python")
-MCP_SERVER_PATH = os.environ.get("DPK_MCP_SERVER")
+# PYTHON_PATH: Path to Python executable for MCP server
+# MCP_SERVER_PATH: Path to MCP server script
+PYTHON_PATH = os.environ.get("PYTHON_PATH", "python")
+MCP_SERVER_PATH = os.environ.get("MCP_SERVER_PATH")
 
-# Adapter paths mapping - relative to repo root (models/ folder)
+# Adapter paths mapping - relative to repo root (models/api/ folder)
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADAPTER_MAPPING = {
-    "embedding": "models/embeddings/base.py",
-    "rerank": "models/embeddings/base.py",  # Rerank uses embedding adapter for now
-    "vlm": "models/vlm/base.py",
-    "llm": "models/llm/base.py"
+    "embedding": "models/api/embeddings/base.py",
+    "vlm": "models/api/vlm/base.py",
+    "llm": "models/api/llm/base.py"
 }
 
+# DPK version - keep in sync with codebase
+DPK_VERSION = "0.3.34"
+
 # Model type to DPK category/type mapping
+# Includes attributes for the manifest
 MODEL_TYPE_CONFIG = {
     "llm": {
         "model_category": "Gen AI",
         "model_type": "LLM",
         "input_type": "text",
-        "output_type": "text"
+        "output_type": "text",
+        # Attributes
+        "media_type": ["Text"],
+        "gen_ai": "LLM",
+        "nlp": "Conversational"
     },
     "vlm": {
         "model_category": "Gen AI",
         "model_type": "LMM",
         "input_type": "image",
-        "output_type": "text"
+        "output_type": "text",
+        # Attributes
+        "media_type": ["Multi Modal"],
+        "gen_ai": "LMM",
+        "nlp": "Conversational"
     },
     "embedding": {
         "model_category": "NLP",
         "model_type": "Embeddings",
         "input_type": "text",
-        "output_type": "embedding"
-    },
-    "rerank": {
-        "model_category": "NLP",
-        "model_type": "Other",
-        "input_type": "text",
-        "output_type": "text"
+        "output_type": "embedding",
+        # Attributes (no Gen AI for embeddings)
+        "media_type": ["Text"],
+        "nlp": "Embeddings"
     }
 }
 
@@ -99,7 +107,7 @@ class DPKGeneratorClient:
         
         Args:
             model_id: NVIDIA model ID (e.g., "nvidia/llama-3.1-70b-instruct")
-            model_type: Type of model ("llm", "vlm", "embedding", "rerank")
+            model_type: Type of model ("llm", "vlm", "embedding")
             
         Returns:
             dict with status, dpk_name, manifest, adapter_path, error
@@ -118,7 +126,7 @@ class DPKGeneratorClient:
         
         try:
             # Get adapter path
-            adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/llm/base.py")
+            adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/llm/base.py")
             adapter_path = os.path.join(REPO_ROOT, adapter_rel_path)
             result["adapter_path"] = adapter_path
             
@@ -135,11 +143,26 @@ class DPKGeneratorClient:
             # Extract provider from model_id (e.g., "meta/llama" → "Meta")
             model_provider = self._get_model_provider(model_id)
             
+            # Build attributes based on model type
+            attributes = {
+                "Hub": ["Nvidia", "Dataloop"],
+                "Provider": model_provider,
+                "Deployed By": "NVIDIA",
+                "Category": ["Model", "NIM"],
+                "Media Type": type_config["media_type"],
+                "NLP": type_config["nlp"]
+            }
+            # Add "Gen AI" only for LLM/VLM (not for embeddings)
+            if "gen_ai" in type_config:
+                attributes["Gen AI"] = type_config["gen_ai"]
+            
             # Call MCP tool directly with explicit parameters (no LLM)
             manifest = asyncio.run(self._call_tool("create_model_manifest", {
                 "name": dpk_name,
                 "display_name": f"NIM {display_name}",
                 "description": f"NVIDIA NIM adapter for {model_id}",
+                "version": DPK_VERSION,
+                "scope": "public",  # Final manifest is public; testing overrides to "project"
                 "model_category": type_config["model_category"],
                 "model_type": type_config["model_type"],
                 "provider": model_provider,
@@ -152,11 +175,12 @@ class DPKGeneratorClient:
                 "integrations": ["dl-ngc-api-key"],  # NGC API key secret
                 "hub": ["Nvidia", "Dataloop"],
                 "git_url": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-                "git_tag": "0.3.34",
+                "git_tag": DPK_VERSION,
                 "configuration": {
                     "nim_model_name": model_id,
                     "base_url": "https://integrate.api.nvidia.com/v1"
-                }
+                },
+                "attributes": attributes
             }))
             
             result.update({
@@ -223,7 +247,7 @@ class DPKGeneratorClient:
     @staticmethod
     def get_adapter_path(model_type: str) -> str:
         """Get the adapter file path for a model type."""
-        adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/llm/base.py")
+        adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/llm/base.py")
         return os.path.join(REPO_ROOT, adapter_rel_path)
 
 

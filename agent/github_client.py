@@ -1,24 +1,28 @@
 """
 GitHub Client for opening PRs with DPK manifests.
 
-Structure:
+New Structure (models/api/):
+  models/api/
+    embeddings/{publisher}/{model_name}/dataloop.json
+    llm/{publisher}/{model_name}/dataloop.json
+    vlm/{publisher}/{model_name}/dataloop.json
+    object_detection/{model_name}/dataloop.json
+    ocr/{model_name}/dataloop.json
+
+Legacy Structure (models/):
   models/
-    embeddings/
-      {publisher}/
-        {model_name}/
-          dataloop.json
-    vlm/
-      {publisher}/
-        {model_name}/
-          dataloop.json
-    llm/
-      {publisher}/
-        {model_name}/
-          dataloop.json
+    embeddings/{publisher}/{model_name}/dataloop.json
+    vlm/{publisher}/{model_name}/dataloop.json
+    object_detection/{model_name}/dataloop.json
+
+Notes:
+  - New models are created in models/api/ structure
+  - Deprecation search checks BOTH structures for backwards compatibility
+  - object_detection and ocr don't have publisher subdirectories
 
 Also updates:
-  - .bumpversion.cfg (adds new model entries)
-  - .dataloop.cfg (adds new manifest paths)
+  - .bumpversion.cfg (adds/removes model entries)
+  - .dataloop.cfg (adds/removes manifest paths)
 
 Requires:
   - GITHUB_TOKEN environment variable
@@ -36,7 +40,9 @@ from typing import Optional, List, Dict
 MODEL_TYPE_FOLDERS = {
     "embedding": "embeddings",
     "llm": "llm",
-    "vlm": "vlm"
+    "vlm": "vlm",
+    "object_detection": "object_detection",
+    "ocr": "ocr"
 }
 
 
@@ -118,15 +124,91 @@ class GitHubClient:
         
         return publisher, model_name
     
+    def _find_model_folder_by_dpk_name(self, dpk_name: str, model_type: str) -> Optional[str]:
+        """
+        Find existing model folder in repo by DPK name.
+        
+        Searches all dataloop.json files and matches by the 'name' field inside,
+        not by folder name (since they may differ).
+        
+        Args:
+            dpk_name: DPK name (e.g., "nv-yolox-page-elements-v1")
+            model_type: Model type (used to narrow search)
+            
+        Returns:
+            Path to dataloop.json if found, None otherwise
+        """
+        import json
+        
+        # Search in multiple type folders based on model_type
+        type_folders = []
+        if model_type:
+            type_folders.append(MODEL_TYPE_FOLDERS.get(model_type, model_type))
+        # Also search common folders as fallback
+        type_folders.extend(["llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
+        type_folders = list(dict.fromkeys(type_folders))  # Remove duplicates, preserve order
+        
+        # Search in both models/api/{type} and models/{type} (for backwards compatibility)
+        base_prefixes = ["models/api", "models"]
+        
+        for base_prefix in base_prefixes:
+            for type_folder in type_folders:
+                base_path = f"{base_prefix}/{type_folder}"
+                
+                try:
+                    manifest_paths = self._find_all_manifests_in_path(base_path)
+                    
+                    for manifest_path in manifest_paths:
+                        content = self._get_file_content(manifest_path)
+                        if content:
+                            try:
+                                manifest = json.loads(content)
+                                manifest_name = manifest.get("name", "")
+                                
+                                # Check if DPK name matches manifest name
+                                if manifest_name == dpk_name:
+                                    return manifest_path
+                            except json.JSONDecodeError:
+                                continue
+                                
+                except Exception:
+                    continue
+        
+        return None
+    
+    def _find_all_manifests_in_path(self, base_path: str) -> list:
+        """
+        Recursively find all dataloop.json files under a path.
+        
+        Returns:
+            List of paths to dataloop.json files
+        """
+        manifests = []
+        
+        try:
+            items = self.repository.get_contents(base_path, ref=self.base_branch)
+            
+            for item in items:
+                if item.type == "file" and item.name == "dataloop.json":
+                    manifests.append(item.path)
+                elif item.type == "dir":
+                    # Recurse into subdirectory
+                    manifests.extend(self._find_all_manifests_in_path(item.path))
+                    
+        except Exception:
+            pass
+        
+        return manifests
+    
     def _get_model_folder(self, model_id: str, model_type: str) -> str:
         """
         Get the folder path for a model.
         
-        Returns: e.g., "models/vlm/nvidia/llama_3_1_70b_instruct"
+        Returns: e.g., "models/api/vlm/nvidia/llama_3_1_70b_instruct"
         """
         type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
         publisher, model_name = self._parse_model_id(model_id)
-        return f"models/{type_folder}/{publisher}/{model_name}"
+        return f"models/api/{type_folder}/{publisher}/{model_name}"
     
     def _get_manifest_path(self, model_id: str, model_type: str) -> str:
         """Get full path to dataloop.json for a model."""
@@ -178,13 +260,14 @@ class GitHubClient:
             return '\n'.join(lines) + '\n' + '\n'.join(new_entries) + '\n'
         return existing_content
     
-    def _update_dataloop_cfg(self, existing_content: str, new_manifest_paths: List[str]) -> str:
+    def _update_dataloop_cfg(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
         """
-        Update .dataloop.cfg to include new manifest paths.
+        Update .dataloop.cfg to include new manifest paths and remove deprecated ones.
         
         Args:
             existing_content: Current .dataloop.cfg content (JSON)
             new_manifest_paths: List of new manifest paths to add
+            deprecated_manifest_paths: List of deprecated manifest paths to remove
             
         Returns:
             Updated .dataloop.cfg content
@@ -196,6 +279,11 @@ class GitHubClient:
         
         manifests = set(config.get("manifests", []))
         
+        # Remove deprecated paths
+        if deprecated_manifest_paths:
+            for path in deprecated_manifest_paths:
+                manifests.discard(path)
+        
         # Add new paths
         for path in new_manifest_paths:
             manifests.add(path)
@@ -203,6 +291,59 @@ class GitHubClient:
         config["manifests"] = sorted(list(manifests))
         
         return json.dumps(config, indent='\t')
+    
+    def _update_bumpversion_cfg_with_removals(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
+        """
+        Update .bumpversion.cfg to include new model entries and remove deprecated ones.
+        
+        Args:
+            existing_content: Current .bumpversion.cfg content
+            new_manifest_paths: List of new manifest paths to add
+            deprecated_manifest_paths: List of deprecated manifest paths to remove
+            
+        Returns:
+            Updated .bumpversion.cfg content
+        """
+        lines = existing_content.rstrip().split('\n')
+        
+        # Build set of deprecated paths for quick lookup
+        deprecated_paths = set(deprecated_manifest_paths) if deprecated_manifest_paths else set()
+        
+        # Filter out deprecated entries and collect existing paths
+        filtered_lines = []
+        existing_paths = set()
+        skip_next = 0
+        
+        for i, line in enumerate(lines):
+            if skip_next > 0:
+                skip_next -= 1
+                continue
+                
+            if line.startswith('[bumpversion:file:'):
+                path = line.replace('[bumpversion:file:', '').replace(']', '')
+                existing_paths.add(path)
+                
+                # Check if this is a deprecated path
+                if path in deprecated_paths:
+                    # Skip this entry and its following 2 lines (search/replace)
+                    skip_next = 2
+                    continue
+            
+            filtered_lines.append(line)
+        
+        # Add new entries
+        new_entries = []
+        for path in new_manifest_paths:
+            if path not in existing_paths:
+                new_entries.append(f'\n[bumpversion:file:{path}]')
+                new_entries.append('search = "{current_version}"')
+                new_entries.append('replace = "{new_version}"')
+        
+        result = '\n'.join(filtered_lines)
+        if new_entries:
+            result += '\n' + '\n'.join(new_entries) + '\n'
+        
+        return result
     
     # =========================================================================
     # PR Creation - Single Model
@@ -516,18 +657,29 @@ class GitHubClient:
                 )
                 result["models_added"].append(model_id)
             
-            # Handle deprecated models - add DEPRECATED.md files
+            # Handle deprecated models - add DEPRECATED.md files and track paths
+            deprecated_manifest_paths = []
+            
             for model in deprecated_models:
-                model_id = model["model_id"]
+                dpk_name = model["model_id"]  # This is the DPK name now
+                display_name = model.get("display_name", dpk_name)
                 model_type = model.get("model_type", "llm")
                 
-                publisher, model_name = self._parse_model_id(model_id)
-                folder = MODEL_TYPE_FOLDERS.get(model_type, model_type)
-                deprecated_path = f"models/{folder}/{publisher}/{model_name}/DEPRECATED.md"
+                # Try to find existing folder by DPK name pattern
+                manifest_path = self._find_model_folder_by_dpk_name(dpk_name, model_type)
                 
-                deprecated_content = f"""# ⚠️ Model Deprecated
+                if manifest_path:
+                    # Track deprecated manifest path for config file cleanup
+                    deprecated_manifest_paths.append(manifest_path)
+                    
+                    # Found matching folder - create DEPRECATED.md in same folder
+                    folder_path = "/".join(manifest_path.split("/")[:-1])
+                    deprecated_path = f"{folder_path}/DEPRECATED.md"
+                    
+                    deprecated_content = f"""# Model Deprecated
 
-**Model**: `{model_id}`  
+**DPK Name**: `{dpk_name}`  
+**Display Name**: `{display_name}`  
 **Type**: {model_type}  
 **Deprecated**: {datetime.now().strftime("%Y-%m-%d")}  
 
@@ -536,34 +688,33 @@ This model has been deprecated by NVIDIA and is no longer available through the 
 ## Reason
 Model removed from NVIDIA NIM catalog.
 """
-                
-                # Check if folder exists (model was previously added)
-                manifest_path = self._get_manifest_path(model_id, model_type)
-                existing_content = self._get_file_content(manifest_path)
-                
-                if existing_content:
-                    print(f"  ⚠️ Marking deprecated: {model_id}")
+                    
+                    print(f"  ⚠️ Marking deprecated: {dpk_name} ({display_name})")
                     self.repository.create_file(
                         path=deprecated_path,
-                        message=f"Mark {model_id} as deprecated",
+                        message=f"Mark {display_name} as deprecated",
                         content=deprecated_content,
                         branch=branch_name
                     )
-                    result["models_deprecated"].append(model_id)
+                    result["models_deprecated"].append(dpk_name)
                 else:
-                    print(f"  ⏭️ Skipping deprecated {model_id} (not in repo)")
+                    print(f"  ⏭️ Skipping deprecated {dpk_name} (not in repo)")
             
-            # Update config files if we added new models
-            if new_manifest_paths:
+            # Update config files if we added new models or deprecated existing ones
+            if new_manifest_paths or deprecated_manifest_paths:
                 # Update .bumpversion.cfg
                 print(f"  📄 Updating .bumpversion.cfg...")
                 bumpversion_content = self._get_file_content(".bumpversion.cfg")
                 if bumpversion_content:
-                    updated_bumpversion = self._update_bumpversion_cfg(bumpversion_content, new_manifest_paths)
+                    updated_bumpversion = self._update_bumpversion_cfg_with_removals(
+                        bumpversion_content, 
+                        new_manifest_paths, 
+                        deprecated_manifest_paths
+                    )
                     bumpversion_file = self.repository.get_contents(".bumpversion.cfg", ref=branch_name)
                     self.repository.update_file(
                         path=".bumpversion.cfg",
-                        message="Update .bumpversion.cfg with new models",
+                        message="Update .bumpversion.cfg with new/deprecated models",
                         content=updated_bumpversion,
                         sha=bumpversion_file.sha,
                         branch=branch_name
@@ -573,11 +724,15 @@ Model removed from NVIDIA NIM catalog.
                 print(f"  📄 Updating .dataloop.cfg...")
                 dataloop_cfg_content = self._get_file_content(".dataloop.cfg")
                 if dataloop_cfg_content:
-                    updated_dataloop_cfg = self._update_dataloop_cfg(dataloop_cfg_content, new_manifest_paths)
+                    updated_dataloop_cfg = self._update_dataloop_cfg(
+                        dataloop_cfg_content, 
+                        new_manifest_paths, 
+                        deprecated_manifest_paths
+                    )
                     dataloop_cfg_file = self.repository.get_contents(".dataloop.cfg", ref=branch_name)
                     self.repository.update_file(
                         path=".dataloop.cfg",
-                        message="Update .dataloop.cfg with new manifests",
+                        message="Update .dataloop.cfg with new/deprecated manifests",
                         content=updated_dataloop_cfg,
                         sha=dataloop_cfg_file.sha,
                         branch=branch_name
@@ -712,10 +867,24 @@ Model removed from NVIDIA NIM catalog.
         return None
     
     def check_model_exists(self, model_id: str, model_type: str) -> bool:
-        """Check if a model already exists in the repo."""
+        """
+        Check if a model already exists in the repo.
+        
+        Checks both new path (models/api/) and old path (models/) for backwards compatibility.
+        """
+        # Check new path: models/api/{type}/{publisher}/{model_name}/dataloop.json
         manifest_path = self._get_manifest_path(model_id, model_type)
-        content = self._get_file_content(manifest_path)
-        return content is not None
+        if self._get_file_content(manifest_path):
+            return True
+        
+        # Check old path: models/{type}/{publisher}/{model_name}/dataloop.json
+        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
+        publisher, model_name = self._parse_model_id(model_id)
+        old_path = f"models/{type_folder}/{publisher}/{model_name}/dataloop.json"
+        if self._get_file_content(old_path):
+            return True
+        
+        return False
     
     def close_pr(self, pr_number: int, comment: str = None) -> bool:
         """Close a PR with optional comment."""

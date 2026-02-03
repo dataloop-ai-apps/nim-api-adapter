@@ -1,4 +1,4 @@
-﻿# NVIDIA NIM Agent
+# NVIDIA NIM Agent
 
 Automated agent for discovering NVIDIA NIM models and onboarding them to the Dataloop marketplace.
 
@@ -35,7 +35,7 @@ NVIDIA API --> Fetch Models --> Compare with Dataloop --> Find New Models
 | File | Description |
 |------|-------------|
 | `nim_agent.py` | Main orchestrator - coordinates the entire flow |
-| `testing_tool.py` | Testing operations - type detection, adapter testing, DPK validation |
+| `tester.py` | Testing operations - type detection, adapter testing, DPK validation |
 | `dpk_mcp_handler.py` | DPK manifest generation via MCP tools |
 | `github_client.py` | GitHub operations - branches, commits, PRs |
 | `scraping.py` | Web scraping utilities for NVIDIA catalog |
@@ -181,5 +181,5 @@ The agent handles:
 
 1. Add adapter in `adapters/` folder
 2. Update `ADAPTER_MAPPING` in `dpk_mcp_handler.py`
-3. Update detection patterns in `testing_tool.py`
+3. Update detection patterns in `tester.py`
 4. Add folder mapping in `github_client.py`
