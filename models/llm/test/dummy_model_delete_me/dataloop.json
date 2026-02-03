@@ -1,0 +1,15 @@
+{
+  "name": "test-dummy-model",
+  "displayName": "Test Dummy Model (DELETE ME)",
+  "version": "0.0.1",
+  "description": "This is a test PR - please delete",
+  "components": {
+    "modules": [
+      {
+        "name": "test-module",
+        "entryPoint": "base.py",
+        "className": "ModelAdapter"
+      }
+    ]
+  }
+}
