@@ -1,7 +1,7 @@
 {
   "name": "nim-nemotron-content-safety-reasoning-4b",
   "displayName": "NIM Nemotron Content Safety Reasoning 4B",
-  "version": "0.3.35",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nemotron-content-safety-reasoning-4b",
   "attributes": {
@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }
