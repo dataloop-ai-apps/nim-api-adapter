@@ -1,7 +1,7 @@
 {
   "name": "nim-mathstral-7b-v0-1",
   "displayName": "NIM Mathstral 7B V0.1",
-  "version": "0.3.34",
+  "version": "0.3.35",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mathstral-7b-v0.1",
   "attributes": {
@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.34"
+    "gitTag": "0.3.35"
   }
 }

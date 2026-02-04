@@ -1,7 +1,7 @@
 {
   "name": "nim-qwen3-coder-480b-a35b-instruct",
   "displayName": "NIM Qwen3 Coder 480B A35B Instruct",
-  "version": "0.3.34",
+  "version": "0.3.35",
   "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen3-coder-480b-a35b-instruct",
   "attributes": {
@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.34"
+    "gitTag": "0.3.35"
   }
 }
