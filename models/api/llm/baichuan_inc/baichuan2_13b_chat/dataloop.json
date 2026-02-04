@@ -2,7 +2,7 @@
   "name": "nim-baichuan2-13b-chat",
   "displayName": "NIM Baichuan2 13B Chat",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for baichuan-inc/baichuan2-13b-chat",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-baichuan2-13b-chat",
         "moduleName": "nim-baichuan2-13b-chat-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

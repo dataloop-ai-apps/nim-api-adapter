@@ -2,7 +2,7 @@
   "name": "nim-italia-10b-instruct-16k",
   "displayName": "NIM Italia 10B Instruct 16K",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for igenius/italia_10b_instruct_16k",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-italia-10b-instruct-16k",
         "moduleName": "nim-italia-10b-instruct-16k-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

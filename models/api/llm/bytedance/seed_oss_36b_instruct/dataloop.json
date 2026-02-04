@@ -2,7 +2,7 @@
   "name": "nim-seed-oss-36b-instruct",
   "displayName": "NIM Seed Oss 36B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-seed-oss-36b-instruct",
         "moduleName": "nim-seed-oss-36b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

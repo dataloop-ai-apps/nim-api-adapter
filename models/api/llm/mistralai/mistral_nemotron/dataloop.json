@@ -2,7 +2,7 @@
   "name": "nim-mistral-nemotron",
   "displayName": "NIM Mistral Nemotron",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-nemotron",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-mistral-nemotron",
         "moduleName": "nim-mistral-nemotron-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

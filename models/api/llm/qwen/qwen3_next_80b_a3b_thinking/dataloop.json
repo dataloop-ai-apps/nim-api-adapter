@@ -2,7 +2,7 @@
   "name": "nim-qwen3-next-80b-a3b-thinking",
   "displayName": "NIM Qwen3 Next 80B A3B Thinking",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen3-next-80b-a3b-thinking",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-qwen3-next-80b-a3b-thinking",
         "moduleName": "nim-qwen3-next-80b-a3b-thinking-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

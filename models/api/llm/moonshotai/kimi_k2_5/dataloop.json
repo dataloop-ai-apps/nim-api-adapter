@@ -2,7 +2,7 @@
   "name": "nim-kimi-k2-5",
   "displayName": "NIM Kimi K2.5",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for moonshotai/kimi-k2.5",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-kimi-k2-5",
         "moduleName": "nim-kimi-k2-5-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

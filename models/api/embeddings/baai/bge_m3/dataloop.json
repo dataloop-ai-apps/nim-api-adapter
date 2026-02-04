@@ -2,7 +2,7 @@
   "name": "nim-bge-m3",
   "displayName": "NIM Bge M3",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for baai/bge-m3",
   "attributes": {
     "Category": [
@@ -105,7 +105,7 @@
       {
         "name": "nim-bge-m3",
         "moduleName": "nim-bge-m3-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "embedding",

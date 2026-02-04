@@ -2,7 +2,7 @@
   "name": "nim-chatglm3-6b",
   "displayName": "NIM Chatglm3 6B",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for thudm/chatglm3-6b",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-chatglm3-6b",
         "moduleName": "nim-chatglm3-6b-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

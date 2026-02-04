@@ -2,7 +2,7 @@
   "name": "nim-nv-embedcode-7b-v1",
   "displayName": "NIM Nv Embedcode 7B V1",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
   "attributes": {
     "Category": [
@@ -105,7 +105,7 @@
       {
         "name": "nim-nv-embedcode-7b-v1",
         "moduleName": "nim-nv-embedcode-7b-v1-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "embedding",

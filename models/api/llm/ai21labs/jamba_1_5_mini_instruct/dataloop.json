@@ -2,7 +2,7 @@
   "name": "nim-jamba-1-5-mini-instruct",
   "displayName": "NIM Jamba 1.5 Mini Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for ai21labs/jamba-1.5-mini-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-jamba-1-5-mini-instruct",
         "moduleName": "nim-jamba-1-5-mini-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

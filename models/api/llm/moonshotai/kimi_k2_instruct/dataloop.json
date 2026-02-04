@@ -2,7 +2,7 @@
   "name": "nim-kimi-k2-instruct",
   "displayName": "NIM Kimi K2 Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for moonshotai/kimi-k2-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-kimi-k2-instruct",
         "moduleName": "nim-kimi-k2-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

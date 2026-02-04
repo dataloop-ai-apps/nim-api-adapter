@@ -2,7 +2,7 @@
   "name": "nim-minimax-m2-1",
   "displayName": "NIM Minimax M2.1",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for minimaxai/minimax-m2.1",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-minimax-m2-1",
         "moduleName": "nim-minimax-m2-1-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

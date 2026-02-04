@@ -2,7 +2,7 @@
   "name": "nim-falcon3-7b-instruct",
   "displayName": "NIM Falcon3 7B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for tiiuae/falcon3-7b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-falcon3-7b-instruct",
         "moduleName": "nim-falcon3-7b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

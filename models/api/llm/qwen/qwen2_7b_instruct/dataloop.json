@@ -2,7 +2,7 @@
   "name": "nim-qwen2-7b-instruct",
   "displayName": "NIM Qwen2 7B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen2-7b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-qwen2-7b-instruct",
         "moduleName": "nim-qwen2-7b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

@@ -2,7 +2,7 @@
   "name": "nim-nemotron-nano-12b-v2-vl",
   "displayName": "NIM Nemotron Nano 12B V2 Vl",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nemotron-nano-12b-v2-vl",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-nemotron-nano-12b-v2-vl",
         "moduleName": "nim-nemotron-nano-12b-v2-vl-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

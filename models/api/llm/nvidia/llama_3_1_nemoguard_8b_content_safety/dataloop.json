@@ -2,7 +2,7 @@
   "name": "nim-llama-3-1-nemoguard-8b-content-safety",
   "displayName": "NIM Llama 3.1 Nemoguard 8B Content Safety",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-content-safety",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-llama-3-1-nemoguard-8b-content-safety",
         "moduleName": "nim-llama-3-1-nemoguard-8b-content-safety-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

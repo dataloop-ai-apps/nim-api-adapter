@@ -2,7 +2,7 @@
   "name": "nim-riva-translate-4b-instruct",
   "displayName": "NIM Riva Translate 4B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-riva-translate-4b-instruct",
         "moduleName": "nim-riva-translate-4b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

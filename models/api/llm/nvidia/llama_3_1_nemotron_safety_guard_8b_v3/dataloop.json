@@ -2,7 +2,7 @@
   "name": "nim-llama-3-1-nemotron-safety-guard-8b-v3",
   "displayName": "NIM Llama 3.1 Nemotron Safety Guard 8B V3",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-safety-guard-8b-v3",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-llama-3-1-nemotron-safety-guard-8b-v3",
         "moduleName": "nim-llama-3-1-nemotron-safety-guard-8b-v3-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

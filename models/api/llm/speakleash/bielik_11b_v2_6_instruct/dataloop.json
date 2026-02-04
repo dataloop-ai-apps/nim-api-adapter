@@ -2,7 +2,7 @@
   "name": "nim-bielik-11b-v2-6-instruct",
   "displayName": "NIM Bielik 11B V2.6 Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for speakleash/bielik-11b-v2.6-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-bielik-11b-v2-6-instruct",
         "moduleName": "nim-bielik-11b-v2-6-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

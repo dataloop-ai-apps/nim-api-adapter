@@ -2,7 +2,7 @@
   "name": "nim-llama-3-1-nemotron-nano-4b-v1-1",
   "displayName": "NIM Llama 3.1 Nemotron Nano 4B V1.1",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-4b-v1.1",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-llama-3-1-nemotron-nano-4b-v1-1",
         "moduleName": "nim-llama-3-1-nemotron-nano-4b-v1-1-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

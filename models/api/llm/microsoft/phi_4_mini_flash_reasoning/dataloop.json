@@ -2,7 +2,7 @@
   "name": "nim-phi-4-mini-flash-reasoning",
   "displayName": "NIM Phi 4 Mini Flash Reasoning",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-4-mini-flash-reasoning",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-phi-4-mini-flash-reasoning",
         "moduleName": "nim-phi-4-mini-flash-reasoning-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

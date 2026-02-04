@@ -2,7 +2,7 @@
   "name": "nim-solar-10-7b-instruct",
   "displayName": "NIM Solar 10.7B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for upstage/solar-10.7b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-solar-10-7b-instruct",
         "moduleName": "nim-solar-10-7b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

@@ -2,7 +2,7 @@
   "name": "nim-llama-3-2-3b-instruct",
   "displayName": "NIM Llama 3.2 3B Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-3.2-3b-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-llama-3-2-3b-instruct",
         "moduleName": "nim-llama-3-2-3b-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

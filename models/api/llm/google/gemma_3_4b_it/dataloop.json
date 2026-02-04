@@ -2,7 +2,7 @@
   "name": "nim-gemma-3-4b-it",
   "displayName": "NIM Gemma 3 4B It",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for google/gemma-3-4b-it",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-gemma-3-4b-it",
         "moduleName": "nim-gemma-3-4b-it-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

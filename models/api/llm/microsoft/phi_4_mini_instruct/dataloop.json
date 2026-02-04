@@ -2,7 +2,7 @@
   "name": "nim-phi-4-mini-instruct",
   "displayName": "NIM Phi 4 Mini Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-4-mini-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-phi-4-mini-instruct",
         "moduleName": "nim-phi-4-mini-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

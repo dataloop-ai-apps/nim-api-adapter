@@ -2,7 +2,7 @@
   "name": "nim-mistral-medium-3-instruct",
   "displayName": "NIM Mistral Medium 3 Instruct",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-medium-3-instruct",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-mistral-medium-3-instruct",
         "moduleName": "nim-mistral-medium-3-instruct-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

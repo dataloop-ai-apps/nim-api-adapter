@@ -2,7 +2,7 @@
   "name": "nim-llama-3-1-nemoguard-8b-topic-control",
   "displayName": "NIM Llama 3.1 Nemoguard 8B Topic Control",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-topic-control",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-llama-3-1-nemoguard-8b-topic-control",
         "moduleName": "nim-llama-3-1-nemoguard-8b-topic-control-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",

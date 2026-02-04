@@ -2,7 +2,7 @@
   "name": "nim-mistral-small-3-1-24b-instruct-2503",
   "displayName": "NIM Mistral Small 3.1 24B Instruct 2503",
   "version": "0.3.34",
-  "scope": "project",
+  "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-small-3.1-24b-instruct-2503",
   "attributes": {
     "Category": [
@@ -141,7 +141,7 @@
       {
         "name": "nim-mistral-small-3-1-24b-instruct-2503",
         "moduleName": "nim-mistral-small-3-1-24b-instruct-2503-module",
-        "scope": "project",
+        "scope": "public",
         "status": "pre-trained",
         "inputType": "text",
         "outputType": "text",
