@@ -148,7 +148,11 @@
         "description": "NVIDIA NIM adapter for meta/llama-3.2-11b-vision-instruct",
         "configuration": {
           "nim_model_name": "meta/llama-3.2-11b-vision-instruct",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false,
+          "num_frames_per_inference": 4
         }
       }
     ]

@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for stepfun-ai/step-3.5-flash",
         "configuration": {
           "nim_model_name": "stepfun-ai/step-3.5-flash",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]

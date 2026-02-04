@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
         "configuration": {
           "nim_model_name": "institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]

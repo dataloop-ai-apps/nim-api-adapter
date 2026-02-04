@@ -111,8 +111,7 @@
         "outputType": "embedding",
         "description": "NVIDIA NIM adapter for baai/bge-m3",
         "configuration": {
-          "nim_model_name": "baai/bge-m3",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "nim_model_name": "baai/bge-m3"
         }
       }
     ]

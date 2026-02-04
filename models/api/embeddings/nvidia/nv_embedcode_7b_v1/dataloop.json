@@ -111,8 +111,7 @@
         "outputType": "embedding",
         "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
         "configuration": {
-          "nim_model_name": "nvidia/nv-embedcode-7b-v1",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "nim_model_name": "nvidia/nv-embedcode-7b-v1"
         }
       }
     ]

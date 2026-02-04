@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
         "configuration": {
           "nim_model_name": "gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]

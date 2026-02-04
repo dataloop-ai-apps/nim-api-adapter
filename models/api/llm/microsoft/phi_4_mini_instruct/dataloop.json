@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for microsoft/phi-4-mini-instruct",
         "configuration": {
           "nim_model_name": "microsoft/phi-4-mini-instruct",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]

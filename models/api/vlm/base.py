@@ -1,6 +1,5 @@
 from openai import OpenAI
 import dtlpy as dl
-import requests
 import logging
 import time
 import os
@@ -18,13 +17,10 @@ else:
 
 class ModelAdapter(dl.BaseModelAdapter):
     """
-    Unified VLM adapter supporting all NVIDIA NIM vision models.
+    VLM adapter for NVIDIA NIM vision models using OpenAI-compatible API.
     
-    Supports two API patterns:
-    1. OpenAI format (Llama Vision, Phi Vision, etc.) - uses image_url in messages
-    2. NVIDIA VLM endpoint (neva, vila, deplot, kosmos) - uses <img> tags and /vlm/ endpoint
-    
-    Auto-detects format based on nim_invoke_url config.
+    Supports Llama Vision, Phi Vision, and other models that use the
+    standard OpenAI chat completions format with image_url in messages.
     """
 
     def load(self, local_path, **kwargs):
@@ -72,16 +68,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                 except Exception as e:
                     logger.error(f"Error loading guided json: {e}")
         
-        self.nim_invoke_url = self.configuration.get("nim_invoke_url", "")
-        
-        # Auto-detect API format: if nim_invoke_url starts with "vlm/" use NVIDIA VLM endpoint
-        self.use_vlm_endpoint = self.nim_invoke_url.startswith("vlm/")
-        
-        if not self.use_vlm_endpoint:
-            logger.info(f"Using OpenAI format for VLM: {self.nim_model_name}")
-        else:
-            logger.info(f"Using NVIDIA VLM endpoint for: {self.nim_model_name}")
-        
 
     def prepare_item_func(self, item: dl.Item):
         return dl.PromptItem.from_item(item=item)
@@ -94,12 +80,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             if self.system_prompt:
                 messages.insert(0, {"role": "system", "content": self.system_prompt})
 
-            if self.use_vlm_endpoint:
-                response = self._call_vlm_endpoint(messages)
-                self._handle_vlm_response(prompt_item, response)
-            else:
-                response = self._call_openai(messages)
-                self._handle_openai_response(prompt_item, response)
+            response = self._call_openai(messages)
+            self._handle_openai_response(prompt_item, response)
 
         return []
 
@@ -307,169 +289,8 @@ class ModelAdapter(dl.BaseModelAdapter):
             self._add_response(prompt_item, getattr(message, 'content', "") if message else "")
 
     # =========================================================================
-    # NVIDIA VLM Endpoint (neva, vila, deplot, kosmos)
+    # Video URL Helpers
     # =========================================================================
-    
-    def _call_vlm_endpoint(self, messages: list[dict]):
-        """Call NVIDIA VLM endpoint with <img> tag format."""
-        url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
-        
-        # Convert messages to VLM format with <img> tags
-        vlm_messages = self._prepare_vlm_messages(messages)
-        
-        # Handle video URLs (for VILA)
-        asset_id = None
-        buffer = None
-        
-        try:
-            if vlm_messages:
-                buffer, clean_text, mimetype = self._check_video_url(vlm_messages[0].get("content", ""))
-                if buffer:
-                    asset_id = self._upload_video(buffer, mimetype)
-                    headers["NVCF-INPUT-ASSET-REFERENCES"] = asset_id
-                    headers["NVCF-FUNCTION-ASSET-IDS"] = asset_id
-                    vlm_messages[0]["content"] = clean_text + f'<video src="data:{mimetype};asset_id,{asset_id}" />'
-
-            payload = {
-                "messages": vlm_messages,
-                "max_tokens": self.max_tokens,
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "stream": self.stream,
-            }
-            
-            if self.nim_invoke_url != self.nim_model_name:
-                payload["model"] = self.nim_model_name
-            if self.seed is not None:
-                payload["seed"] = self.seed
-            if self.num_frames_per_inference is not None:
-                payload["num_frames_per_inference"] = self.num_frames_per_inference
-            if self.guided_json is not None:
-                payload["nvext"] = {"guided_json": self.guided_json}
-
-            logger.info(f"Payload sent to VLM: {payload}")
-            response = requests.post(url=url, headers=headers, json=payload, timeout=120)
-            
-            if not response.ok:
-                raise ValueError(f"VLM API error: {response.status_code}, {response.text}")
-                
-        finally:
-            if buffer and asset_id:
-                self._delete_asset(asset_id)
-                
-        return response.iter_lines() if self.stream else response
-
-    def _handle_vlm_response(self, prompt_item, response):
-        """Handle NVIDIA VLM endpoint response."""
-        if self.stream:
-            full_response = ""
-            last_update_time = time.time()
-
-            for chunk in response:
-                if chunk:
-                    chunk_text = self._extract_vlm_chunk(chunk)
-                    if chunk_text:
-                        full_response += chunk_text
-                        if time.time() - last_update_time >= self.debounce_interval:
-                            self._add_response(prompt_item, full_response)
-                            last_update_time = time.time()
-
-            self._add_response(prompt_item, full_response)
-        else:
-            content = response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-            self._add_response(prompt_item, content)
-
-    def _extract_vlm_chunk(self, chunk) -> str:
-        """Extract text from VLM streaming chunk."""
-        try:
-            line = chunk.decode("utf-8")
-            lookup_key = "delta" if line.startswith("data") else "message"
-            line = line.replace("data: ", "")
-            if "[DONE]" not in line:
-                data = json.loads(line)
-                return data.get("choices", [{}])[0].get(lookup_key, {}).get("content", "")
-        except Exception:
-            pass
-        return ""
-
-    def _prepare_vlm_messages(self, messages: list[dict]) -> list[dict]:
-        """Convert OpenAI messages to NVIDIA VLM format with <img> tags."""
-        vlm_messages = []
-        
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            
-            if isinstance(content, str):
-                vlm_messages.append({"role": role, "content": content})
-            elif isinstance(content, list):
-                # Convert content parts to VLM format
-                vlm_content = ""
-                for part in content:
-                    if part.get("type") == "text":
-                        vlm_content += part.get("text", "") + " "
-                    elif part.get("type") == "image_url":
-                        url = part.get("image_url", {}).get("url", "")
-                        vlm_content += f'<img src="{url}" /> '
-                vlm_messages.append({"role": role, "content": vlm_content.strip()})
-        
-        return vlm_messages
-
-    # =========================================================================
-    # Video Support (for VILA and other video-capable VLMs)
-    # =========================================================================
-    
-    def _process_video_in_messages(self, messages: list[dict]) -> tuple[list[dict], str]:
-        """
-        Process messages to find and upload video content.
-        
-        Returns:
-            Tuple of (processed_messages, asset_id or None)
-        """
-        asset_id = None
-        processed = []
-        
-        for msg in messages:
-            content = msg.get("content", "")
-            if isinstance(content, str):
-                buffer, clean_text, mimetype = self._check_video_url(content)
-                if buffer:
-                    asset_id = self._upload_video(buffer, mimetype)
-                    # Add video reference to message
-                    processed.append({
-                        "role": msg.get("role", "user"),
-                        "content": clean_text + f' <video src="data:{mimetype};asset_id,{asset_id}" />'
-                    })
-                else:
-                    processed.append(msg)
-            elif isinstance(content, list):
-                # Check text parts for video URLs
-                new_content = []
-                for part in content:
-                    if part.get("type") == "text":
-                        text = part.get("text", "")
-                        buffer, clean_text, mimetype = self._check_video_url(text)
-                        if buffer:
-                            asset_id = self._upload_video(buffer, mimetype)
-                            new_content.append({"type": "text", "text": clean_text})
-                            new_content.append({
-                                "type": "video_url",
-                                "video_url": {"url": f"data:{mimetype};asset_id,{asset_id}"}
-                            })
-                        else:
-                            new_content.append(part)
-                    else:
-                        new_content.append(part)
-                processed.append({"role": msg.get("role", "user"), "content": new_content})
-            else:
-                processed.append(msg)
-        
-        return processed, asset_id
     
     def _check_video_url(self, text: str):
         """Extract video from Dataloop item URL."""
@@ -494,46 +315,6 @@ class ModelAdapter(dl.BaseModelAdapter):
                     logger.error(f"Error downloading video: {e}")
         
         return buffer, clean_text, mimetype
-
-    def _upload_video(self, video_binary, mimetype: str = "video/mp4", description: str = "Video") -> str:
-        """Upload video to NVIDIA NVCF assets."""
-        # Map mimetypes to NVCF-compatible types
-        content_type = mimetype if mimetype in ("video/mp4", "video/webm") else "video/mp4"
-        
-        response = requests.post(
-            "https://api.nvcf.nvidia.com/v2/nvcf/assets",
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-            json={"contentType": content_type, "description": description},
-            timeout=30,
-        )
-        response.raise_for_status()
-        
-        res = response.json()
-        asset_id = res["assetId"]
-        
-        requests.put(
-            res["uploadUrl"],
-            data=video_binary,
-            headers={"content-type": content_type},
-            timeout=300,
-        ).raise_for_status()
-        
-        logger.info(f"Uploaded video asset ({content_type}): {asset_id}")
-        return asset_id
-
-    def _delete_asset(self, asset_id):
-        """Delete NVIDIA NVCF asset."""
-        try:
-            requests.delete(
-                f"https://api.nvcf.nvidia.com/v2/nvcf/assets/{asset_id}",
-                headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=30,
-            ).raise_for_status()
-        except Exception as e:
-            logger.error(f"Error deleting asset {asset_id}: {e}")
 
     # =========================================================================
     # Common

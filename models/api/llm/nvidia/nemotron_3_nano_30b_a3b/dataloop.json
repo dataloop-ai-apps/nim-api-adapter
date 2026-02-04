@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-30b-a3b",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-3-nano-30b-a3b",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]

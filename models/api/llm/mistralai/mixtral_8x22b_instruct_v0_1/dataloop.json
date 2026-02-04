@@ -148,7 +148,10 @@
         "description": "NVIDIA NIM adapter for mistralai/mixtral-8x22b-instruct-v0.1",
         "configuration": {
           "nim_model_name": "mistralai/mixtral-8x22b-instruct-v0.1",
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false
         }
       }
     ]
