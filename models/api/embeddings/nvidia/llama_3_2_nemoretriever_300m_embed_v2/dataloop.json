@@ -1,0 +1,125 @@
+{
+  "name": "nim-llama-3-2-nemoretriever-300m-embed-v2",
+  "displayName": "NIM Llama 3.2 Nemoretriever 300M Embed V2",
+  "version": "0.3.34",
+  "scope": "project",
+  "description": "NVIDIA NIM adapter for nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+  "attributes": {
+    "Category": [
+      "Model",
+      "NIM"
+    ],
+    "NLP": "Embeddings",
+    "Provider": "NVIDIA",
+    "Media Type": [
+      "Text"
+    ],
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Deployed By": "NVIDIA"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-llama-3-2-nemoretriever-300m-embed-v2-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-llama-3-2-nemoretriever-300m-embed-v2-module",
+        "entryPoint": "models/api/embeddings/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-llama-3-2-nemoretriever-300m-embed-v2-deploy",
+        "description": "NVIDIA NIM adapter for nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "embed_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The input items for embeddings."
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input items for embeddings."
+              },
+              {
+                "type": "Json",
+                "name": "json",
+                "description": "Embeddings of items."
+              }
+            ],
+            "displayName": "Embed Items",
+            "displayIcon": "",
+            "description": "The inference function of the model."
+          },
+          {
+            "name": "embed_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "The input dataset of the items required for prediction."
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "The DQL in json format to get all the items required for prediction."
+              }
+            ],
+            "output": [],
+            "displayName": "Embed Dataset",
+            "displayIcon": "",
+            "description": "Inference function of the model on a dataset."
+          }
+        ],
+        "integrations": [
+          "dl-ngc-api-key"
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nim-llama-3-2-nemoretriever-300m-embed-v2",
+        "moduleName": "nim-llama-3-2-nemoretriever-300m-embed-v2-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "outputType": "embedding",
+        "description": "NVIDIA NIM adapter for nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+        "configuration": {
+          "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+          "base_url": "https://integrate.api.nvidia.com/v1"
+        }
+      }
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.34"
+  }
+}

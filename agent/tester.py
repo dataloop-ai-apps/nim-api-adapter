@@ -928,9 +928,15 @@ class TestingTool:
                 shutil.rmtree(temp_dir, ignore_errors=True)
             
             # Step 3: Install as App
+            # NGC API key must exist as an integration in your Dataloop org (Settings → Integrations).
+            # Create one with key "dl-ngc-api-key" and set its ID in DATALOOP_NGC_INTEGRATION_ID.
+            ngc_integration_id = os.environ.get("DATALOOP_NGC_INTEGRATION_ID", "").strip()
+            if not ngc_integration_id:
+                print("    ⚠️ DATALOOP_NGC_INTEGRATION_ID not set – deploy may fail with 'Integration not found'.")
+                print("       Create an NGC integration in your org and set the env var to its ID.")
+            integrations = [{"key": "dl-ngc-api-key", "value": ngc_integration_id}] if ngc_integration_id else []
             print(f"    📥 Installing as app...")
-            integrations = [{'key': 'dl-ngc-api-key', 'value': '4526738e-a7d7-4a82-a675-042fb554a451'}]
-            app = project.apps.install(dpk=dpk, app_name=f"{dpk_name}-test", integrations=integrations)
+            app = project.apps.install(dpk=dpk, app_name=f"{dpk_name}-test", integrations=integrations or None)
             result["app_id"] = app.id
             print(f"    ✓ Installed app: {app.name} (ID: {app.id})")
             
@@ -1027,8 +1033,13 @@ class TestingTool:
         """
         Clean up DPK and app resources.
         
-        Deletes in order: models -> apps -> dpk
+        Deletes in order: models -> apps -> dpk.
+        If both app and dpk are passed, we clean by dpk first; the explicit app
+        is usually the same one installed from this dpk, so we skip double
+        uninstall and ignore 404 when touching app again.
         """
+        uninstalled_app_ids = set()
+        
         # Step 1: Find and delete all models from the DPK
         if dpk:
             try:
@@ -1054,15 +1065,19 @@ class TestingTool:
                     try:
                         print(f"      🗑️ Uninstalling app: {dpk_app.name}")
                         dpk_app.uninstall()
+                        uninstalled_app_ids.add(dpk_app.id)
                     except Exception as e:
-                        print(f"      ⚠️ Failed to uninstall app {dpk_app.name}: {e}")
+                        err_str = str(e).lower()
+                        if "404" in err_str or "not found" in err_str:
+                            print(f"      (app already removed: {dpk_app.name})")
+                        else:
+                            print(f"      ⚠️ Failed to uninstall app {dpk_app.name}: {e}")
             except Exception as e:
                 print(f"      ⚠️ Failed to list apps from DPK: {e}")
         
-        # Also handle explicitly passed app
-        if app:
+        # Explicit app: only delete models / uninstall if not already done in Step 2
+        if app and app.id not in uninstalled_app_ids:
             try:
-                # Delete models from this specific app
                 filters = dl.Filters(resource=dl.FiltersResource.MODEL)
                 filters.add(field='app.id', values=app.id)
                 app_models = list(project.models.list(filters=filters).all())
@@ -1072,13 +1087,15 @@ class TestingTool:
                         model.delete()
                     except Exception as e:
                         print(f"      ⚠️ Failed to delete model {model.name}: {e}")
-                
-                # Uninstall app
                 print(f"      🗑️ Uninstalling app: {app.name}")
                 app.uninstall()
                 print(f"      ✓ Uninstalled app")
             except Exception as e:
-                print(f"      ⚠️ Failed to cleanup app: {e}")
+                err_str = str(e).lower()
+                if "404" in err_str or "not found" in err_str:
+                    print(f"      (app already removed: {app.name})")
+                else:
+                    print(f"      ⚠️ Failed to cleanup app: {e}")
         
         # Step 3: Delete the DPK
         if dpk:

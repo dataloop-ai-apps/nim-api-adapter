@@ -1,0 +1,161 @@
+{
+  "name": "nim-llama-guard-4-12b",
+  "displayName": "NIM Llama Guard 4 12B",
+  "version": "0.3.34",
+  "scope": "project",
+  "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
+  "attributes": {
+    "Category": [
+      "Model",
+      "NIM"
+    ],
+    "Gen AI": "LLM",
+    "Provider": "Meta",
+    "Media Type": [
+      "Text"
+    ],
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Deployed By": "NVIDIA",
+    "NLP": "Conversational"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-llama-guard-4-12b-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-llama-guard-4-12b-module",
+        "entryPoint": "models/api/llm/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-llama-guard-4-12b-deploy",
+        "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Function to run nim-llama-guard-4-12b inference on items"
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": ""
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Function to run nim-llama-guard-4-12b inference on a dataset"
+          },
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate nim-llama-guard-4-12b model performance"
+          }
+        ],
+        "integrations": [
+          "dl-ngc-api-key"
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nim-llama-guard-4-12b",
+        "moduleName": "nim-llama-guard-4-12b-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "inputType": "text",
+        "outputType": "text",
+        "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
+        "configuration": {
+          "nim_model_name": "meta/llama-guard-4-12b",
+          "base_url": "https://integrate.api.nvidia.com/v1"
+        }
+      }
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.34"
+  }
+}
