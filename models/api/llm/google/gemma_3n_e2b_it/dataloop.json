@@ -1,7 +1,7 @@
 {
   "name": "nim-gemma-3n-e2b-it",
   "displayName": "NIM Gemma 3N E2B It",
-  "version": "0.3.37",
+  "version": "0.3.38",
   "scope": "public",
   "description": "NVIDIA NIM adapter for google/gemma-3n-e2b-it",
   "attributes": {
@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.37"
+    "gitTag": "0.3.38"
   }
 }
