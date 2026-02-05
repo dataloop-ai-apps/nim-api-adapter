@@ -1,6 +1,6 @@
 {
   "name": "nim-granite-3-3-8b-instruct",
-  "displayName": "NIM Granite 3.3 8B Instruct",
+  "displayName": "Granite 3.3 8B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for ibm/granite-3.3-8b-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-granite-3-3-8b-instruct",
         "moduleName": "nim-granite-3-3-8b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for ibm/granite-3.3-8b-instruct",
         "configuration": {
           "nim_model_name": "ibm/granite-3.3-8b-instruct",

@@ -1,6 +1,6 @@
 {
   "name": "nim-llama3-70b-instruct",
-  "displayName": "NIM Llama3 70B Instruct",
+  "displayName": "Llama3 70B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama3-70b-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama3-70b-instruct",
         "moduleName": "nim-llama3-70b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for meta/llama3-70b-instruct",
         "configuration": {
           "nim_model_name": "meta/llama3-70b-instruct",

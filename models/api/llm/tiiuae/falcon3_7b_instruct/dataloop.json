@@ -1,6 +1,6 @@
 {
   "name": "nim-falcon3-7b-instruct",
-  "displayName": "NIM Falcon3 7B Instruct",
+  "displayName": "Falcon3 7B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for tiiuae/falcon3-7b-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Tiiuae",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-falcon3-7b-instruct",
         "moduleName": "nim-falcon3-7b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for tiiuae/falcon3-7b-instruct",
         "configuration": {
           "nim_model_name": "tiiuae/falcon3-7b-instruct",

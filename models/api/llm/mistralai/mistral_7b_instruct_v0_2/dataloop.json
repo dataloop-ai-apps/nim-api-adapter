@@ -1,6 +1,6 @@
 {
   "name": "nim-mistral-7b-instruct-v0-2",
-  "displayName": "NIM Mistral 7B Instruct V0.2",
+  "displayName": "Mistral 7B Instruct V0.2",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-7b-instruct-v0.2",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Mistral AI",
+    "Provider": "MistralAI",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-mistral-7b-instruct-v0-2",
         "moduleName": "nim-mistral-7b-instruct-v0-2-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for mistralai/mistral-7b-instruct-v0.2",
         "configuration": {
           "nim_model_name": "mistralai/mistral-7b-instruct-v0.2",

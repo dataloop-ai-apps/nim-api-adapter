@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-3-1-swallow-8b-instruct-v0-1",
-  "displayName": "NIM Llama 3.1 Swallow 8B Instruct V0.1",
+  "displayName": "Llama 3.1 Swallow 8B Instruct V0.1",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Institute Of Science Tokyo",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-3-1-swallow-8b-instruct-v0-1",
         "moduleName": "nim-llama-3-1-swallow-8b-instruct-v0-1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
         "configuration": {
           "nim_model_name": "institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",

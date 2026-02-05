@@ -1,6 +1,6 @@
 {
   "name": "nim-mistral-small-24b-instruct",
-  "displayName": "NIM Mistral Small 24B Instruct",
+  "displayName": "Mistral Small 24B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-small-24b-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Mistral AI",
+    "Provider": "MistralAI",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-mistral-small-24b-instruct",
         "moduleName": "nim-mistral-small-24b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for mistralai/mistral-small-24b-instruct",
         "configuration": {
           "nim_model_name": "mistralai/mistral-small-24b-instruct",

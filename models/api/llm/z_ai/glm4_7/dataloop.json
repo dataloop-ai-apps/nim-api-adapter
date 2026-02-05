@@ -1,6 +1,6 @@
 {
   "name": "nim-glm4-7",
-  "displayName": "NIM Glm4.7",
+  "displayName": "Glm4.7",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for z-ai/glm4.7",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Z Ai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-glm4-7",
         "moduleName": "nim-glm4-7-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for z-ai/glm4.7",
         "configuration": {
           "nim_model_name": "z-ai/glm4.7",

@@ -36,7 +36,7 @@
     "modules": [
       {
         "name": "nim-api-module",
-        "entryPoint": "models/object_detection/base.py",
+        "entryPoint": "models/api/object_detection/base.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
         "description": "NIM API Adapter for CACHED model detecting chart elements.",

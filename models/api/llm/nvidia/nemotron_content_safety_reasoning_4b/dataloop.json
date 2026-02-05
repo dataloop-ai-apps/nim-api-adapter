@@ -1,6 +1,6 @@
 {
   "name": "nim-nemotron-content-safety-reasoning-4b",
-  "displayName": "NIM Nemotron Content Safety Reasoning 4B",
+  "displayName": "Nemotron Content Safety Reasoning 4B",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nemotron-content-safety-reasoning-4b",
@@ -141,10 +141,8 @@
       {
         "name": "nim-nemotron-content-safety-reasoning-4b",
         "moduleName": "nim-nemotron-content-safety-reasoning-4b-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/nemotron-content-safety-reasoning-4b",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-content-safety-reasoning-4b",

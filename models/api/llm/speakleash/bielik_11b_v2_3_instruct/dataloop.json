@@ -1,6 +1,6 @@
 {
   "name": "nim-bielik-11b-v2-3-instruct",
-  "displayName": "NIM Bielik 11B V2.3 Instruct",
+  "displayName": "Bielik 11B V2.3 Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for speakleash/bielik-11b-v2.3-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Speakleash",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-bielik-11b-v2-3-instruct",
         "moduleName": "nim-bielik-11b-v2-3-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for speakleash/bielik-11b-v2.3-instruct",
         "configuration": {
           "nim_model_name": "speakleash/bielik-11b-v2.3-instruct",

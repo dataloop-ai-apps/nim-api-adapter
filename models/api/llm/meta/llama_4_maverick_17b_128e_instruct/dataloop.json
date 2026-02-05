@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-4-maverick-17b-128e-instruct",
-  "displayName": "NIM Llama 4 Maverick 17B 128E Instruct",
+  "displayName": "Llama 4 Maverick 17B 128E Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-4-maverick-17b-128e-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-4-maverick-17b-128e-instruct",
         "moduleName": "nim-llama-4-maverick-17b-128e-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for meta/llama-4-maverick-17b-128e-instruct",
         "configuration": {
           "nim_model_name": "meta/llama-4-maverick-17b-128e-instruct",

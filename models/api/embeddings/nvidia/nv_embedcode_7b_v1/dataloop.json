@@ -1,6 +1,6 @@
 {
   "name": "nim-nv-embedcode-7b-v1",
-  "displayName": "NIM Nv Embedcode 7B V1",
+  "displayName": "Nv Embedcode 7B V1",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
@@ -105,10 +105,9 @@
       {
         "name": "nim-nv-embedcode-7b-v1",
         "moduleName": "nim-nv-embedcode-7b-v1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
-        "outputType": "embedding",
         "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
         "configuration": {
           "nim_model_name": "nvidia/nv-embedcode-7b-v1"

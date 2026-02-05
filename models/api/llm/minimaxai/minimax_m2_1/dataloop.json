@@ -1,6 +1,6 @@
 {
   "name": "nim-minimax-m2-1",
-  "displayName": "NIM Minimax M2.1",
+  "displayName": "Minimax M2.1",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for minimaxai/minimax-m2.1",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Minimaxai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-minimax-m2-1",
         "moduleName": "nim-minimax-m2-1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for minimaxai/minimax-m2.1",
         "configuration": {
           "nim_model_name": "minimaxai/minimax-m2.1",

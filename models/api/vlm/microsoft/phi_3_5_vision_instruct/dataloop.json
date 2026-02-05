@@ -1,6 +1,6 @@
 {
   "name": "nim-phi-3-5-vision-instruct",
-  "displayName": "NIM Phi 3.5 Vision Instruct",
+  "displayName": "Phi 3.5 Vision Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-3.5-vision-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-phi-3-5-vision-instruct",
         "moduleName": "nim-phi-3-5-vision-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "image",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for microsoft/phi-3.5-vision-instruct",
         "configuration": {
           "nim_model_name": "microsoft/phi-3.5-vision-instruct",

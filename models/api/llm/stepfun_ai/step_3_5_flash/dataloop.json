@@ -1,6 +1,6 @@
 {
   "name": "nim-step-3-5-flash",
-  "displayName": "NIM Step 3.5 Flash",
+  "displayName": "Step 3.5 Flash",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for stepfun-ai/step-3.5-flash",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Stepfun Ai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-step-3-5-flash",
         "moduleName": "nim-step-3-5-flash-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for stepfun-ai/step-3.5-flash",
         "configuration": {
           "nim_model_name": "stepfun-ai/step-3.5-flash",

@@ -1,6 +1,6 @@
 {
   "name": "nim-qwen2-5-coder-7b-instruct",
-  "displayName": "NIM Qwen2.5 Coder 7B Instruct",
+  "displayName": "Qwen2.5 Coder 7B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen2.5-coder-7b-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Qwen",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-qwen2-5-coder-7b-instruct",
         "moduleName": "nim-qwen2-5-coder-7b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for qwen/qwen2.5-coder-7b-instruct",
         "configuration": {
           "nim_model_name": "qwen/qwen2.5-coder-7b-instruct",

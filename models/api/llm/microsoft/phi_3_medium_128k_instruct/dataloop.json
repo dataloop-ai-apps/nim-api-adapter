@@ -1,6 +1,6 @@
 {
   "name": "nim-phi-3-medium-128k-instruct",
-  "displayName": "NIM Phi 3 Medium 128K Instruct",
+  "displayName": "Phi 3 Medium 128K Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-3-medium-128k-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-phi-3-medium-128k-instruct",
         "moduleName": "nim-phi-3-medium-128k-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for microsoft/phi-3-medium-128k-instruct",
         "configuration": {
           "nim_model_name": "microsoft/phi-3-medium-128k-instruct",

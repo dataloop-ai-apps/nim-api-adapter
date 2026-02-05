@@ -1,6 +1,6 @@
 {
   "name": "nim-seed-oss-36b-instruct",
-  "displayName": "NIM Seed Oss 36B Instruct",
+  "displayName": "Seed Oss 36B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Bytedance",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-seed-oss-36b-instruct",
         "moduleName": "nim-seed-oss-36b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct",
         "configuration": {
           "nim_model_name": "bytedance/seed-oss-36b-instruct",

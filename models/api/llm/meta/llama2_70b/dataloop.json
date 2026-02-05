@@ -1,6 +1,6 @@
 {
   "name": "nim-llama2-70b",
-  "displayName": "NIM Llama2 70B",
+  "displayName": "Llama2 70B",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama2-70b",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama2-70b",
         "moduleName": "nim-llama2-70b-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for meta/llama2-70b",
         "configuration": {
           "nim_model_name": "meta/llama2-70b",

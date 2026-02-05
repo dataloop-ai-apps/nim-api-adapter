@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-3-1-nemotron-nano-vl-8b-v1",
-  "displayName": "NIM Llama 3.1 Nemotron Nano Vl 8B V1",
+  "displayName": "Llama 3.1 Nemotron Nano Vl 8B V1",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-3-1-nemotron-nano-vl-8b-v1",
         "moduleName": "nim-llama-3-1-nemotron-nano-vl-8b-v1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
         "configuration": {
           "nim_model_name": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",

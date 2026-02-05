@@ -1,6 +1,6 @@
 {
   "name": "nim-nemotron-3-nano-30b-a3b",
-  "displayName": "NIM Nemotron 3 Nano 30B A3B",
+  "displayName": "Nemotron 3 Nano 30B A3B",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-30b-a3b",
@@ -141,10 +141,8 @@
       {
         "name": "nim-nemotron-3-nano-30b-a3b",
         "moduleName": "nim-nemotron-3-nano-30b-a3b-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-30b-a3b",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-3-nano-30b-a3b",

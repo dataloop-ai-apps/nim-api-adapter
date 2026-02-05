@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-3-swallow-70b-instruct-v0-1",
-  "displayName": "NIM Llama 3 Swallow 70B Instruct V0.1",
+  "displayName": "Llama 3 Swallow 70B Instruct V0.1",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Tokyotech Llm",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-3-swallow-70b-instruct-v0-1",
         "moduleName": "nim-llama-3-swallow-70b-instruct-v0-1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
         "configuration": {
           "nim_model_name": "tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",

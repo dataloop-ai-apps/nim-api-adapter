@@ -1,6 +1,6 @@
 {
   "name": "nim-gemma-2-9b-cpt-sahabatai-instruct",
-  "displayName": "NIM Gemma 2 9B Cpt Sahabatai Instruct",
+  "displayName": "Gemma 2 9B Cpt Sahabatai Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Gotocompany",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-gemma-2-9b-cpt-sahabatai-instruct",
         "moduleName": "nim-gemma-2-9b-cpt-sahabatai-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
         "configuration": {
           "nim_model_name": "gotocompany/gemma-2-9b-cpt-sahabatai-instruct",

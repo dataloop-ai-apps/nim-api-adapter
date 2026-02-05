@@ -1,6 +1,6 @@
 {
   "name": "nim-sarvam-m",
-  "displayName": "NIM Sarvam M",
+  "displayName": "Sarvam M",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for sarvamai/sarvam-m",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Sarvamai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-sarvam-m",
         "moduleName": "nim-sarvam-m-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for sarvamai/sarvam-m",
         "configuration": {
           "nim_model_name": "sarvamai/sarvam-m",

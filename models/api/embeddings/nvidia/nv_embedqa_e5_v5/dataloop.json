@@ -1,6 +1,6 @@
 {
   "name": "nim-nv-embedqa-e5-v5",
-  "displayName": "NIM Nv Embedqa E5 V5",
+  "displayName": "Nv Embedqa E5 V5",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5",
@@ -105,10 +105,9 @@
       {
         "name": "nim-nv-embedqa-e5-v5",
         "moduleName": "nim-nv-embedqa-e5-v5-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
-        "outputType": "embedding",
         "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5",
         "configuration": {
           "nim_model_name": "nvidia/nv-embedqa-e5-v5"

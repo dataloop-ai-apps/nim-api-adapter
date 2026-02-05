@@ -1,6 +1,6 @@
 {
   "name": "nim-nvidia-nemotron-nano-9b-v2",
-  "displayName": "NIM Nvidia Nemotron Nano 9B V2",
+  "displayName": "Nvidia Nemotron Nano 9B V2",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nvidia-nemotron-nano-9b-v2",
@@ -141,10 +141,8 @@
       {
         "name": "nim-nvidia-nemotron-nano-9b-v2",
         "moduleName": "nim-nvidia-nemotron-nano-9b-v2-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/nvidia-nemotron-nano-9b-v2",
         "configuration": {
           "nim_model_name": "nvidia/nvidia-nemotron-nano-9b-v2",

@@ -1,6 +1,6 @@
 {
   "name": "nim-chatglm3-6b",
-  "displayName": "NIM Chatglm3 6B",
+  "displayName": "Chatglm3 6B",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for thudm/chatglm3-6b",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Thudm",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-chatglm3-6b",
         "moduleName": "nim-chatglm3-6b-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for thudm/chatglm3-6b",
         "configuration": {
           "nim_model_name": "thudm/chatglm3-6b",

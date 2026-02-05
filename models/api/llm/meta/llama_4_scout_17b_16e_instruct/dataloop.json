@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-4-scout-17b-16e-instruct",
-  "displayName": "NIM Llama 4 Scout 17B 16E Instruct",
+  "displayName": "Llama 4 Scout 17B 16E Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-4-scout-17b-16e-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-4-scout-17b-16e-instruct",
         "moduleName": "nim-llama-4-scout-17b-16e-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for meta/llama-4-scout-17b-16e-instruct",
         "configuration": {
           "nim_model_name": "meta/llama-4-scout-17b-16e-instruct",

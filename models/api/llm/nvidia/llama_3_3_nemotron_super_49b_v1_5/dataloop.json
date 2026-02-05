@@ -1,6 +1,6 @@
 {
   "name": "nim-llama-3-3-nemotron-super-49b-v1-5",
-  "displayName": "NIM Llama 3.3 Nemotron Super 49B V1.5",
+  "displayName": "Llama 3.3 Nemotron Super 49B V1.5",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.3-nemotron-super-49b-v1.5",
@@ -141,10 +141,8 @@
       {
         "name": "nim-llama-3-3-nemotron-super-49b-v1-5",
         "moduleName": "nim-llama-3-3-nemotron-super-49b-v1-5-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/llama-3.3-nemotron-super-49b-v1.5",
         "configuration": {
           "nim_model_name": "nvidia/llama-3.3-nemotron-super-49b-v1.5",

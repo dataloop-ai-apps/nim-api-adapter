@@ -1,6 +1,6 @@
 {
   "name": "nim-kimi-k2-instruct-0905",
-  "displayName": "NIM Kimi K2 Instruct 0905",
+  "displayName": "Kimi K2 Instruct 0905",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for moonshotai/kimi-k2-instruct-0905",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Moonshotai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-kimi-k2-instruct-0905",
         "moduleName": "nim-kimi-k2-instruct-0905-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for moonshotai/kimi-k2-instruct-0905",
         "configuration": {
           "nim_model_name": "moonshotai/kimi-k2-instruct-0905",

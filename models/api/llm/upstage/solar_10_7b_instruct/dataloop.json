@@ -1,6 +1,6 @@
 {
   "name": "nim-solar-10-7b-instruct",
-  "displayName": "NIM Solar 10.7B Instruct",
+  "displayName": "Solar 10.7B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for upstage/solar-10.7b-instruct",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Upstage",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-solar-10-7b-instruct",
         "moduleName": "nim-solar-10-7b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for upstage/solar-10.7b-instruct",
         "configuration": {
           "nim_model_name": "upstage/solar-10.7b-instruct",

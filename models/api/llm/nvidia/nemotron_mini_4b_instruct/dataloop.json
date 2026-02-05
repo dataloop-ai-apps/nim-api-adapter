@@ -1,6 +1,6 @@
 {
   "name": "nim-nemotron-mini-4b-instruct",
-  "displayName": "NIM Nemotron Mini 4B Instruct",
+  "displayName": "Nemotron Mini 4B Instruct",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nemotron-mini-4b-instruct",
@@ -141,10 +141,8 @@
       {
         "name": "nim-nemotron-mini-4b-instruct",
         "moduleName": "nim-nemotron-mini-4b-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/nemotron-mini-4b-instruct",
         "configuration": {
           "nim_model_name": "nvidia/nemotron-mini-4b-instruct",

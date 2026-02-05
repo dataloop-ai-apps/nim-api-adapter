@@ -1,6 +1,6 @@
 {
   "name": "nim-gpt-oss-20b",
-  "displayName": "NIM Gpt Oss 20B",
+  "displayName": "Gpt Oss 20B",
   "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for openai/gpt-oss-20b",
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "OpenAI",
+    "Provider": "Open AI",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-gpt-oss-20b",
         "moduleName": "nim-gpt-oss-20b-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for openai/gpt-oss-20b",
         "configuration": {
           "nim_model_name": "openai/gpt-oss-20b",
