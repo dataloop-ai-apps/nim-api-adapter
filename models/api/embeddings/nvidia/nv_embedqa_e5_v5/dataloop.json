@@ -1,7 +1,7 @@
 {
   "name": "nim-nv-embedqa-e5-v5",
   "displayName": "Nv Embedqa E5 V5",
-  "version": "0.3.39",
+  "version": "0.3.40",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5",
   "attributes": {
@@ -118,6 +118,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.39"
+    "gitTag": "0.3.40"
   }
 }

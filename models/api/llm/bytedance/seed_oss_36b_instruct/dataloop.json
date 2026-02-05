@@ -1,7 +1,7 @@
 {
   "name": "nim-seed-oss-36b-instruct",
   "displayName": "Seed Oss 36B Instruct",
-  "version": "0.3.39",
+  "version": "0.3.40",
   "scope": "public",
   "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct",
   "attributes": {
@@ -157,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.39"
+    "gitTag": "0.3.40"
   }
 }
