@@ -1,7 +1,7 @@
 {
   "name": "nim-phi-3-5-vision-instruct",
   "displayName": "NIM Phi 3.5 Vision Instruct",
-  "version": "0.3.38",
+  "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-3.5-vision-instruct",
   "attributes": {
@@ -160,6 +160,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.38"
+    "gitTag": "0.3.39"
   }
 }

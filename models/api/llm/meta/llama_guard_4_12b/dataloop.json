@@ -1,7 +1,7 @@
 {
   "name": "nim-llama-guard-4-12b",
   "displayName": "NIM Llama Guard 4 12B",
-  "version": "0.3.38",
+  "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
   "attributes": {
@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.38"
+    "gitTag": "0.3.39"
   }
 }
