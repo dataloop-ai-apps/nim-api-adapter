@@ -1,7 +1,7 @@
 {
   "name": "nim-nv-embed-v1",
-  "displayName": "NIM Nv Embed V1",
-  "version": "0.3.35",
+  "displayName": "Nv Embed V1",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embed-v1",
   "attributes": {
@@ -105,10 +105,9 @@
       {
         "name": "nim-nv-embed-v1",
         "moduleName": "nim-nv-embed-v1-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
         "inputType": "text",
-        "outputType": "embedding",
         "description": "NVIDIA NIM adapter for nvidia/nv-embed-v1",
         "configuration": {
           "nim_model_name": "nvidia/nv-embed-v1"
@@ -119,6 +118,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

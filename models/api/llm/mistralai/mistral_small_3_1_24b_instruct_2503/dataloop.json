@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-small-3-1-24b-instruct-2503",
-  "displayName": "NIM Mistral Small 3.1 24B Instruct 2503",
-  "version": "0.3.35",
+  "displayName": "Mistral Small 3.1 24B Instruct 2503",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-small-3.1-24b-instruct-2503",
   "attributes": {
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Mistral AI",
+    "Provider": "MistralAI",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-mistral-small-3-1-24b-instruct-2503",
         "moduleName": "nim-mistral-small-3-1-24b-instruct-2503-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for mistralai/mistral-small-3.1-24b-instruct-2503",
         "configuration": {
           "nim_model_name": "mistralai/mistral-small-3.1-24b-instruct-2503",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

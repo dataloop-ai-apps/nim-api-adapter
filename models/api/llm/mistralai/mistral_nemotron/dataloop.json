@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-nemotron",
-  "displayName": "NIM Mistral Nemotron",
-  "version": "0.3.35",
+  "displayName": "Mistral Nemotron",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-nemotron",
   "attributes": {
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Mistral AI",
+    "Provider": "MistralAI",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-mistral-nemotron",
         "moduleName": "nim-mistral-nemotron-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for mistralai/mistral-nemotron",
         "configuration": {
           "nim_model_name": "mistralai/mistral-nemotron",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

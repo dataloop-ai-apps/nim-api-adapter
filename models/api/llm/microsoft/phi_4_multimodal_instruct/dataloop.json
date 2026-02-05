@@ -1,7 +1,7 @@
 {
   "name": "nim-phi-4-multimodal-instruct",
-  "displayName": "NIM Phi 4 Multimodal Instruct",
-  "version": "0.3.35",
+  "displayName": "Phi 4 Multimodal Instruct",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for microsoft/phi-4-multimodal-instruct",
   "attributes": {
@@ -141,10 +141,8 @@
       {
         "name": "nim-phi-4-multimodal-instruct",
         "moduleName": "nim-phi-4-multimodal-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for microsoft/phi-4-multimodal-instruct",
         "configuration": {
           "nim_model_name": "microsoft/phi-4-multimodal-instruct",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

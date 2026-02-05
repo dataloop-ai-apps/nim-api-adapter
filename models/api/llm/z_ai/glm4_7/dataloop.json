@@ -1,7 +1,7 @@
 {
   "name": "nim-glm4-7",
-  "displayName": "NIM Glm4.7",
-  "version": "0.3.35",
+  "displayName": "Glm4.7",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for z-ai/glm4.7",
   "attributes": {
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Z Ai",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-glm4-7",
         "moduleName": "nim-glm4-7-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for z-ai/glm4.7",
         "configuration": {
           "nim_model_name": "z-ai/glm4.7",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

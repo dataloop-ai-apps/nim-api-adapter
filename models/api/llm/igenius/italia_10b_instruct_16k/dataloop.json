@@ -1,7 +1,7 @@
 {
   "name": "nim-italia-10b-instruct-16k",
-  "displayName": "NIM Italia 10B Instruct 16K",
-  "version": "0.3.35",
+  "displayName": "Italia 10B Instruct 16K",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for igenius/italia_10b_instruct_16k",
   "attributes": {
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Igenius",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-italia-10b-instruct-16k",
         "moduleName": "nim-italia-10b-instruct-16k-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for igenius/italia_10b_instruct_16k",
         "configuration": {
           "nim_model_name": "igenius/italia_10b_instruct_16k",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

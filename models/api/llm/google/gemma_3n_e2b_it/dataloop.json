@@ -1,7 +1,7 @@
 {
   "name": "nim-gemma-3n-e2b-it",
-  "displayName": "NIM Gemma 3N E2B It",
-  "version": "0.3.35",
+  "displayName": "Gemma 3N E2B It",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for google/gemma-3n-e2b-it",
   "attributes": {
@@ -141,10 +141,8 @@
       {
         "name": "nim-gemma-3n-e2b-it",
         "moduleName": "nim-gemma-3n-e2b-it-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for google/gemma-3n-e2b-it",
         "configuration": {
           "nim_model_name": "google/gemma-3n-e2b-it",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "nim-jamba-1-5-mini-instruct",
-  "displayName": "NIM Jamba 1.5 Mini Instruct",
-  "version": "0.3.35",
+  "displayName": "Jamba 1.5 Mini Instruct",
+  "version": "0.3.36",
   "scope": "public",
   "description": "NVIDIA NIM adapter for ai21labs/jamba-1.5-mini-instruct",
   "attributes": {
@@ -10,7 +10,7 @@
       "NIM"
     ],
     "Gen AI": "LLM",
-    "Provider": "Ai21Labs",
+    "Provider": "Other",
     "Media Type": [
       "Text"
     ],
@@ -141,10 +141,8 @@
       {
         "name": "nim-jamba-1-5-mini-instruct",
         "moduleName": "nim-jamba-1-5-mini-instruct-module",
-        "scope": "public",
+        "scope": "project",
         "status": "pre-trained",
-        "inputType": "text",
-        "outputType": "text",
         "description": "NVIDIA NIM adapter for ai21labs/jamba-1.5-mini-instruct",
         "configuration": {
           "nim_model_name": "ai21labs/jamba-1.5-mini-instruct",
@@ -159,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.35"
+    "gitTag": "0.3.36"
   }
 }
