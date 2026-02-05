@@ -1,7 +1,7 @@
 {
   "name": "nim-nv-embedcode-7b-v1",
   "displayName": "Nv Embedcode 7B V1",
-  "version": "0.3.36",
+  "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
   "attributes": {
@@ -118,6 +118,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.36"
+    "gitTag": "0.3.39"
   }
 }

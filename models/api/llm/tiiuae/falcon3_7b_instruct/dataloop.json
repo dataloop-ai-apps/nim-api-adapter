@@ -1,7 +1,7 @@
 {
   "name": "nim-falcon3-7b-instruct",
   "displayName": "Falcon3 7B Instruct",
-  "version": "0.3.36",
+  "version": "0.3.39",
   "scope": "public",
   "description": "NVIDIA NIM adapter for tiiuae/falcon3-7b-instruct",
   "attributes": {
@@ -157,6 +157,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.36"
+    "gitTag": "0.3.39"
   }
 }
