@@ -110,7 +110,10 @@
         "inputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/nv-embed-v1",
         "configuration": {
-          "nim_model_name": "nvidia/nv-embed-v1"
+          "nim_model_name": "nvidia/nv-embed-v1",
+          "embeddings_size": 4096,
+          "hyde_model_name": "",
+          "base_url": "https://integrate.api.nvidia.com/v1"
         }
       }
     ]

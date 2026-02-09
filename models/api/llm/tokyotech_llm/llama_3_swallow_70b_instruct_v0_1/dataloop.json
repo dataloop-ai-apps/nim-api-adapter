@@ -149,7 +149,8 @@
           "max_tokens": 512,
           "temperature": 0.2,
           "top_p": 0.7,
-          "stream": false
+          "stream": false,
+          "base_url": "https://integrate.api.nvidia.com/v1"
         }
       }
     ]

@@ -110,7 +110,10 @@
         "inputType": "text",
         "description": "NVIDIA NIM adapter for baai/bge-m3",
         "configuration": {
-          "nim_model_name": "baai/bge-m3"
+          "nim_model_name": "baai/bge-m3",
+          "embeddings_size": 1024,
+          "hyde_model_name": "",
+          "base_url": "https://integrate.api.nvidia.com/v1"
         }
       }
     ]

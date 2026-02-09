@@ -24,27 +24,31 @@ class ModelAdapter(dl.BaseModelAdapter):
     """
 
     def load(self, local_path, **kwargs):
+        self.base_url = self.configuration.get("base_url", "https://integrate.api.nvidia.com/v1")
+        logger.info(f"Using base URL: {self.base_url}")
+        
         self.nim_model_name = self.configuration.get("nim_model_name")
         if self.nim_model_name is None:
-            raise ValueError("Missing `nim_model_name` from model.configuration")
-
+            raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
+        
         self.api_key = os.environ.get("NGC_API_KEY")
         if not self.api_key:
             raise ValueError("Missing NGC_API_KEY environment variable")
-
-        # Create OpenAI client (used for both validation and OpenAI-format VLMs)
-        self.base_url = "https://integrate.api.nvidia.com/v1"
+        
+        # Create OpenAI client
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
-
+        
         # Validate API key early (no token consumption)
         # Calls /v1/models to verify auth; if invalid, fails fast before any inference
-        try:
-            self.client.models.list()
-            logger.info(f"API key validated for {self.nim_model_name}")
-        except Exception as e:
-            raise ValueError(f"API key validation failed: {e}")
+        if self.base_url.rstrip("/") == "https://integrate.api.nvidia.com/v1":
+            try:
+                self.client.models.list()
+                logger.info(f"API key validated for {self.nim_model_name}, base URL: {self.base_url}")
+            except Exception as e:
+                raise ValueError(f"API key validation failed: {e}")
+        else:
+            logger.info(f"Skipping API key validation for {self.nim_model_name}, base URL: {self.base_url}")
         
-        self.adapter_defaults.upload_annotations = False
         # Lower default to avoid context length issues on smaller models
         self.max_tokens = self.configuration.get('max_tokens', 512)
         self.temperature = self.configuration.get('temperature', 0.2)
