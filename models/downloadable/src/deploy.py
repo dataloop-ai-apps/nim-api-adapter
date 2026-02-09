@@ -174,6 +174,7 @@ def main():
     # dl.logout()
     # dl.login(callback_port=5495)
     
+    
     print(args.project)
     project = dl.projects.get(project_name=args.project)
     dpk_name = f"nim-{args.model}-downloadable"
@@ -192,6 +193,7 @@ def main():
     print(f"\nCreating manifest for {args.model}...")
     manifest = create_manifest(args.model, args.version)
     
+    # not relevant for agnet flow
     print(f"\nDeploying to project {args.project}...")
     app = publish_and_install(project=project, manifest=manifest, integration_id=args.integration)
     
