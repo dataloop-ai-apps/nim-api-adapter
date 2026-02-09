@@ -1,7 +1,7 @@
 {
   "name": "nim-mixtral-8x22b-instruct-v0-1",
   "displayName": "Mixtral 8X22B Instruct V0.1",
-  "version": "0.3.41",
+  "version": "0.3.42",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mixtral-8x22b-instruct-v0.1",
   "attributes": {
@@ -158,6 +158,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.41"
+    "gitTag": "0.3.42"
   }
 }
