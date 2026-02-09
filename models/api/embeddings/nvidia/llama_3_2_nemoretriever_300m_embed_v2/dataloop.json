@@ -110,7 +110,10 @@
         "inputType": "text",
         "description": "NVIDIA NIM adapter for nvidia/llama-3.2-nemoretriever-300m-embed-v2",
         "configuration": {
-          "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v2"
+          "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+          "embeddings_size": 2048,
+          "hyde_model_name": "",
+          "base_url": "https://integrate.api.nvidia.com/v1"
         }
       }
     ]

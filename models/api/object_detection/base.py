@@ -15,8 +15,6 @@ class ModelAdapter(dl.BaseModelAdapter):
         if os.environ.get("NGC_API_KEY", None) is None:
             raise ValueError(f"Missing API key")
 
-        self.adapter_defaults.upload_annotations = False
-
         self.api_key = os.environ.get("NGC_API_KEY", None)
 
         self.nim_invoke_url = self.configuration.get("nim_invoke_url")

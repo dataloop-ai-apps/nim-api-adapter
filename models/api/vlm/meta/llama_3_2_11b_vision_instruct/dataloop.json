@@ -150,7 +150,8 @@
           "temperature": 0.2,
           "top_p": 0.7,
           "stream": false,
-          "num_frames_per_inference": 4
+          "num_frames_per_inference": 4,
+          "base_url": "https://integrate.api.nvidia.com/v1"
         }
       }
     ]
