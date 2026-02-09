@@ -1,5 +1,6 @@
 *testing*
 .env*
+output/
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,data,pycharm+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,data,pycharm+all
 
@@ -366,3 +367,4 @@ scripts/
 .vscode/
 .dataloop/
 .github/
+*.txt

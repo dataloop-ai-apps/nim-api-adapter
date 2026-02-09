@@ -1,0 +1,163 @@
+{
+  "name": "nim-phi-3-5-moe-instruct",
+  "displayName": "Phi 3.5 Moe Instruct",
+  "version": "0.3.42",
+  "scope": "public",
+  "description": "NVIDIA NIM adapter for microsoft/phi-3.5-moe-instruct",
+  "attributes": {
+    "Category": [
+      "Model",
+      "NIM"
+    ],
+    "Gen AI": "LLM",
+    "Provider": "Microsoft",
+    "Media Type": [
+      "Text"
+    ],
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Deployed By": "NVIDIA",
+    "NLP": "Conversational"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-phi-3-5-moe-instruct-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-phi-3-5-moe-instruct-module",
+        "entryPoint": "models/api/llm/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-phi-3-5-moe-instruct-deploy",
+        "description": "NVIDIA NIM adapter for microsoft/phi-3.5-moe-instruct",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Function to run nim-phi-3-5-moe-instruct inference on items"
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": ""
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Function to run nim-phi-3-5-moe-instruct inference on a dataset"
+          },
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate nim-phi-3-5-moe-instruct model performance"
+          }
+        ],
+        "integrations": [
+          "dl-ngc-api-key"
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nim-phi-3-5-moe-instruct",
+        "moduleName": "nim-phi-3-5-moe-instruct-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "description": "NVIDIA NIM adapter for microsoft/phi-3.5-moe-instruct",
+        "configuration": {
+          "nim_model_name": "microsoft/phi-3.5-moe-instruct",
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": false,
+          "base_url": "https://integrate.api.nvidia.com/v1"
+        }
+      }
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.42"
+  }
+}
