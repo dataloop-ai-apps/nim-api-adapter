@@ -1,0 +1,76 @@
+{
+    "version": "0.1.0",
+    "name": "nim-{{MODEL_NAME}}-downloadable",
+    "displayName": "NIM {{MODEL_DISPLAY_NAME}} Downloadable",
+    "description": "NVIDIA NIM {{MODEL_DISPLAY_NAME}} adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": ["Model", "NIM"],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "{{MODEL_NAME}}-downloadable-module",
+                "entryPoint": "main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "{{MODEL_NAME}}-downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "{{MODEL_NAME}}-downloadable-runner",
+                "displayName": "{{MODEL_NAME}}-downloadable-runner",
+                "moduleName": "{{MODEL_NAME}}-downloadable-module",
+                "panelNames": ["{{MODEL_NAME}}-downloadable-panel"],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/gpu/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    }
+}
