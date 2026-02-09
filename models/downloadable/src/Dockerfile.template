@@ -1,10 +1,10 @@
 # Dockerfile template for building downloadable NIM images
 # Usage: docker build --build-arg IMAGE_NAME=nvclip -f Dockerfile.template -t <target> .
 #
-# The IMAGE_NAME arg specifies which NIM model to use from nvcr.io/nim/nvidia/<IMAGE_NAME>:latest
+# IMAGE_NAME is provider/model (e.g. baai/bge-m3) -> nvcr.io/nim/<IMAGE_NAME>:latest
 
-ARG IMAGE_NAME=nvclip
-FROM nvcr.io/nim/nvidia/${IMAGE_NAME}:latest
+ARG IMAGE_NAME=nvidia/nvclip
+FROM nvcr.io/nim/${IMAGE_NAME}:latest
 
 # NGC API key for model downloads (set via environment or build arg)
 ENV NIM_CACHE_PATH=/tmp/.nim

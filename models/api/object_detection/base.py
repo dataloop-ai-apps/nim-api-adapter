@@ -17,9 +17,9 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         self.api_key = os.environ.get("NGC_API_KEY", None)
 
-        self.nim_invoke_url = self.configuration.get("nim_invoke_url")
-        if self.nim_invoke_url is None:
-            raise ValueError("nim_invoke_url is not set! Insert the nim url in the model configuration.")
+        self.nim_model_name = self.configuration.get("nim_model_name")
+        if self.nim_model_name is None:
+            raise ValueError("nim_model_name is not set! Insert the nim url in the model configuration.")
 
     def prepare_item_func(self, item: dl.Item):
         buffer = item.download(save_locally=False)
@@ -36,7 +36,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         return item, img, image_b64  # Return both the OpenCV image and base64 string
     
     def call_model(self, image_b64, payload=None):
-        url = f"https://ai.api.nvidia.com/v1/{self.nim_invoke_url}"
+        url = f"https://ai.api.nvidia.com/v1/{self.nim_model_name}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json"

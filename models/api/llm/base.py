@@ -43,7 +43,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         app_id = self.configuration.get("app_id")
         if app_id:
-            self._use_nvidia_extra_body = False  # not used for LLM; kept for consistency with embeddings
+            self.use_nvidia_extra_body = False  #  consistency with embeddings
             self.base_url, cookie_header = get_downloadable_endpoint_and_cookie(app_id)
             logger.info(f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}")
             # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
@@ -62,7 +62,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             except Exception as e:
                 raise ValueError(f"Health check failed: {e}")
         else:
-            self._use_nvidia_extra_body = True
+            self.use_nvidia_extra_body = True
             self.base_url = self.configuration.get("base_url", "https://integrate.api.nvidia.com/v1")
             logger.info(f"Using base URL: {self.base_url}")
             self.api_key = os.environ.get("NGC_API_KEY")
@@ -137,7 +137,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         messages = self._flatten_messages(messages)
         
         extra_body = {}
-        if self.guided_json:
+        if self.guided_json and self.use_nvidia_extra_body:
             extra_body["guided_json"] = self.guided_json
             logger.info(f"Using guided_json: {self.guided_json}")
 

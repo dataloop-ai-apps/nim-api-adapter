@@ -83,7 +83,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_invoke_url": "cv/university-at-buffalo/cached"
+          "nim_model_name": "cv/university-at-buffalo/cached"
         },
         "description": "CACHED model for chart element detection, served by NIM API."
       }

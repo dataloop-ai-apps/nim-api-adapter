@@ -170,6 +170,80 @@ def get_openai_model_ids(api_key: str = None) -> list[str]:
     return [m["id"] for m in models]
 
 
+def get_all_existing_models() -> list[dict]:
+    """
+    Get all existing models from models/api (including embeddings, llm, vlm, object_detection).
+
+    Extracts nim_model_name from configuration (embeddings, llm, vlm, object_detection).
+
+    Returns:
+        List of dicts with keys: manifest_path, nim_model_name, model_name, relative_path.
+        relative_path is e.g. "embeddings/baai/bge_m3" for use under models/downloadable/.
+    """
+    models_api_dir = os.path.join(os.path.dirname(__file__), "..", "models", "api")
+    models_api_dir = os.path.normpath(models_api_dir)
+    if not os.path.isdir(models_api_dir):
+        return []
+    result = []
+    for root, _dirs, files in os.walk(models_api_dir):
+        for file in files:
+            if file != "dataloop.json":
+                continue
+            path = os.path.join(root, file)
+            try:
+                with open(path, encoding="utf-8") as f:
+                    manifest = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                continue
+            # Relative path from models/api to this manifest's folder (e.g. embeddings/baai/bge_m3)
+            manifest_dir = os.path.normpath(os.path.dirname(path))
+            relative_path = os.path.relpath(manifest_dir, models_api_dir).replace("\\", "/")
+            models_list = manifest.get("components", {}).get("models") or []
+            for model in models_list:
+                config = model.get("configuration") or {}
+                nim_model_name = config.get("nim_model_name")
+                if nim_model_name:
+                    result.append({
+                        "manifest_path": path,
+                        "nim_model_name": nim_model_name,
+                        "model_name": model.get("name", ""),
+                        "relative_path": relative_path,
+                    })
+    return result
+
+
+def _normalize_nim_name(name: str) -> str:
+    """Normalize NIM model name for comparison (NGC uses underscores/different punctuation)."""
+    # Take last segment if publisher/name format, then lower and normalize -/. to _
+    base = name.split("/")[-1].lower()
+    return base.replace("-", "_").replace(".", "_")
+
+
+def get_existing_run_anywhere_models() -> list[dict]:
+    """
+    Get existing models from models/api that are run-anywhere (downloadable) in NGC.
+
+    Returns:
+        List of dicts with nim_model_name, relative_path, docker_image_name, and model_name_without_provider.
+        relative_path: use for path under models/downloadable/.
+        docker_image_name: nim_model_name with "/" replaced by "-" (for GCR tag).
+        model_name_without_provider: last segment of nim_model_name (e.g. baai/bge-m3 -> bge-m3).
+    """
+    run_anywhere_normalized = {
+        _normalize_nim_name(m["name"]) for m in get_downloadable_models()
+    }
+    all_existing = get_all_existing_models()
+    return [
+        {
+            "nim_model_name": x["nim_model_name"],
+            "relative_path": x["relative_path"],
+            "docker_image_name": x["nim_model_name"].replace("/", "-"),
+            "model_name_without_provider": x["nim_model_name"].split("/")[-1],
+        }
+        for x in all_existing
+        if _normalize_nim_name(x["nim_model_name"]) in run_anywhere_normalized
+    ]
+
 class NIMAgent:
     """
     Agent that manages NVIDIA NIM model discovery and onboarding.
@@ -948,73 +1022,98 @@ class NIMAgent:
         return self.generate_report()
 
 
+    def refactor_downloadables(self):
+        """Refactor downloadable models to be run-anywhere."""
+        models = get_existing_run_anywhere_models()
+        for model in models:
+            print(f"  - {model['nim_model_name']}")
+        
+        dir_path = os.path.join(os.path.dirname(__file__), "..", "models", "downloadable")
+        
+
 if __name__ == "__main__":
+    # Add repo root so models.downloadable.src is importable
+    import sys
+    _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if _repo_root not in sys.path:
+        sys.path.insert(0, _repo_root)
+    from models.downloadable.src.downloadables_create import build_downloadable_nim
     from dotenv import load_dotenv
     load_dotenv()
+    
+    
+    models = get_existing_run_anywhere_models()
+    print(f"Existing models that are run-anywhere: {len(models)}")
+    for model in models:
+        try:
+            build_downloadable_nim(model['nim_model_name'], model['relative_path'])
+        except Exception as e:
+            print(f"  - {model['nim_model_name']} failed: {e}")
+            
     
     # ==========================================================================
     # DEBUG MODE - Test full flow with subset of models
     # ==========================================================================
     
-    DEBUG_LIMIT = 10      # Number of models to test (set to None for all)
-    OPEN_PR = True        # Set to True to test PR creation
-    DELETE_PR = True      # Set to True to delete PR after test
-    SOURCE = "openai"     # "openai" or "catalog"
-    MAX_WORKERS = 5       # Parallel workers for testing
+    # DEBUG_LIMIT = 10      # Number of models to test (set to None for all)
+    # OPEN_PR = True        # Set to True to test PR creation
+    # DELETE_PR = True      # Set to True to delete PR after test
+    # SOURCE = "openai"     # "openai" or "catalog"
+    # MAX_WORKERS = 5       # Parallel workers for testing
     
-    print("\n" + "="*60)
-    print("DEBUG MODE")
-    print("="*60)
-    print(f"   Source: {SOURCE}")
-    print(f"   Models to onboard: {DEBUG_LIMIT or 'ALL'}")
-    print(f"   Max workers: {MAX_WORKERS}")
-    print(f"   Open PR: {OPEN_PR}")
-    print(f"   Delete PR after: {DELETE_PR}")
-    print("="*60)
+    # print("\n" + "="*60)
+    # print("DEBUG MODE")
+    # print("="*60)
+    # print(f"   Source: {SOURCE}")
+    # print(f"   Models to onboard: {DEBUG_LIMIT or 'ALL'}")
+    # print(f"   Max workers: {MAX_WORKERS}")
+    # print(f"   Open PR: {OPEN_PR}")
+    # print(f"   Delete PR after: {DELETE_PR}")
+    # print("="*60)
     
-    agent = NIMAgent()
+    # agent = NIMAgent()
     
-    # Run full flow with limit
-    report = agent.run(
-        source=SOURCE,
-        limit=DEBUG_LIMIT,
-        open_pr=OPEN_PR,
-        include_deprecated=True,
-        max_workers=MAX_WORKERS,
-    )
+    # # Run full flow with limit
+    # report = agent.run(
+    #     source=SOURCE,
+    #     limit=DEBUG_LIMIT,
+    #     open_pr=OPEN_PR,
+    #     include_deprecated=True,
+    #     max_workers=MAX_WORKERS,
+    # )
     
-    # Delete PR if requested
-    if DELETE_PR and OPEN_PR:
-        pr_result = getattr(agent, '_last_pr_result', None)
+    # # Delete PR if requested
+    # if DELETE_PR and OPEN_PR:
+    #     pr_result = getattr(agent, '_last_pr_result', None)
         
-        if pr_result and pr_result.get("pr_number"):
-            print("\n" + "="*60)
-            print("CLEANUP")
-            print("="*60)
+    #     if pr_result and pr_result.get("pr_number"):
+    #         print("\n" + "="*60)
+    #         print("CLEANUP")
+    #         print("="*60)
             
-            github = agent._get_github()
-            pr_number = pr_result["pr_number"]
-            branch_name = pr_result.get("branch_name")
+    #         github = agent._get_github()
+    #         pr_number = pr_result["pr_number"]
+    #         branch_name = pr_result.get("branch_name")
             
-            print(f"Closing PR #{pr_number}...")
-            closed = github.close_pr(pr_number, comment="Test completed - closing automatically.")
+    #         print(f"Closing PR #{pr_number}...")
+    #         closed = github.close_pr(pr_number, comment="Test completed - closing automatically.")
             
-            if closed:
-                print(f"  PR #{pr_number} closed")
+    #         if closed:
+    #             print(f"  PR #{pr_number} closed")
                 
-                # Delete branch
-                if branch_name:
-                    try:
-                        repo = github.repository
-                        branch_ref = repo.get_git_ref(f"heads/{branch_name}")
-                        branch_ref.delete()
-                        print(f"  Branch {branch_name} deleted")
-                    except Exception as e:
-                        print(f"  Failed to delete branch: {e}")
-            else:
-                print(f"  Failed to close PR")
+    #             # Delete branch
+    #             if branch_name:
+    #                 try:
+    #                     repo = github.repository
+    #                     branch_ref = repo.get_git_ref(f"heads/{branch_name}")
+    #                     branch_ref.delete()
+    #                     print(f"  Branch {branch_name} deleted")
+    #                 except Exception as e:
+    #                     print(f"  Failed to delete branch: {e}")
+    #         else:
+    #             print(f"  Failed to close PR")
     
-    print("\nDone!")
+    # print("\nDone!")
     
     # ==========================================================================
     # Other useful commands:

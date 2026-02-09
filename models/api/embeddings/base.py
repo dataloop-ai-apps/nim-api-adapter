@@ -43,7 +43,7 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         app_id = self.configuration.get("app_id")
         if app_id:
-            self._use_nvidia_extra_body = False  # downloadable app rejects input_type/truncate
+            self.use_nvidia_extra_body = False  # downloadable app rejects input_type/truncate
             self.base_url, cookie_header = get_downloadable_endpoint_and_cookie(app_id)
             logger.info(f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}")
             # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
@@ -62,7 +62,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             except Exception as e:
                 raise ValueError(f"Health check failed: {e}")
         else:
-            self._use_nvidia_extra_body = True
+            self.use_nvidia_extra_body = True
             self.base_url = self.configuration.get("base_url", "https://integrate.api.nvidia.com/v1")
             logger.info(f"Using base URL: {self.base_url}")
             self.api_key = os.environ.get("NGC_API_KEY")
@@ -83,7 +83,7 @@ class ModelAdapter(dl.BaseModelAdapter):
             model=self.nim_model_name,
             encoding_format="float",
         )
-        if getattr(self, "_use_nvidia_extra_body", True):
+        if self.use_nvidia_extra_body:
             kwargs["extra_body"] = {"input_type": "query", "truncate": "NONE"}
         response = self.client.embeddings.create(**kwargs)
         embedding = response.data[0].embedding
@@ -93,10 +93,8 @@ class ModelAdapter(dl.BaseModelAdapter):
         embeddings = []
         for item in batch:
             if isinstance(item, str):
-                self.adapter_defaults.upload_features = True
                 text = item
             else:
-                self.adapter_defaults.upload_features = False
                 try:
                     prompt_item = dl.PromptItem.from_item(item)
                     is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False)
@@ -124,26 +122,12 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
-    dl.setenv("prod")
 
-    item = dl.items.get(item_id="6989a85db78af1a723cea5e8")
-    model_entity = dl.models.get(model_id="6989a71fe59fe3dadbd6804d")
-
-    # --- Test downloadable endpoint (app_id → endpoint + cookie inside adapter) ---
-    app_id = "69885809eb577aee86877518"
-    model_entity.configuration["app_id"] = app_id
-    model_entity.configuration["nim_model_name"] = "nvidia/nvclip-vit-h-14"
-    model_entity.configuration["embeddings_size"] = 1024
-    model_entity.update()
-
-    adapter = ModelAdapter(model_entity)
+    model = dl.models.get(model_id="MODEL_ID_HERE")
+    print(f"Nim Model name: {model.configuration.get('nim_model_name')}")
+    
+    item = dl.items.get(item_id="ITEM_ID_HERE")
+    adapter = ModelAdapter(model)
     result = adapter.embed_items([item])
-    print(f"Downloadable endpoint – embedding dimension: {len(result[0]) if result else 'N/A'}")
-
-    # --- Or test NVIDIA API: set base_url and nim_model_name, no app_id ---
-    # model_entity.configuration.pop("app_id", None)
-    # model_entity.configuration["base_url"] = "https://integrate.api.nvidia.com/v1"
-    # model_entity.configuration["nim_model_name"] = "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1"
-    # model_entity.update()
-    # adapter = ModelAdapter(model_entity)
-    # result = adapter.embed_items([item])
+    
+    print(f"Embedding dimension: {len(result[0]) if result else 'N/A'}")
