@@ -1,5 +1,5 @@
 {
-    "version": "0.3.43",
+    "version": "0.3.44",
     "name": "nim-meta-llama-3.1-8b-instruct-downloadable",
     "displayName": "NIM Llama 3.1 8B Instruct Downloadable",
     "description": "NVIDIA NIM Llama 3.1 8B Instruct adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.43"
+        "gitTag": "0.3.44"
     }
 }

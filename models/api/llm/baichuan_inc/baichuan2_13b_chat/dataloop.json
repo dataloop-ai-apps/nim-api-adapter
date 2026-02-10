@@ -1,7 +1,7 @@
 {
   "name": "nim-baichuan2-13b-chat",
   "displayName": "Baichuan2 13B Chat",
-  "version": "0.3.43",
+  "version": "0.3.44",
   "scope": "public",
   "description": "NVIDIA NIM adapter for baichuan-inc/baichuan2-13b-chat",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.43"
+    "gitTag": "0.3.44"
   }
 }
