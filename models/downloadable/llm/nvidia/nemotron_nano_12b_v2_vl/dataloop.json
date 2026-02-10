@@ -5,10 +5,7 @@
     "description": "NVIDIA NIM Nemotron Nano 12B V2 Vl adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": [
-            "Model",
-            "NIM"
-        ],
+        "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },

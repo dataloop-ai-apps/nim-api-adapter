@@ -5,7 +5,7 @@
     "description": "NVIDIA NIM {{MODEL_DISPLAY_NAME}} adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Model", "NIM"],
+        "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
 

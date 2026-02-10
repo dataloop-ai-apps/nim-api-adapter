@@ -5,10 +5,7 @@
     "description": "NVIDIA NIM Llama 3.1 Nemotron Nano Vl 8B V1 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": [
-            "Model",
-            "NIM"
-        ],
+        "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },

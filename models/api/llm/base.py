@@ -148,6 +148,8 @@ class ModelAdapter(dl.BaseModelAdapter):
 
         if stream is True:
             for chunk in response:
+                if not chunk.choices:
+                    continue
                 yield chunk.choices[0].delta.content or ""
         else:
             yield response.choices[0].message.content or ""

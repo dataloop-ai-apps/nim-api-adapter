@@ -5,10 +5,7 @@
     "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": [
-            "Model",
-            "NIM"
-        ],
+        "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },

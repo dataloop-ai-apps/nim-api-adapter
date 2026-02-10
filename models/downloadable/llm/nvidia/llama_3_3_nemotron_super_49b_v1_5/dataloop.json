@@ -5,10 +5,7 @@
     "description": "NVIDIA NIM Llama 3.3 Nemotron Super 49B V1.5 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": [
-            "Model",
-            "NIM"
-        ],
+        "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
