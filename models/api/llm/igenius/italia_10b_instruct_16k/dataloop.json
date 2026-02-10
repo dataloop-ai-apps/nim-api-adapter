@@ -1,7 +1,7 @@
 {
   "name": "nim-italia-10b-instruct-16k",
   "displayName": "Italia 10B Instruct 16K",
-  "version": "0.3.46",
+  "version": "0.3.47",
   "scope": "public",
   "description": "NVIDIA NIM adapter for igenius/italia_10b_instruct_16k",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.46"
+    "gitTag": "0.3.47"
   }
 }

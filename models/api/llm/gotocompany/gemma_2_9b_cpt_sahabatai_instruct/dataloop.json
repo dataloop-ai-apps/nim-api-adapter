@@ -1,7 +1,7 @@
 {
   "name": "nim-gemma-2-9b-cpt-sahabatai-instruct",
   "displayName": "Gemma 2 9B Cpt Sahabatai Instruct",
-  "version": "0.3.46",
+  "version": "0.3.47",
   "scope": "public",
   "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.46"
+    "gitTag": "0.3.47"
   }
 }

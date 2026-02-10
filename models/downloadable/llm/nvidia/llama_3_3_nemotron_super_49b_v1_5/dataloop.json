@@ -1,5 +1,5 @@
 {
-    "version": "0.3.46",
+    "version": "0.3.47",
     "name": "nim-nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable",
     "displayName": "NIM Llama 3.3 Nemotron Super 49B V1.5 Downloadable",
     "description": "NVIDIA NIM Llama 3.3 Nemotron Super 49B V1.5 adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.46"
+        "gitTag": "0.3.47"
     }
 }
