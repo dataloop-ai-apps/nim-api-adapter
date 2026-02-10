@@ -1,0 +1,80 @@
+{
+    "version": "0.1.0",
+    "name": "nim-qwen-qwen2.5-coder-32b-instruct-downloadable",
+    "displayName": "NIM Qwen2.5 Coder 32B Instruct Downloadable",
+    "description": "NVIDIA NIM Qwen2.5 Coder 32B Instruct adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Model",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-module",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-runner",
+                "displayName": "qwen-qwen2.5-coder-32b-instruct-downloadable-runner",
+                "moduleName": "qwen-qwen2.5-coder-32b-instruct-downloadable-module",
+                "panelNames": [
+                    "qwen-qwen2.5-coder-32b-instruct-downloadable-panel"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/qwen-qwen2.5-coder-32b-instruct:0.3.42",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    }
+}
