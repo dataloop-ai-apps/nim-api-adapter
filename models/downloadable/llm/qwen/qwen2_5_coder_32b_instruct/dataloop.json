@@ -1,5 +1,5 @@
 {
-    "version": "0.3.42",
+    "version": "0.3.43",
     "name": "nim-qwen-qwen2.5-coder-32b-instruct-downloadable",
     "displayName": "NIM Qwen2.5 Coder 32B Instruct Downloadable",
     "description": "NVIDIA NIM Qwen2.5 Coder 32B Instruct adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.42"
+        "gitTag": "0.3.43"
     }
 }
