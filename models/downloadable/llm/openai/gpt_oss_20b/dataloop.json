@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Gpt Oss 20B adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "openai-gpt-oss-20b-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "openai-gpt-oss-20b-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "openai-gpt-oss-20b-downloadable-runner",
                 "moduleName": "openai-gpt-oss-20b-downloadable-module",
                 "panelNames": [
-                    "openai-gpt-oss-20b-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

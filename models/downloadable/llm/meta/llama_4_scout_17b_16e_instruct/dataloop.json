@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Llama 4 Scout 17B 16E Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "meta-llama-4-scout-17b-16e-instruct-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "meta-llama-4-scout-17b-16e-instruct-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "meta-llama-4-scout-17b-16e-instruct-downloadable-runner",
                 "moduleName": "meta-llama-4-scout-17b-16e-instruct-downloadable-module",
                 "panelNames": [
-                    "meta-llama-4-scout-17b-16e-instruct-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

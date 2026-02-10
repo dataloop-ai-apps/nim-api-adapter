@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Nvidia Nemotron Nano 9B V2 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-runner",
                 "moduleName": "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-module",
                 "panelNames": [
-                    "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

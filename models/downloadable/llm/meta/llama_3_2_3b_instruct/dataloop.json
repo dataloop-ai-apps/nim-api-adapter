@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Llama 3.2 3B Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "meta-llama-3.2-3b-instruct-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "meta-llama-3.2-3b-instruct-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "meta-llama-3.2-3b-instruct-downloadable-runner",
                 "moduleName": "meta-llama-3.2-3b-instruct-downloadable-module",
                 "panelNames": [
-                    "meta-llama-3.2-3b-instruct-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

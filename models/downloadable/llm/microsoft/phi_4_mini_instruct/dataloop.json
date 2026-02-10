@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Phi 4 Mini Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "microsoft-phi-4-mini-instruct-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "microsoft-phi-4-mini-instruct-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "microsoft-phi-4-mini-instruct-downloadable-runner",
                 "moduleName": "microsoft-phi-4-mini-instruct-downloadable-module",
                 "panelNames": [
-                    "microsoft-phi-4-mini-instruct-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

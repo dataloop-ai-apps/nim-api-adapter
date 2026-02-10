@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Qwen2.5 Coder 32B Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "qwen-qwen2.5-coder-32b-instruct-downloadable-runner",
                 "moduleName": "qwen-qwen2.5-coder-32b-instruct-downloadable-module",
                 "panelNames": [
-                    "qwen-qwen2.5-coder-32b-instruct-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {
