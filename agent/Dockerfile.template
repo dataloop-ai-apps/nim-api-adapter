@@ -24,28 +24,23 @@ ENV NIM_START_SCRIPT=${NIM_START_SCRIPT}
 USER root
 
 # Install Dataloop packages
-# 1. Find Python and ensure pip is available
-# 2. psutil<=5.8.0 (from dtlpy-agent) needs compilation on Python 3.12
-#    Install build deps only if pip install fails without them
-RUN PYTHON_PATH=$(which python3 || which python) && \
-    # Ensure pip is available (use ensurepip or get-pip.py if missing)
+# Some NIM containers have venv Python without pip/ensurepip and no curl
+# Strategy: apt-get install curl + pip dependencies first, then get-pip.py
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates gcc python3-dev && \
+    PYTHON_PATH=$(which python3 || which python) && \
+    # Ensure pip is available
     ${PYTHON_PATH} -m pip --version || \
     ${PYTHON_PATH} -m ensurepip --upgrade || \
-    (curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_PATH}) && \
+    (curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && ${PYTHON_PATH} /tmp/get-pip.py && rm /tmp/get-pip.py) && \
     # Install Dataloop packages
     ${PYTHON_PATH} -m pip install --no-cache-dir \
         https://storage.googleapis.com/dtlpy/dev/dtlpy-1.119.5-py3-none-any.whl \
-        https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl \
-    || ( \
-        apt-get update && \
-        apt-get install -y --no-install-recommends gcc python3-dev && \
-        ${PYTHON_PATH} -m pip install --no-cache-dir \
-            https://storage.googleapis.com/dtlpy/dev/dtlpy-1.119.5-py3-none-any.whl \
-            https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl && \
-        apt-get purge -y gcc python3-dev && \
-        apt-get autoremove -y && \
-        rm -rf /var/lib/apt/lists/* \
-    )
+        https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl && \
+    # Cleanup build dependencies
+    apt-get purge -y gcc python3-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 USER 1000
 

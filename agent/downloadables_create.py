@@ -176,6 +176,19 @@ def build_docker_image(model_name: str, image_version: str = "1.0.0") -> str:
         raise RuntimeError(f"Docker push failed with exit code {result.returncode}")
     
     print(f"✓ Pushed {target_image}")
+    
+    # Clean up Docker images to free disk space
+    base_image = f"nvcr.io/nim/{model_name}:latest"
+    print(f"\nCleaning up Docker images...")
+    
+    # Remove the built image
+    subprocess.run(['docker', 'rmi', '-f', target_image], check=False)
+    print(f"  ✓ Removed {target_image}")
+    
+    # Remove the base NIM image
+    subprocess.run(['docker', 'rmi', '-f', base_image], check=False)
+    print(f"  ✓ Removed {base_image}")
+    
     return target_image
 
 
