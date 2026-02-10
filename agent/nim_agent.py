@@ -1032,19 +1032,44 @@ class NIMAgent:
         
 
 if __name__ == "__main__":
-    # Add repo root so models.downloadable.src is importable
-    import sys
-    _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    if _repo_root not in sys.path:
-        sys.path.insert(0, _repo_root)
-    from models.downloadable.src.downloadables_create import build_downloadable_nim
+    from downloadables_create import build_downloadable_nim
     from dotenv import load_dotenv
     load_dotenv()
     
+    # Skip models that already have downloadable manifests (to save disk space)
+    ALREADY_BUILT = {
+        # Embeddings
+        "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+        "nvidia/llama-3.2-nv-embedqa-1b-v2",
+        "nvidia/nv-embedqa-e5-v5",
+        # LLM - Google
+        "google/gemma-3-1b-it",
+        # LLM - Meta
+        "meta/llama-3.1-70b-instruct",
+        "meta/llama-3.1-8b-instruct",
+        "meta/llama-3.2-1b-instruct",
+        "meta/llama-3.2-3b-instruct",
+        "meta/llama-3.3-70b-instruct",
+        "meta/llama-4-scout-17b-16e-instruct",
+        # LLM - Microsoft
+        "microsoft/phi-4-mini-instruct",
+        # LLM - NVIDIA
+        "nvidia/llama-3.1-nemoguard-8b-content-safety",
+        "nvidia/llama-3.1-nemoguard-8b-topic-control",
+        "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+        "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+        "nvidia/nemotron-nano-12b-v2-vl",
+        "nvidia/nemotron-nano-9b-v2",
+    }
     
     models = get_existing_run_anywhere_models()
     print(f"Existing models that are run-anywhere: {len(models)}")
+    print(f"Skipping {len(ALREADY_BUILT)} already built models")
+    
     for model in models:
+        if model['nim_model_name'] in ALREADY_BUILT:
+            print(f"  ⏭️ Skipping {model['nim_model_name']} (already built)")
+            continue
         try:
             build_downloadable_nim(model['nim_model_name'], model['relative_path'])
         except Exception as e:

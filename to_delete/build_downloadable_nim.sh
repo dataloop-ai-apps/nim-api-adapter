@@ -12,6 +12,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Function to display usage
 usage() {
     echo "Usage: $0 <image_name>"
@@ -44,9 +47,9 @@ echo ""
 echo -e "${GREEN}[1/2] Building Docker image...${NC}"
 if docker build \
     --build-arg IMAGE_NAME="${IMAGE_NAME}" \
-    -f Dockerfile.template \
+    -f "${SCRIPT_DIR}/Dockerfile.template" \
     -t "${TARGET_IMAGE}" \
-    .; then
+    "${SCRIPT_DIR}"; then
     echo -e "${GREEN}✓ Successfully built ${TARGET_IMAGE}${NC}"
 else
     echo -e "${RED}✗ Failed to build Docker image${NC}"

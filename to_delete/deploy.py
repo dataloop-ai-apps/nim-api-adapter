@@ -16,8 +16,11 @@ Usage:
 import argparse
 import json
 import os
-import subprocess
+from pathlib import Path
+
 import dtlpy as dl
+
+from downloadables_create import build_docker_image, _get_agent_dir, _get_repo_root
 
 
 def clean(dpk_name: str):
@@ -50,15 +53,18 @@ def create_manifest(model_name: str, image_version: str = "0.1.13") -> dict:
     Returns:
         Manifest dictionary
     """
-    template_path = os.path.join(os.path.dirname(__file__), 'manifest_template.json')
+    template_path = _get_agent_dir() / 'manifest_template.json'
     with open(template_path, 'r') as f:
         template_content = f.read()
     
+    # Normalize model name for Docker (replace / with -)
+    docker_model_name = model_name.replace("/", "-")
+    
     # Create display name from model name
-    display_name = model_name.upper() if model_name.lower() == 'nvclip' else model_name.replace('-', ' ').title()
+    display_name = docker_model_name.upper() if docker_model_name.lower() == 'nvclip' else docker_model_name.replace('-', ' ').title()
     
     # Replace placeholders
-    manifest_content = template_content.replace('{{MODEL_NAME}}', model_name)
+    manifest_content = template_content.replace('{{MODEL_NAME}}', docker_model_name)
     manifest_content = manifest_content.replace('{{MODEL_DISPLAY_NAME}}', display_name)
     manifest_content = manifest_content.replace('{{IMAGE_VERSION}}', image_version)
     
@@ -83,11 +89,14 @@ def publish_and_install(project: dl.Project, manifest: dict, integration_id: str
     print(f'Publishing {app_name} v{app_version} to project {project.name} in {env}')
 
     dpk = dl.Dpk.from_json(manifest)
+    
+    # Pack from repo root to include models/downloadable/main.py
+    repo_root = _get_repo_root()
     dpk.codebase = project.codebases.pack(
-        directory=os.path.dirname(__file__) or '.',
+        directory=str(repo_root),
         name=dpk.display_name,
         extension='dpk',
-        ignore_directories=['.venv', 'output', 'test_results', '.vscode', '.github', 'to_delete', 'nv-clip-downloadable'],
+        ignore_directories=['.venv', 'output', 'test_results', '.vscode', '.github', 'to_delete', '__pycache__'],
         ignore_max_file_size=True,
     )
     
@@ -114,48 +123,6 @@ def publish_and_install(project: dl.Project, manifest: dict, integration_id: str
     return app
 
 
-def build_docker_image(model_name: str, image_version: str = "1.0.0"):
-    """
-    Build and push Docker image directly using docker commands.
-    
-    Args:
-        model_name: Name of the model (e.g., 'nvclip')
-        image_version: Docker image version tag
-    """
-    target_image = f"gcr.io/viewo-g/piper/agent/runner/gpu/{model_name}:{image_version}"
-    work_dir = os.path.dirname(__file__) or '.'
-    
-    print("=" * 60)
-    print(f"Building Docker image: {target_image}")
-    print("=" * 60)
-    
-    # Build the image
-    build_cmd = [
-        'docker', 'build',
-        '--build-arg', f'IMAGE_NAME={model_name}',
-        '-f', 'Dockerfile.template',
-        '-t', target_image,
-        '.'
-    ]
-    
-    print(f"Running: {' '.join(build_cmd)}")
-    result = subprocess.run(build_cmd, cwd=work_dir, check=False)
-    if result.returncode != 0:
-        raise RuntimeError(f"Docker build failed with exit code {result.returncode}")
-    
-    print(f"\n✓ Built {target_image}")
-    
-    # Push the image
-    print(f"\nPushing {target_image}...")
-    push_cmd = ['docker', 'push', target_image]
-    
-    result = subprocess.run(push_cmd, cwd=work_dir, check=False)
-    if result.returncode != 0:
-        raise RuntimeError(f"Docker push failed with exit code {result.returncode}")
-    
-    print(f"✓ Pushed {target_image}")
-
-
 def main():
     parser = argparse.ArgumentParser(description='Deploy downloadable NIM models to Dataloop')
     parser.add_argument('--model', '-m', required=True, help='Model name (e.g., nvclip)')
@@ -170,14 +137,10 @@ def main():
     
     # Setup Dataloop
     dl.setenv('prod')
-    # if dl.token_expired():
-    # dl.logout()
-    # dl.login(callback_port=5495)
-    
     
     print(args.project)
     project = dl.projects.get(project_name=args.project)
-    dpk_name = f"nim-{args.model}-downloadable"
+    dpk_name = f"nim-{args.model.replace('/', '-')}-downloadable"
     
     # Clean if requested
     if args.clean:
@@ -193,7 +156,6 @@ def main():
     print(f"\nCreating manifest for {args.model}...")
     manifest = create_manifest(args.model, args.version)
     
-    # not relevant for agnet flow
     print(f"\nDeploying to project {args.project}...")
     app = publish_and_install(project=project, manifest=manifest, integration_id=args.integration)
     

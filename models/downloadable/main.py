@@ -2,9 +2,14 @@
 Downloadable NIM Runner for Dataloop.
 
 Starts the NIM inference server and streams logs with GPU memory monitoring.
+This module is common for ALL downloadable NIM models.
+
+The NIM_START_SCRIPT env var must be set during Docker build (via docker inspect
+of the base NIM image to get its entrypoint).
 """
 
 import logging
+import os
 import subprocess
 import threading
 import time
@@ -19,8 +24,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("NIM-Runner")
 
-SERVER_SCRIPT = "/opt/nim/start_server.sh"
 GPU_LOG_INTERVAL = 60  # seconds between GPU memory logs
+SERVER_SCRIPT = os.environ.get("NIM_START_SCRIPT", "/opt/nim/start_server.sh")
 
 
 def _stream_output(pipe, log_level=logging.INFO, prefix=""):
@@ -80,7 +85,7 @@ class Runner(dl.BaseServiceRunner):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        logger.info("Starting NIM inference server...")
+        logger.info(f"Starting NIM inference server using: {SERVER_SCRIPT}")
         
         # Start the NIM server
         self.server_process = subprocess.Popen(
