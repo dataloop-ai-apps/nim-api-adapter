@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Gemma 3 1B It adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "google-gemma-3-1b-it-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "google-gemma-3-1b-it-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "google-gemma-3-1b-it-downloadable-runner",
                 "moduleName": "google-gemma-3-1b-it-downloadable-module",
                 "panelNames": [
-                    "google-gemma-3-1b-it-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

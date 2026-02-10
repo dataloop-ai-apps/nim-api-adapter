@@ -8,7 +8,6 @@
         "Category": ["Application", "NIM"],
         "Provider": "NVIDIA",
         "Application Type": "Model"
-
     },
     "components": {
         "modules": [
@@ -34,7 +33,7 @@
         ],
         "panels": [
             {
-                "name": "{{MODEL_NAME}}-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -46,10 +45,10 @@
         ],
         "services": [
             {
-                "name": "{{MODEL_NAME}}-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "{{MODEL_NAME}}-downloadable-runner",
                 "moduleName": "{{MODEL_NAME}}-downloadable-module",
-                "panelNames": ["{{MODEL_NAME}}-downloadable-panel"],
+                "panelNames": ["downloadable-panel"],
                 "initParams": {},
                 "runtime": {
                     "podType": "gpu-t4-m",
@@ -72,5 +71,10 @@
                 "maxAttempts": 3
             }
         ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.45"
     }
 }

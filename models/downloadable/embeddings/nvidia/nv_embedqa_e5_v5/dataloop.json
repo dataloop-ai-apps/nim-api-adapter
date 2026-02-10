@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "nvidia-nv-embedqa-e5-v5-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nvidia-nv-embedqa-e5-v5-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "nvidia-nv-embedqa-e5-v5-downloadable-runner",
                 "moduleName": "nvidia-nv-embedqa-e5-v5-downloadable-module",
                 "panelNames": [
-                    "nvidia-nv-embedqa-e5-v5-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Nemotron Nano 12B V2 Vl adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-runner",
                 "moduleName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-module",
                 "panelNames": [
-                    "nvidia-nemotron-nano-12b-v2-vl-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {

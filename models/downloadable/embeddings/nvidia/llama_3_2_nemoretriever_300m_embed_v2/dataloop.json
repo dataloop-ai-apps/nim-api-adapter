@@ -5,7 +5,10 @@
     "description": "NVIDIA NIM Llama 3.2 Nemoretriever 300M Embed V2 adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-panel",
+                "name": "downloadable-panel",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-runner",
+                "name": "nim-downloadable-runner",
                 "displayName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-runner",
                 "moduleName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-module",
                 "panelNames": [
-                    "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-panel"
+                    "downloadable-panel"
                 ],
                 "initParams": {},
                 "runtime": {
