@@ -76,29 +76,6 @@ class ModelAdapter(dl.BaseModelAdapter):
             except Exception as e:
                 raise ValueError(f"API key validation failed: {e}")
         
-        # Lower default to avoid context length issues on smaller models
-        self.max_tokens = self.configuration.get('max_tokens', 512)
-        self.temperature = self.configuration.get('temperature', 0.2)
-        self.top_p = self.configuration.get('top_p', 0.7)
-        self.seed = self.configuration.get('seed', None)
-        self.stream = self.configuration.get('stream', False)
-        self.guided_json = self.configuration.get("guided_json", None)
-        self.debounce_interval = self.configuration.get('debounce_interval', 2)
-        self.system_prompt = self.configuration.get('system_prompt', None)
-
-        if self.guided_json is not None:
-            try:
-                item = dl.items.get(item_id=self.guided_json)
-                binaries = item.download(save_locally=False)
-                self.guided_json = json.loads(binaries.getvalue().decode("utf-8"))
-                logger.info(f"Guided json: {self.guided_json}")
-            except Exception as e:
-                try:
-                    self.guided_json = json.loads(self.guided_json)
-                except Exception as e:
-                    logger.error(f"Error loading guided json: {e}")
-
-
     def prepare_item_func(self, item: dl.Item):
         return dl.PromptItem.from_item(item=item)
 
@@ -136,80 +113,75 @@ class ModelAdapter(dl.BaseModelAdapter):
         # Flatten messages - LLMs expect plain string content, not multimodal arrays
         messages = self._flatten_messages(messages)
         
+        stream = self.configuration.get("stream")
+        max_tokens = self.configuration.get("max_tokens", 512)
+        temperature = self.configuration.get("temperature", 0.2)
+        top_p = self.configuration.get("top_p", 0.7)
+        # Schema in model config only (inline JSON or dict)
+        guided_json = self.configuration.get("guided_json", None)
+        if guided_json is not None:
+            try:
+                guided_json = json.loads(guided_json) if isinstance(guided_json, str) else guided_json
+            except Exception as e:
+                logger.error(f"Error parsing guided_json: {e}")
+                guided_json = None
+                    
+        # NVIDIA API requires guided_json inside "nvext", not at root
         extra_body = {}
-        if self.guided_json and self.use_nvidia_extra_body:
-            extra_body["guided_json"] = self.guided_json
-            logger.info(f"Using guided_json: {self.guided_json}")
+        if guided_json and self.use_nvidia_extra_body:
+            extra_body["nvext"] = {"guided_json": guided_json}
+            logger.info(f"Using guided_json in nvext: {guided_json}")
 
         # Build kwargs - omit seed as some models reject it
         kwargs = {
             "model": self.nim_model_name,
             "messages": messages,
-            "temperature": self.temperature,
-            "top_p": self.top_p,
-            "max_tokens": self.max_tokens,
-            "stream": self.stream,
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": max_tokens,
+            "stream": stream,
         }
         if extra_body:
             kwargs["extra_body"] = extra_body
 
-        return self.client.chat.completions.create(**kwargs)
+        response =self.client.chat.completions.create(**kwargs)
 
-    def handle_response(self, prompt_item, response):
-        """Handle streaming or non-streaming response."""
-        if self.stream:
-            full_response = ""
-            last_update_time = time.time()
-
+        if stream is True:
             for chunk in response:
-                # Check if choices exists and has items
-                if not chunk.choices:
-                    continue
-                delta = getattr(chunk.choices[0], 'delta', None)
-                if delta:
-                    chunk_text = getattr(delta, 'content', "") or ""
-                    if chunk_text:
-                        full_response += chunk_text
-                        if time.time() - last_update_time >= self.debounce_interval:
-                            self.add_response(prompt_item, full_response)
-                            last_update_time = time.time()
-
-            self.add_response(prompt_item, full_response)
+                yield chunk.choices[0].delta.content or ""
         else:
-            # Check if choices exists and has items
-            if not response.choices:
-                logger.warning(f"Empty response from model {self.nim_model_name}")
-                self.add_response(prompt_item, "")
-                return
-            message = getattr(response.choices[0], 'message', None)
-            self.add_response(prompt_item, getattr(message, 'content', "") if message else "")
-
-    def add_response(self, prompt_item, response_text):
-        """Add response to prompt item."""
-        if not response_text:
-            return
-
-        prompt_item.add(
-            message={"role": "assistant", "content": [{"mimetype": dl.PromptType.TEXT, "value": response_text}]},
-            model_info={
-                'name': self.model_entity.name,
-                'confidence': 1.0,
-                'model_id': self.model_entity.id,
-            },
-        )
+            yield response.choices[0].message.content or ""
 
     def predict(self, batch, **kwargs):
         """Run prediction on a batch of prompts."""
-        for prompt_item in batch:
-            # Get OpenAI-compatible messages directly
-            messages = prompt_item.to_messages(model_name=self.model_entity.name)
-            
-            # Add system prompt if configured
-            if self.system_prompt:
-                messages.insert(0, {"role": "system", "content": self.system_prompt})
+        system_prompt = self.model_entity.configuration.get('system_prompt', '')
+        add_metadata = self.configuration.get("add_metadata")
+        model_name = self.model_entity.name
 
-            response = self.call_model(messages)
-            self.handle_response(prompt_item, response)
+        for prompt_item in batch:
+            # Get all messages including model annotations
+            messages = prompt_item.to_messages(model_name=model_name)
+            if system_prompt and system_prompt.strip():
+                messages.insert(0, {"role": "system", "content": system_prompt})
+
+            nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
+            if len(nearest_items) > 0:
+                context = prompt_item.build_context(nearest_items=nearest_items,
+                                                    add_metadata=add_metadata)
+                logger.info(f"Nearest items Context: {context}")
+                messages.append({"role": "assistant", "content": context})
+
+            stream_response = self.call_model(messages=messages)
+            response = ""
+            for chunk in stream_response:
+                #  Build text that includes previous stream
+                response += chunk
+                prompt_item.add(message={"role": "assistant",
+                                         "content": [{"mimetype": dl.PromptType.TEXT,
+                                                      "value": response}]},
+                                model_info={'name': model_name,
+                                            'confidence': 1.0,
+                                            'model_id': self.model_entity.id})
 
         return []
 
