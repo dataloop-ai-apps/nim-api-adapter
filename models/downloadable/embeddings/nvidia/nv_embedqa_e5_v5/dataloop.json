@@ -1,5 +1,5 @@
 {
-    "version": "0.1.0",
+    "version": "0.3.42",
     "name": "nim-nvidia-nv-embedqa-e5-v5-downloadable",
     "displayName": "NIM Nv Embedqa E5 V5 Downloadable",
     "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs",
@@ -76,5 +76,10 @@
                 "maxAttempts": 3
             }
         ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.42"
     }
 }
