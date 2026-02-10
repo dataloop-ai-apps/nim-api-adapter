@@ -1,0 +1,39 @@
+# Dockerfile template for building downloadable NIM images
+# Usage: docker build --build-arg IMAGE_NAME=nvclip -f Dockerfile.template -t <target> .
+#
+# IMAGE_NAME is provider/model (e.g. baai/bge-m3) -> nvcr.io/nim/<IMAGE_NAME>:latest
+
+ARG IMAGE_NAME=nvidia/nvclip
+FROM nvcr.io/nim/${IMAGE_NAME}:latest
+
+# NGC API key for model downloads (set via environment or build arg)
+ENV NIM_CACHE_PATH=/tmp/.nim
+ENV NIM_HTTP_API_PORT=3000
+ENV VERIFY="false"
+ENV HOME=/tmp
+
+# Override the base image's internal NVIDIA pip index with public PyPI
+ENV PIP_INDEX_URL=https://pypi.org/simple
+ENV DL_PYTHON_EXECUTABLE=/opt/nim/.venv/bin/python3
+
+USER root
+RUN ${DL_PYTHON_EXECUTABLE} -m pip install --no-cache-dir https://storage.googleapis.com/dtlpy/dev/dtlpy-1.119.5-py3-none-any.whl
+RUN ${DL_PYTHON_EXECUTABLE} -m pip install --no-cache-dir https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl
+USER 1000
+
+
+# --- Notes ---
+# Find CMD/ENTRYPOINT (run on host):
+#   docker inspect nvcr.io/nim/nvidia/nvclip:latest --format "Entrypoint: {{.Config.Entrypoint}}"
+#   docker inspect nvcr.io/nim/nvidia/nvclip:latest --format "Cmd: {{.Config.Cmd}}"
+# Then from inside the container (after docker run ... bash), run: <entrypoint> <cmd args...>
+
+# Example run command:
+# docker run -it --rm --gpus all -e NGC_API_KEY=$NGC_API_KEY -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" -p 8000:8000 nvcr.io/nim/nvidia/nvclip:latest
+
+# Build example:
+# docker build --build-arg IMAGE_NAME=nvclip --no-cache -t gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:0.1.13 -f Dockerfile.template .
+# docker push gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:0.1.13
+
+# Bash without running the image entrypoint (use --entrypoint "" then your command):
+# docker run -it --rm --gpus all --entrypoint "" gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:0.1.11 /bin/bash
