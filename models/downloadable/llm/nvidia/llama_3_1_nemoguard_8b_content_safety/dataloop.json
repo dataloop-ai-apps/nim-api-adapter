@@ -1,5 +1,5 @@
 {
-    "version": "0.3.45",
+    "version": "0.3.46",
     "name": "nim-nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable",
     "displayName": "NIM Llama 3.1 Nemoguard 8B Content Safety Downloadable",
     "description": "NVIDIA NIM Llama 3.1 Nemoguard 8B Content Safety adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.45"
+        "gitTag": "0.3.46"
     }
 }

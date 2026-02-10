@@ -1,7 +1,7 @@
 {
   "name": "nim-llama-3-1-nemoguard-8b-topic-control",
   "displayName": "Llama 3.1 Nemoguard 8B Topic Control",
-  "version": "0.3.45",
+  "version": "0.3.46",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-topic-control",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.45"
+    "gitTag": "0.3.46"
   }
 }
