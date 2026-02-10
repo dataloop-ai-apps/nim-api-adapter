@@ -2,6 +2,7 @@ from openai import OpenAI
 import dtlpy as dl
 import logging
 import os
+import httpx
 
 # Toggleable logger - set NIM_DISABLE_LOGGING=1 to disable
 if os.environ.get("NIM_DISABLE_LOGGING", "").lower() in ("1", "true", "yes"):
@@ -19,20 +20,20 @@ def get_downloadable_endpoint_and_cookie(app_id: str):
     Use when the model adapter should talk to a downloadable NIM app (.apps.dataloop.ai).
 
     Returns:
-        (base_url, cookie_header): base_url is the redirected API root; cookie_header is the Cookie header value.
+        (base_url, cookie_header, session): base_url is the redirected API root; cookie_header is the Cookie header value; session is the requests.Session used for the request.
     """
     import requests
     app = dl.apps.get(app_id=app_id)
     route = list(app.routes.values())[0].rstrip("/")
     base_before = "/".join(route.split("/")[:-1])
     session = requests.Session()
-    resp = session.get(base_before, headers=dl.client_api.auth)
+    resp = session.get(base_before, headers=dl.client_api.auth, verify=False)
     base_url = resp.url.rstrip("/")
     # OpenAI client appends /embeddings; server expects /v1/embeddings, so base must end with /v1
     if not base_url.endswith("/v1"):
         base_url = f"{base_url}/v1"
     cookie_header = "; ".join(f"{c.name}={c.value}" for c in session.cookies)
-    return base_url, cookie_header
+    return base_url, cookie_header, session
 
 
 class ModelAdapter(dl.BaseModelAdapter):
@@ -44,19 +45,22 @@ class ModelAdapter(dl.BaseModelAdapter):
         app_id = self.configuration.get("app_id")
         if app_id:
             self.use_nvidia_extra_body = False  # downloadable app rejects input_type/truncate
-            self.base_url, cookie_header = get_downloadable_endpoint_and_cookie(app_id)
+            self.base_url, cookie_header, session = get_downloadable_endpoint_and_cookie(app_id)
             logger.info(f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}")
             # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
+            # Create httpx client with verify=False to match the requests session
+            http_client = httpx.Client(verify=False)
             self.client = OpenAI(
                 base_url=self.base_url,
                 api_key="",  # omit Bearer token so only Cookie header is sent
                 default_headers={"Cookie": cookie_header},
+                http_client=http_client,
             )
             try:
                 import requests
                 # Downloadable app exposes GET /v1/health/live (see app OpenAPI docs)
                 health_url = self.base_url.rstrip("/") + "/health/live"
-                r = requests.get(health_url, headers={"Cookie": cookie_header}, timeout=10)
+                r = requests.get(health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False)
                 r.raise_for_status()
                 logger.info(f"Downloadable endpoint healthy for {self.nim_model_name}, base URL: {self.base_url}")
             except Exception as e:

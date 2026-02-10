@@ -27,7 +27,7 @@ USER root
 # Some NIM containers have venv Python without pip/ensurepip and no curl
 # Strategy: apt-get install curl + pip dependencies first, then get-pip.py
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl ca-certificates gcc git python3-dev && \
+    apt-get install -y --no-install-recommends curl ca-certificates gcc git python3-dev sudo && \
     PYTHON_PATH=$(which python3 || which python) && \
     # Ensure pip is available
     ${PYTHON_PATH} -m pip --version || \
@@ -41,8 +41,6 @@ RUN apt-get update && \
     apt-get purge -y gcc python3-dev && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
-
-USER 1000
 
 
 # --- Notes ---
