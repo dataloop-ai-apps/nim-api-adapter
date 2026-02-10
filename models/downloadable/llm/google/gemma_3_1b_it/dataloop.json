@@ -1,0 +1,80 @@
+{
+    "version": "0.1.0",
+    "name": "nim-google-gemma-3-1b-it-downloadable",
+    "displayName": "NIM Gemma 3 1B It Downloadable",
+    "description": "NVIDIA NIM Gemma 3 1B It adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Model",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "google-gemma-3-1b-it-downloadable-module",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "google-gemma-3-1b-it-downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "google-gemma-3-1b-it-downloadable-runner",
+                "displayName": "google-gemma-3-1b-it-downloadable-runner",
+                "moduleName": "google-gemma-3-1b-it-downloadable-module",
+                "panelNames": [
+                    "google-gemma-3-1b-it-downloadable-panel"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/google-gemma-3-1b-it:0.3.42",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    }
+}

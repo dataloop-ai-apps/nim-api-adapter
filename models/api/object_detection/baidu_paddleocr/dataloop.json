@@ -83,7 +83,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_invoke_url": "cv/baidu/paddleocr"
+          "nim_model_name": "cv/baidu/paddleocr"
         },
         "description": "PaddleOCR model for OCR, served by NIM API."
       }

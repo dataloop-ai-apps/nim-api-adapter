@@ -1,0 +1,80 @@
+{
+    "version": "0.1.0",
+    "name": "nim-nvidia-nemotron-nano-12b-v2-vl-downloadable",
+    "displayName": "NIM Nemotron Nano 12B V2 Vl Downloadable",
+    "description": "NVIDIA NIM Nemotron Nano 12B V2 Vl adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Model",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-module",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-runner",
+                "displayName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-runner",
+                "moduleName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-module",
+                "panelNames": [
+                    "nvidia-nemotron-nano-12b-v2-vl-downloadable-panel"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-nemotron-nano-12b-v2-vl:0.3.42",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    }
+}

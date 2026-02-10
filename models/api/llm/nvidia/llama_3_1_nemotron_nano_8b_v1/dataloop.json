@@ -146,11 +146,15 @@
         "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-8b-v1",
         "configuration": {
           "nim_model_name": "nvidia/llama-3.1-nemotron-nano-8b-v1",
+          "base_url": "https://integrate.api.nvidia.com/v1",
           "max_tokens": 512,
           "temperature": 0.2,
           "top_p": 0.7,
-          "stream": false,
-          "base_url": "https://integrate.api.nvidia.com/v1"
+          "stream": true,
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "add_metadata": [
+            "system.document.source"
+          ]
         }
       }
     ]
