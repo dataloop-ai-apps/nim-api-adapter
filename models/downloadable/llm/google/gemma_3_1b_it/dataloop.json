@@ -1,5 +1,5 @@
 {
-    "version": "0.3.43",
+    "version": "0.3.47",
     "name": "nim-google-gemma-3-1b-it-downloadable",
     "displayName": "NIM Gemma 3 1B It Downloadable",
     "description": "NVIDIA NIM Gemma 3 1B It adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.43"
+        "gitTag": "0.3.47"
     }
 }
