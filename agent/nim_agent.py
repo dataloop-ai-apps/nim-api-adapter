@@ -30,11 +30,11 @@ NIM_TYPE_DOWNLOADABLE = "nim_type_run_anywhere"
 NIM_TYPE_API_ONLY = "nim_type_preview"
 
 
-# =========================================================================
-# Module-level functions for fetching models from NGC Catalog
-# =========================================================================
+# =================================================================================
+# FETCHING - Module-level functions for fetching models from NGC Catalog and OpenAI
+# =================================================================================
 
-def _fetch_all_models(nim_type_filter: str) -> list[dict]:
+def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     """Fetch all models for a given NIM type filter (handles pagination)."""
     models = []
     page = 0
@@ -65,44 +65,47 @@ def _fetch_all_models(nim_type_filter: str) -> list[dict]:
                     for label in resource.get("labels", []):
                         if label.get("key") == "publisher":
                             publisher = label.get("values", [""])[0]
-                            break
+                        if label.get("key") == "general":
+                            model_tasks = label.get("values", [""])
+                        
                     models.append({
                         "name": name,
                         "display_name": resource.get("displayName", ""),
                         "description": resource.get("description", ""),
-                        "publisher": publisher
+                        "publisher": publisher,
+                        "model_tasks": model_tasks,
+                        "nim_type": nim_type_filter
                     })
         
         page += 1
         if page >= data.get("resultPageTotal", 1):
             break
     
-    return models
-
-
-def _get_models_by_type(nim_type_filter: str, nim_type_label: str) -> list[dict]:
-    """Helper to fetch models by NIM type."""
-    models = []
-    for model in _fetch_all_models(nim_type_filter):
-        model["nim_type"] = nim_type_label
-        models.append(model)
     models.sort(key=lambda x: x["name"])
     return models
 
 
 def get_api_models() -> list[dict]:
     """Get all API-only NIM models."""
-    return _get_models_by_type(NIM_TYPE_API_ONLY, "api_only")
+    return _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
 
 
 def get_downloadable_models() -> list[dict]:
     """Get all downloadable (run-anywhere) NIM models."""
-    return _get_models_by_type(NIM_TYPE_DOWNLOADABLE, "downloadable")
+    return _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
 
 
-def get_all_models_with_type() -> list[dict]:
+def get_all_catalog_models() -> list[dict]:
     """Get all NIM models with their availability type."""
-    all_models = get_api_models() + get_downloadable_models()
+    api_models = get_api_models()
+    downloadable_models = get_downloadable_models()
+    # Deduplicate by name, preferring API models
+    seen = {m["name"] for m in api_models}
+    all_models = list(api_models)
+    for m in downloadable_models:
+        if m["name"] not in seen:
+            all_models.append(m)
+            seen.add(m["name"])
     all_models.sort(key=lambda x: x["name"])
     return all_models
 
@@ -170,7 +173,7 @@ def get_openai_model_ids(api_key: str = None) -> list[str]:
     return [m["id"] for m in models]
 
 
-def get_all_existing_models() -> list[dict]:
+def get_all_repository_models() -> list[dict]:
     """
     Get all existing models from models/api (including embeddings, llm, vlm, object_detection).
 
@@ -219,7 +222,7 @@ def _normalize_nim_name(name: str) -> str:
     return base.replace("-", "_").replace(".", "_")
 
 
-def get_existing_run_anywhere_models() -> list[dict]:
+def get_repository_downloadable_models() -> list[dict]:
     """
     Get existing models from models/api that are run-anywhere (downloadable) in NGC.
 
@@ -232,7 +235,7 @@ def get_existing_run_anywhere_models() -> list[dict]:
     run_anywhere_normalized = {
         _normalize_nim_name(m["name"]) for m in get_downloadable_models()
     }
-    all_existing = get_all_existing_models()
+    all_existing = get_all_repository_models()
     return [
         {
             "nim_model_name": x["nim_model_name"],
@@ -244,6 +247,112 @@ def get_existing_run_anywhere_models() -> list[dict]:
         if _normalize_nim_name(x["nim_model_name"]) in run_anywhere_normalized
     ]
 
+
+def featch_report() -> dict:
+    """Fetch report for all models from OpenAI and NGC Catalog.
+
+    Returns:
+        dict: Report with the following keys:
+            - openai_ids: List of OpenAI model IDs
+            - api_ids: List of NGC Catalog API model IDs
+            - downloadable_ids: List of NGC Catalog Downloadable model IDs
+            - openai_and_downloadable: List of OpenAI and Downloadable model IDs
+            - openai_and_api_only: List of OpenAI and API-only model IDs
+            - openai_not_in_catalog: List of OpenAI models not in NGC Catalog
+            - catalog_not_in_openai: List of NGC Catalog models not in OpenAI
+            - downloadable_not_in_openai: List of Downloadable models not in OpenAI
+    """
+    # 1. Fetch from OpenAI-compatible endpoint
+    print("Fetching OpenAI models...")
+    openai_ids = set(get_openai_model_ids(api_key=os.environ.get("NGC_API_KEY")))
+
+    # 2. Fetch from NGC Catalog (both types)
+    print("Fetching NGC Catalog API models...")
+    api_models = get_api_models()
+    api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in api_models}
+
+    print("Fetching NGC Catalog Downloadable models...")
+    downloadable_models = get_downloadable_models()
+    downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in downloadable_models}
+
+    # 3. Cross-reference
+    openai_and_downloadable = openai_ids & downloadable_ids  # On OpenAI AND run-anywhere
+    openai_and_api_only = openai_ids - downloadable_ids       # On OpenAI but API-only (not downloadable)
+    openai_not_in_catalog = openai_ids - api_ids - downloadable_ids  # On OpenAI but not in catalog at all
+    catalog_not_in_openai = (api_ids | downloadable_ids) - openai_ids  # In catalog but no OpenAI endpoint
+    downloadable_not_in_openai = downloadable_ids - openai_ids  # Downloadable but no OpenAI endpoint
+    api_only_not_in_openai = api_ids - openai_ids - downloadable_ids  # API-only catalog, no OpenAI endpoint
+
+    # 4. Generate report
+    report_lines = []
+    report_lines.append("=" * 80)
+    report_lines.append("NIM Model Availability Report")
+    report_lines.append("=" * 80)
+    report_lines.append("")
+    report_lines.append(f"Total OpenAI models:        {len(openai_ids)}")
+    report_lines.append(f"Total Catalog API-only:      {len(api_ids)}")
+    report_lines.append(f"Total Catalog Downloadable:  {len(downloadable_ids)}")
+    report_lines.append("")
+
+    report_lines.append("-" * 80)
+    report_lines.append(f"OpenAI + Downloadable (run-anywhere): {len(openai_and_downloadable)}")
+    report_lines.append("-" * 80)
+    for m in sorted(openai_and_downloadable):
+        report_lines.append(f"  {m}")
+
+    report_lines.append("")
+    report_lines.append("-" * 80)
+    report_lines.append(f"OpenAI + API-only (NOT downloadable): {len(openai_and_api_only)}")
+    report_lines.append("-" * 80)
+    for m in sorted(openai_and_api_only):
+        report_lines.append(f"  {m}")
+
+    report_lines.append("")
+    report_lines.append("-" * 80)
+    report_lines.append(f"OpenAI but NOT in any catalog: {len(openai_not_in_catalog)}")
+    report_lines.append("-" * 80)
+    for m in sorted(openai_not_in_catalog):
+        report_lines.append(f"  {m}")
+        
+    report_lines.append("")
+    report_lines.append("-" * 80)
+    report_lines.append(f"Catalog but NOT on OpenAI: {len(catalog_not_in_openai)}")
+    report_lines.append("-" * 80)
+    for m in sorted(catalog_not_in_openai):
+        report_lines.append(f"  {m}")
+
+    report_lines.append("")
+    report_lines.append("-" * 80)
+    report_lines.append(f"Downloadable but NOT on OpenAI: {len(downloadable_not_in_openai)}")
+    report_lines.append("-" * 80)
+    for m in sorted(downloadable_not_in_openai):
+        report_lines.append(f"  {m}")
+
+    report_lines.append("")
+    report_lines.append("-" * 80)
+    report_lines.append(f"API-only catalog, NOT on OpenAI: {len(api_only_not_in_openai)}")
+    report_lines.append("-" * 80)
+    for m in sorted(api_only_not_in_openai):
+        report_lines.append(f"  {m}")
+
+    report_lines.append("")
+    report_lines.append("=" * 80)
+
+    report_text = "\n".join(report_lines)
+    print(report_text)
+
+    # Save to file
+    report_path = os.path.join(os.path.dirname(__file__), "nim_availability_report.txt")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(report_text)
+    print(f"\nReport saved to: {report_path}")
+    
+    return report_text
+    
+
+# ==========================================
+# ORCHESTRATION - Main orchestrator - Agent
+# ==========================================
 class NIMAgent:
     """
     Agent that manages NVIDIA NIM model discovery and onboarding.
@@ -1031,54 +1140,15 @@ class NIMAgent:
         dir_path = os.path.join(os.path.dirname(__file__), "..", "models", "downloadable")
         
 
+
+
+
 if __name__ == "__main__":
     from downloadables_create import build_downloadable_nim
     from dotenv import load_dotenv
     load_dotenv()
     
-    # Skip models that already have downloadable manifests (to save disk space)
-    ALREADY_BUILT = {
-        # Embeddings
-        "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
-        "nvidia/llama-3.2-nv-embedqa-1b-v2",
-        "nvidia/nv-embedqa-e5-v5",
-        # LLM - Google
-        "google/gemma-3-1b-it",
-        # LLM - Meta
-        "meta/llama-3.1-70b-instruct",
-        "meta/llama-3.1-8b-instruct",
-        "meta/llama-3.2-1b-instruct",
-        "meta/llama-3.2-3b-instruct",
-        "meta/llama-3.3-70b-instruct",
-        "meta/llama-4-scout-17b-16e-instruct",
-        # LLM - Microsoft
-        "microsoft/phi-4-mini-instruct",
-        # LLM - NVIDIA
-        "nvidia/llama-3.1-nemoguard-8b-content-safety",
-        "nvidia/llama-3.1-nemoguard-8b-topic-control",
-        "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
-        "nvidia/llama-3.1-nemotron-ultra-253b-v1",
-        "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-        "nvidia/nemotron-nano-12b-v2-vl",
-        "nvidia/nemotron-nano-9b-v2",
-        # LLM - OpenAI
-        "openai/gpt-oss-20b",
-    }
-    
-    models = get_existing_run_anywhere_models()
-    print(f"Existing models that are run-anywhere: {len(models)}")
-    print(f"Skipping {len(ALREADY_BUILT)} already built models")
-    
-    for model in models:
-        if model['nim_model_name'] in ALREADY_BUILT:
-            print(f"  ⏭️ Skipping {model['nim_model_name']} (already built)")
-            continue
-        try:
-            build_downloadable_nim(model['nim_model_name'], model['relative_path'])
-        except Exception as e:
-            print(f"  - {model['nim_model_name']} failed: {e}")
-            
-    
+    report = featch_report()
     # ==========================================================================
     # DEBUG MODE - Test full flow with subset of models
     # ==========================================================================
