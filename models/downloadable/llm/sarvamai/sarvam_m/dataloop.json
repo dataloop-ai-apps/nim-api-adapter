@@ -1,5 +1,5 @@
 {
-    "version": "0.1.0",
+    "version": "0.3.47",
     "name": "nim-sarvamai-sarvam-m-downloadable",
     "displayName": "NIM Sarvam M Downloadable",
     "description": "NVIDIA NIM Sarvam M adapter - runs start_server.sh and streams logs",
@@ -76,5 +76,10 @@
                 "maxAttempts": 3
             }
         ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.47"
     }
 }

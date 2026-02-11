@@ -1,8 +1,8 @@
 {
     "version": "0.3.47",
-    "name": "nim-qwen-qwen3-next-80b-a3b-instruct-downloadable",
-    "displayName": "NIM Qwen3 Next 80B A3B Instruct Downloadable",
-    "description": "NVIDIA NIM Qwen3 Next 80B A3B Instruct adapter - runs start_server.sh and streams logs",
+    "name": "nim-meta-llama-3.2-11b-vision-instruct-downloadable",
+    "displayName": "NIM Llama 3.2 11B Vision Instruct Downloadable",
+    "description": "NVIDIA NIM Llama 3.2 11B Vision Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
         "Category": [
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "qwen-qwen3-next-80b-a3b-instruct-downloadable-module",
+                "name": "meta-llama-3.2-11b-vision-instruct-downloadable-module",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -49,8 +49,8 @@
         "services": [
             {
                 "name": "nim-downloadable-runner",
-                "displayName": "qwen-qwen3-next-80b-a3b-instruct-downloadable-runner",
-                "moduleName": "qwen-qwen3-next-80b-a3b-instruct-downloadable-module",
+                "displayName": "meta-llama-3.2-11b-vision-instruct-downloadable-runner",
+                "moduleName": "meta-llama-3.2-11b-vision-instruct-downloadable-module",
                 "panelNames": [
                     "downloadable-panel"
                 ],
@@ -59,7 +59,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/qwen-qwen3-next-80b-a3b-instruct:0.3.42",
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/meta-llama-3.2-11b-vision-instruct:0.3.42",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",

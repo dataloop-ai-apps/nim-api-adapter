@@ -75,7 +75,8 @@ def _get_nim_entrypoint(model_name: str) -> str:
 def create_manifest(
     model_name: str,
     manifest_path: str,
-    image_version: str = "0.1.13"
+    image_version: str = "0.1.13",
+    runner_image_override: str | None = None
 ) -> dict:
     """
     Create a manifest from the template by replacing placeholders.
@@ -87,6 +88,7 @@ def create_manifest(
         model_name: NIM model name (e.g., 'nvidia/llama-3.2-nemoretriever-300m-embed-v2')
         manifest_path: Relative path for the manifest (e.g., 'embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2')
         image_version: Docker image version tag
+        runner_image_override: If provided, use this runner image instead of generating a new one
     
     Returns:
         Manifest dictionary
@@ -107,6 +109,10 @@ def create_manifest(
     manifest_content = manifest_content.replace('{{IMAGE_VERSION}}', image_version)
     
     manifest = json.loads(manifest_content)
+    
+    # Override runner image if provided (for skip_docker mode)
+    if runner_image_override:
+        manifest['components']['services'][0]['runtime']['runnerImage'] = runner_image_override
     
     # Save to models/downloadable/<manifest_path>/dataloop.json
     output_dir = _get_repo_root() / 'models' / 'downloadable' / manifest_path
@@ -192,7 +198,30 @@ def build_docker_image(model_name: str, image_version: str = "1.0.0") -> str:
     return target_image
 
 
-def build_downloadable_nim(model_name: str, manifest_path: str) -> dict:
+def _get_existing_runner_image(manifest_path: str) -> str | None:
+    """
+    Get the existing runner image from a manifest if it exists.
+    
+    Args:
+        manifest_path: Relative path for the manifest (e.g., 'llm/meta/llama_3_1_8b_instruct')
+    
+    Returns:
+        Runner image string if manifest exists, None otherwise
+    """
+    manifest_file = _get_repo_root() / 'models' / 'downloadable' / manifest_path / 'dataloop.json'
+    
+    if not manifest_file.exists():
+        return None
+    
+    try:
+        with open(manifest_file, 'r') as f:
+            existing = json.load(f)
+        return existing['components']['services'][0]['runtime']['runnerImage']
+    except (KeyError, json.JSONDecodeError):
+        return None
+
+
+def build_downloadable_nim(model_name: str, manifest_path: str, skip_docker: bool = False) -> dict:
     """
     Build a downloadable NIM model: Docker image and manifest.
     
@@ -202,29 +231,48 @@ def build_downloadable_nim(model_name: str, manifest_path: str) -> dict:
     Args:
         model_name: NIM model name (e.g., 'nvidia/llama-3.2-nemoretriever-300m-embed-v2')
         manifest_path: Relative path for manifest (e.g., 'embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2')
+        skip_docker: If True, skip Docker build and keep existing runner image (useful for template updates)
     
     Returns:
         Manifest dictionary
     
     Example:
         # This creates:
-        # - Docker image: gcr.io/viewo-g/piper/agent/runner/gpu/nvidia-llama-3.2-nemoretriever-300m-embed-v2:<version>
+        # - Docker image: hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-llama-3.2-nemoretriever-300m-embed-v2:<version>
         # - Manifest at: models/downloadable/embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2/dataloop.json
         build_downloadable_nim(
             model_name="nvidia/llama-3.2-nemoretriever-300m-embed-v2",
             manifest_path="embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2"
         )
+        
+        # Update manifest from template without rebuilding Docker:
+        build_downloadable_nim(
+            model_name="nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+            manifest_path="embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2",
+            skip_docker=True
+        )
     """
     version = _extract_version()
     print(f"\nBuilding downloadable NIM: {model_name}")
     print(f"Version: {version}")
-    print(f"Manifest path: models/downloadable/{manifest_path}/dataloop.json\n")
+    print(f"Manifest path: models/downloadable/{manifest_path}/dataloop.json")
     
-    build_docker_image(model_name=model_name, image_version=version)
+    existing_runner_image = None
+    if skip_docker:
+        existing_runner_image = _get_existing_runner_image(manifest_path)
+        if existing_runner_image:
+            print(f"⏭️  Skipping Docker build, keeping existing runner image: {existing_runner_image}")
+        else:
+            raise ValueError(f"Cannot skip Docker: no existing manifest found at {manifest_path}")
+    else:
+        print("")  # Add newline before docker build
+        build_docker_image(model_name=model_name, image_version=version)
+    
     manifest = create_manifest(
         model_name=model_name,
         manifest_path=manifest_path,
-        image_version=version
+        image_version=version,
+        runner_image_override=existing_runner_image
     )
     
     print(f"\n✓ Successfully built downloadable NIM: {model_name}")
@@ -245,6 +293,11 @@ if __name__ == "__main__":
         required=True,
         help="Manifest path relative to models/downloadable/ (e.g., 'embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2')"
     )
+    parser.add_argument(
+        "--skip-docker", "-s",
+        action="store_true",
+        help="Skip Docker build and keep existing runner image (useful for template updates)"
+    )
     
     args = parser.parse_args()
-    build_downloadable_nim(model_name=args.model, manifest_path=args.path)
+    build_downloadable_nim(model_name=args.model, manifest_path=args.path, skip_docker=args.skip_docker)
