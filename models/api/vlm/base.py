@@ -21,7 +21,7 @@ def get_downloadable_endpoint_and_cookie(app_id: str):
     Use when the model adapter should talk to a downloadable NIM app (.apps.dataloop.ai).
 
     Returns:
-        (base_url, cookie_header, session): base_url is the redirected API root; cookie_header is the Cookie header value; session is the requests.Session used for the request.
+        (base_url, cookies_dict): base_url is the redirected API root; cookies_dict is the cookies as a dict.
     """
     import requests
     app = dl.apps.get(app_id=app_id)
@@ -33,8 +33,9 @@ def get_downloadable_endpoint_and_cookie(app_id: str):
     # OpenAI client uses /v1/chat/completions etc.; server expects /v1, so base must end with /v1
     if not base_url.endswith("/v1"):
         base_url = f"{base_url}/v1"
-    cookie_header = "; ".join(f"{c.name}={c.value}" for c in session.cookies)
-    return base_url, cookie_header, session
+    cookies_dict = {cookie.name: cookie.value for cookie in session.cookies}
+    logger.debug(f"Resolved base URL: {base_url}, cookies: {list(cookies_dict.keys())}")
+    return base_url, cookies_dict
 
 
 class ModelAdapter(dl.BaseModelAdapter):
@@ -54,22 +55,21 @@ class ModelAdapter(dl.BaseModelAdapter):
         app_id = self.configuration.get("app_id")
         if app_id:
             self.use_nvidia_extra_body = False  #  consistency with embeddings
-            self.base_url, cookie_header, session = get_downloadable_endpoint_and_cookie(app_id)
+            self.base_url, cookies_dict = get_downloadable_endpoint_and_cookie(app_id)
             logger.info(f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}")
             # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
-            # Create httpx client with verify=False to match the requests session
-            http_client = httpx.Client(verify=False)
+            # Create httpx client with verify=False and cookies from requests session
+            http_client = httpx.Client(verify=False, follow_redirects=True, cookies=cookies_dict)
             self.client = OpenAI(
                 base_url=self.base_url,
                 api_key="",  # omit Bearer token so only Cookie header is sent
-                default_headers={"Cookie": cookie_header},
                 http_client=http_client,
             )
             try:
                 import requests
                 # Downloadable app exposes GET /v1/health/live (see app OpenAPI docs)
                 health_url = self.base_url.rstrip("/") + "/health/live"
-                r = requests.get(health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False)
+                r = requests.get(health_url, cookies=cookies_dict, timeout=10, verify=False)
                 r.raise_for_status()
                 logger.info(f"Downloadable endpoint healthy for {self.nim_model_name}, base URL: {self.base_url}")
             except Exception as e:
