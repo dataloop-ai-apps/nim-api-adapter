@@ -1057,12 +1057,9 @@ if __name__ == "__main__":
         "nvidia/llama-3.1-nemoguard-8b-content-safety",
         "nvidia/llama-3.1-nemoguard-8b-topic-control",
         "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
-        "nvidia/llama-3.1-nemotron-ultra-253b-v1",
         "nvidia/llama-3.3-nemotron-super-49b-v1.5",
         "nvidia/nemotron-nano-12b-v2-vl",
         "nvidia/nemotron-nano-9b-v2",
-        # LLM - OpenAI
-        "openai/gpt-oss-20b",
     }
     
     models = get_existing_run_anywhere_models()
