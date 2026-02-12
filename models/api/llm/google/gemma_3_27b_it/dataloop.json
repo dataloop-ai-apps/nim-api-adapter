@@ -1,7 +1,7 @@
 {
   "name": "nim-gemma-3-27b-it",
   "displayName": "Gemma 3 27B It",
-  "version": "0.3.49",
+  "version": "0.3.50",
   "scope": "public",
   "description": "NVIDIA NIM adapter for google/gemma-3-27b-it",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.49"
+    "gitTag": "0.3.50"
   }
 }
