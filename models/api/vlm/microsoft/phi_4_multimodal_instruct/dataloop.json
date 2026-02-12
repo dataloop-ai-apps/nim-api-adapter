@@ -9,10 +9,10 @@
       "Model",
       "NIM"
     ],
-    "Gen AI": "LLM",
+    "Gen AI": "LMM",
     "Provider": "Microsoft",
     "Media Type": [
-      "Text"
+      "Multi Modal"
     ],
     "Hub": [
       "Nvidia",
@@ -34,14 +34,14 @@
             "maxReplicas": 2,
             "queueLength": 100
           },
-          "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
         }
       }
     ],
     "modules": [
       {
         "name": "nim-phi-4-multimodal-instruct-module",
-        "entryPoint": "models/api/llm/base.py",
+        "entryPoint": "models/api/vlm/base.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-phi-4-multimodal-instruct-deploy",
         "description": "NVIDIA NIM adapter for microsoft/phi-4-multimodal-instruct",
