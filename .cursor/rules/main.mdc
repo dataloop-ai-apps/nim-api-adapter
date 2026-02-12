@@ -1,0 +1,28 @@
+---
+description: Project overview and rule index for nim-api-adapter
+alwaysApply: true
+---
+
+# NIM API Adapter - Project Rules
+
+This project provides Dataloop model adapters for NVIDIA NIM models via API.
+Each model is packaged as a DPK (Dataloop Package) with standardized adapter code, configuration, and E2E tests.
+
+## Priority Order
+
+1. **Model naming and DPK conventions** — All names must match `dataloop.json` exactly. Read `.cursor/rules/docs/model-structure.md` when working with models.
+2. **E2E test structure** — Tests must mirror the model directory layout and use the correct templates/datasets per category. Read `.cursor/rules/docs/e2e-tests.md` when working with tests.
+3. **Project layout** — Know where things live before making changes. Read `.cursor/rules/docs/project-structure.md` for the full layout.
+
+## Quick Reference
+
+| Category | Model adapter | Test type | Dataset |
+|---|---|---|---|
+| LLM | `models/api/llm/base.py` | `test_predict` | `text_prompt_text_answer` |
+| VLM | `models/api/vlm/base.py` | `test_predict` | `text_image_prompt_text_answer` |
+| Embeddings | `models/api/embeddings/base.py` | `test_embed` | `text_prompt_text_answer` |
+| Object Detection | `models/api/object_detection/base.py` | `test_predict` | `chart_image` |
+
+## Critical: Never Guess Names
+
+Always read the model's `dataloop.json` to get the canonical DPK name and model component name. They use kebab-case with `nim-` prefix (e.g., `nim-llama-3-1-8b-instruct`). Folder names use underscores (e.g., `llama_3_1_8b_instruct`).
