@@ -39,8 +39,8 @@ from typing import Optional, List, Dict
 # Model type to folder mapping
 MODEL_TYPE_FOLDERS = {
     "embedding": "embeddings",
-    "llm": "llm",
-    "vlm": "vlm",
+    "llm": "chat_completions",
+    "vlm": "chat_completions",
     "object_detection": "object_detection",
     "ocr": "ocr"
 }
@@ -145,7 +145,7 @@ class GitHubClient:
         if model_type:
             type_folders.append(MODEL_TYPE_FOLDERS.get(model_type, model_type))
         # Also search common folders as fallback
-        type_folders.extend(["llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
+        type_folders.extend(["chat_completions", "llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
         type_folders = list(dict.fromkeys(type_folders))  # Remove duplicates, preserve order
         
         # Search in both models/api/{type} and models/{type} (for backwards compatibility)
@@ -204,9 +204,9 @@ class GitHubClient:
         """
         Get the folder path for a model.
         
-        Returns: e.g., "models/api/vlm/nvidia/llama_3_1_70b_instruct"
+        Returns: e.g., "models/api/chat_completions/nvidia/llama_3_1_70b_instruct"
         """
-        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
+        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "chat_completions")
         publisher, model_name = self._parse_model_id(model_id)
         return f"models/api/{type_folder}/{publisher}/{model_name}"
     
@@ -227,38 +227,6 @@ class GitHubClient:
             return content.decoded_content.decode('utf-8')
         except self.GithubException:
             return None
-    
-    def _update_bumpversion_cfg(self, existing_content: str, new_manifest_paths: List[str]) -> str:
-        """
-        Update .bumpversion.cfg to include new model entries.
-        
-        Args:
-            existing_content: Current .bumpversion.cfg content
-            new_manifest_paths: List of new manifest paths to add
-            
-        Returns:
-            Updated .bumpversion.cfg content
-        """
-        lines = existing_content.rstrip().split('\n')
-        
-        # Find existing paths to avoid duplicates
-        existing_paths = set()
-        for line in lines:
-            if line.startswith('[bumpversion:file:'):
-                path = line.replace('[bumpversion:file:', '').replace(']', '')
-                existing_paths.add(path)
-        
-        # Add new entries
-        new_entries = []
-        for path in new_manifest_paths:
-            if path not in existing_paths:
-                new_entries.append(f'\n[bumpversion:file:{path}]')
-                new_entries.append('search = "{current_version}"')
-                new_entries.append('replace = "{new_version}"')
-        
-        if new_entries:
-            return '\n'.join(lines) + '\n' + '\n'.join(new_entries) + '\n'
-        return existing_content
     
     def _update_dataloop_cfg(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
         """
@@ -292,7 +260,7 @@ class GitHubClient:
         
         return json.dumps(config, indent='\t')
     
-    def _update_bumpversion_cfg_with_removals(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
+    def _update_bumpversion_cfg(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
         """
         Update .bumpversion.cfg to include new model entries and remove deprecated ones.
         
@@ -346,260 +314,21 @@ class GitHubClient:
         return result
     
     # =========================================================================
-    # PR Creation - Single Model
-    # =========================================================================
-    
-    def create_model_pr(
-        self,
-        model_id: str,
-        model_type: str,
-        manifest: dict,
-        description: str = None
-    ) -> dict:
-        """
-        Create a PR for a single model.
-        
-        Args:
-            model_id: NVIDIA model ID (e.g., "nvidia/llama-3.1-70b-instruct")
-            model_type: Type of model ("llm", "vlm", "embedding")
-            manifest: DPK manifest dictionary
-            description: Optional PR description
-            
-        Returns:
-            dict with pr_url, pr_number, branch_name, status, error
-        """
-        return self.create_batch_pr(
-            models=[{
-                "model_id": model_id,
-                "model_type": model_type,
-                "manifest": manifest
-            }],
-            description=description
-        )
-    
-    # =========================================================================
-    # PR Creation - Batch (Multiple Models)
-    # =========================================================================
-    
-    def create_batch_pr(
-        self,
-        models: List[Dict],
-        description: str = None
-    ) -> dict:
-        """
-        Create a PR for multiple models (grouped by type).
-        
-        Args:
-            models: List of dicts with model_id, model_type, manifest
-            description: Optional PR description
-            
-        Returns:
-            dict with pr_url, pr_number, branch_name, status, error
-        """
-        result = {
-            "status": "pending",
-            "pr_url": None,
-            "pr_number": None,
-            "branch_name": None,
-            "models_added": [],
-            "error": None
-        }
-        
-        if not models:
-            result["status"] = "skipped"
-            result["error"] = "No models to add"
-            return result
-        
-        try:
-            # Create branch name
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            model_types = set(m["model_type"] for m in models)
-            type_str = "-".join(sorted(model_types))
-            branch_name = f"nim/{type_str}-{timestamp}"
-            result["branch_name"] = branch_name
-            
-            # Get base branch ref
-            base_ref = self.repository.get_branch(self.base_branch)
-            base_sha = base_ref.commit.sha
-            
-            # Create new branch
-            print(f"  📝 Creating branch: {branch_name}")
-            self.repository.create_git_ref(
-                ref=f"refs/heads/{branch_name}",
-                sha=base_sha
-            )
-            
-            # Collect all manifest paths
-            new_manifest_paths = []
-            
-            # Create model folders and manifests
-            for model in models:
-                model_id = model["model_id"]
-                model_type = model["model_type"]
-                manifest = model["manifest"]
-                
-                manifest_path = self._get_manifest_path(model_id, model_type)
-                new_manifest_paths.append(manifest_path)
-                
-                print(f"  📄 Creating: {manifest_path}")
-                self.repository.create_file(
-                    path=manifest_path,
-                    message=f"Add {model_id} DPK manifest",
-                    content=json.dumps(manifest, indent=2),
-                    branch=branch_name
-                )
-                
-                result["models_added"].append(model_id)
-            
-            # Update .bumpversion.cfg
-            print(f"  📄 Updating .bumpversion.cfg...")
-            bumpversion_content = self._get_file_content(".bumpversion.cfg")
-            if bumpversion_content:
-                updated_bumpversion = self._update_bumpversion_cfg(bumpversion_content, new_manifest_paths)
-                bumpversion_file = self.repository.get_contents(".bumpversion.cfg", ref=branch_name)
-                self.repository.update_file(
-                    path=".bumpversion.cfg",
-                    message="Update .bumpversion.cfg with new models",
-                    content=updated_bumpversion,
-                    sha=bumpversion_file.sha,
-                    branch=branch_name
-                )
-            
-            # Update .dataloop.cfg
-            print(f"  📄 Updating .dataloop.cfg...")
-            dataloop_cfg_content = self._get_file_content(".dataloop.cfg")
-            if dataloop_cfg_content:
-                updated_dataloop_cfg = self._update_dataloop_cfg(dataloop_cfg_content, new_manifest_paths)
-                dataloop_cfg_file = self.repository.get_contents(".dataloop.cfg", ref=branch_name)
-                self.repository.update_file(
-                    path=".dataloop.cfg",
-                    message="Update .dataloop.cfg with new manifests",
-                    content=updated_dataloop_cfg,
-                    sha=dataloop_cfg_file.sha,
-                    branch=branch_name
-                )
-            
-            # Create PR
-            pr_title = self._generate_pr_title(models)
-            pr_body = description or self._generate_pr_body(models)
-            
-            print(f"  🔀 Creating PR: {pr_title}")
-            pr = self.repository.create_pull(
-                title=pr_title,
-                body=pr_body,
-                head=branch_name,
-                base=self.base_branch
-            )
-            
-            result.update({
-                "status": "success",
-                "pr_url": pr.html_url,
-                "pr_number": pr.number
-            })
-            print(f"  ✅ PR created: {pr.html_url}")
-            
-        except self.GithubException as e:
-            result.update({
-                "status": "error",
-                "error": f"GitHub API error: {e.data.get('message', str(e))}"
-            })
-        except Exception as e:
-            result.update({
-                "status": "error",
-                "error": str(e)
-            })
-        
-        return result
-    
-    def _generate_pr_title(self, models: List[Dict]) -> str:
-        """Generate PR title based on models."""
-        model_types = set(m["model_type"] for m in models)
-        count = len(models)
-        
-        if len(model_types) == 1:
-            type_name = list(model_types)[0].upper()
-            return f"[NIM] Add {count} {type_name} model{'s' if count > 1 else ''}"
-        else:
-            return f"[NIM] Add {count} models ({', '.join(sorted(model_types))})"
-    
-    def _generate_pr_body(self, models: List[Dict]) -> str:
-        """Generate PR description."""
-        # Group by type
-        by_type = {}
-        for m in models:
-            t = m["model_type"]
-            if t not in by_type:
-                by_type[t] = []
-            by_type[t].append(m["model_id"])
-        
-        sections = []
-        for model_type, model_ids in sorted(by_type.items()):
-            section = f"### {model_type.upper()} Models\n"
-            for model_id in model_ids:
-                section += f"- `{model_id}`\n"
-            sections.append(section)
-        
-        return f"""## NVIDIA NIM Models
-
-{chr(10).join(sections)}
-
-### Changes
-- Added DPK manifests for {len(models)} model(s)
-- Updated `.bumpversion.cfg`
-- Updated `.dataloop.cfg`
-
----
-*Auto-generated by NIM Agent*
-"""
-    
-    # =========================================================================
-    # PR by Model Type
-    # =========================================================================
-    
-    def create_pr_by_type(
-        self,
-        models: List[Dict]
-    ) -> Dict[str, dict]:
-        """
-        Create separate PRs for each model type.
-        
-        Args:
-            models: List of dicts with model_id, model_type, manifest
-            
-        Returns:
-            Dict mapping model_type to PR result
-        """
-        # Group by type
-        by_type = {}
-        for m in models:
-            t = m["model_type"]
-            if t not in by_type:
-                by_type[t] = []
-            by_type[t].append(m)
-        
-        results = {}
-        for model_type, type_models in by_type.items():
-            print(f"\n📦 Creating PR for {model_type.upper()} models ({len(type_models)})...")
-            results[model_type] = self.create_batch_pr(type_models)
-        
-        return results
-    
-    # =========================================================================
     # Unified PR - New + Deprecated in one PR
     # =========================================================================
     
-    def create_unified_pr(
+    def create_new_and_deprecated_pr(
         self,
         new_models: List[Dict],
         deprecated_models: List[Dict],
         failed_models: List[Dict] = None
     ) -> dict:
         """
-        Create a single PR with all new models and deprecation notices.
+        Create a single PR with all new models and deprecated models.
         
         Args:
             new_models: List of dicts with model_id, model_type, manifest (passed tests)
-            deprecated_models: List of dicts with model_id, model_type (to mark deprecated)
+            deprecated_models: List of dicts with model_id, model_type (deprecated models)
             failed_models: List of dicts with model_id, model_type, error (for PR body info)
             
         Returns:
@@ -657,7 +386,7 @@ class GitHubClient:
                 )
                 result["models_added"].append(model_id)
             
-            # Handle deprecated models - add DEPRECATED.md files and track paths
+            # Handle deprecated models - delete manifest and folder contents
             deprecated_manifest_paths = []
             
             for model in deprecated_models:
@@ -672,30 +401,23 @@ class GitHubClient:
                     # Track deprecated manifest path for config file cleanup
                     deprecated_manifest_paths.append(manifest_path)
                     
-                    # Found matching folder - create DEPRECATED.md in same folder
+                    # Delete all files in the model folder
                     folder_path = "/".join(manifest_path.split("/")[:-1])
-                    deprecated_path = f"{folder_path}/DEPRECATED.md"
+                    print(f"  🗑️ Deleting deprecated model: {dpk_name} ({folder_path})")
                     
-                    deprecated_content = f"""# Model Deprecated
-
-**DPK Name**: `{dpk_name}`  
-**Display Name**: `{display_name}`  
-**Type**: {model_type}  
-**Deprecated**: {datetime.now().strftime("%Y-%m-%d")}  
-
-This model has been deprecated by NVIDIA and is no longer available through the NIM API.
-
-## Reason
-Model removed from NVIDIA NIM catalog.
-"""
+                    try:
+                        folder_contents = self.repository.get_contents(folder_path, ref=branch_name)
+                        for file_content in folder_contents:
+                            self.repository.delete_file(
+                                path=file_content.path,
+                                message=f"Remove deprecated model {display_name}",
+                                sha=file_content.sha,
+                                branch=branch_name
+                            )
+                            print(f"    Deleted: {file_content.path}")
+                    except Exception as e:
+                        print(f"    ⚠️ Error deleting folder contents: {e}")
                     
-                    print(f"  ⚠️ Marking deprecated: {dpk_name} ({display_name})")
-                    self.repository.create_file(
-                        path=deprecated_path,
-                        message=f"Mark {display_name} as deprecated",
-                        content=deprecated_content,
-                        branch=branch_name
-                    )
                     result["models_deprecated"].append(dpk_name)
                 else:
                     print(f"  ⏭️ Skipping deprecated {dpk_name} (not in repo)")
@@ -706,7 +428,7 @@ Model removed from NVIDIA NIM catalog.
                 print(f"  📄 Updating .bumpversion.cfg...")
                 bumpversion_content = self._get_file_content(".bumpversion.cfg")
                 if bumpversion_content:
-                    updated_bumpversion = self._update_bumpversion_cfg_with_removals(
+                    updated_bumpversion = self._update_bumpversion_cfg(
                         bumpversion_content, 
                         new_manifest_paths, 
                         deprecated_manifest_paths
@@ -835,11 +557,11 @@ Model removed from NVIDIA NIM catalog.
         
         return f"""# NVIDIA NIM Models Update
 
-{chr(10).join(sections)}
+        {chr(10).join(sections)}
 
----
-*Auto-generated by NIM Agent*
-"""
+        ---
+        *Auto-generated by NIM Agent*
+        """
 
     # =========================================================================
     # Utility Methods
@@ -878,7 +600,7 @@ Model removed from NVIDIA NIM catalog.
             return True
         
         # Check old path: models/{type}/{publisher}/{model_name}/dataloop.json
-        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
+        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "chat_completions")
         publisher, model_name = self._parse_model_id(model_id)
         old_path = f"models/{type_folder}/{publisher}/{model_name}/dataloop.json"
         if self._get_file_content(old_path):
@@ -897,31 +619,6 @@ Model removed from NVIDIA NIM catalog.
         except Exception as e:
             print(f"Failed to close PR: {e}")
             return False
-
-
-# =========================================================================
-# Convenience Functions
-# =========================================================================
-
-def create_model_pr(
-    model_id: str,
-    model_type: str,
-    manifest: dict,
-    repo: str = None
-) -> dict:
-    """Create a PR for a single model."""
-    client = GitHubClient(repo=repo)
-    return client.create_model_pr(model_id, model_type, manifest)
-
-
-def create_batch_pr(
-    models: List[Dict],
-    repo: str = None
-) -> dict:
-    """Create a PR for multiple models."""
-    client = GitHubClient(repo=repo)
-    return client.create_batch_pr(models)
-
 
 # =========================================================================
 # Test

@@ -14,6 +14,7 @@ import json
 import time
 import tempfile
 import shutil
+import threading
 from openai import OpenAI
 import dtlpy as dl
 import dotenv
@@ -30,13 +31,14 @@ ADAPTERS_DIR = os.path.join(REPO_ROOT, "models", "api")
 
 # Test resources config
 ENV = os.environ.get("ENV", "rc")
-TEST_DATASET_NAME = "NVIDIA-AGENT"
 TEST_FOLDERS = {
     "llm": "/adapter_tests/llm",
     "vlm": "/adapter_tests/vlm", 
-    "embedding": "/adapter_tests/embedding",
-    "app_tests": "/app_tests"
+    "embedding": "/adapter_tests/embedding"
 }
+
+# Lock for adapter test (mutates shared platform model entity, not thread-safe)
+_ADAPTER_TEST_LOCK = threading.Lock()
 
 # Cached test resources (set once at initialization)
 _TEST_RESOURCES = {
@@ -49,7 +51,6 @@ _TEST_RESOURCES = {
         "vlm_image": None,  # Image item for VLM testing
         "vlm_video": None,  # Video prompt item for VLM video testing
         "embedding": None,
-        "app_test": None
     },
     "models": {
         "llm": None,
@@ -58,7 +59,7 @@ _TEST_RESOURCES = {
     }
 }
 
-class TestingTool:
+class Tester:
     """
     Centralized testing for NVIDIA NIM models.
     
@@ -66,8 +67,9 @@ class TestingTool:
     1. API call - determine type (vlm/llm/embedding/rerank)
     2. Model adapter - test with base adapters code
     3. DPK creation - via MCP
-    4. DPK publish to Dataloop
-    5. App test - test the DPK as an app
+    4. if test_platform=True:  
+    4.1. DPK publish to Dataloop 
+    4.2. App test - test the DPK as an app
     
     Environment variables required:
     - NGC_API_KEY: NVIDIA NGC API key
@@ -101,6 +103,10 @@ class TestingTool:
         # Initialize test resources if needed
         if auto_init:
             self._init_test_resources()
+            
+    # =========================================================================        
+    # Test Resources Initialization - Dataloop Items and Models
+    # =========================================================================
     
     def _init_test_resources(self):
         """Initialize all test resources (project, dataset, items, models) once."""
@@ -113,8 +119,10 @@ class TestingTool:
         dl.setenv(ENV)
         if dl.token_expired() or not dl.token():
             dl.login()
+        
         project_name = os.environ.get("DATALOOP_TEST_PROJECT", "NVIDIA-AGENT-PROJECT") # default project name
-        print(f"\n🔧 Initializing test resources for project: {project_name}")
+        dataset_name = os.environ.get("DATALOOP_TEST_DATASET", "NVIDIA-AGENT-DATASET") # default dataset name
+        print(f"\n🔧 Initializing test resources for project: {project_name}, dataset: {dataset_name}")
         
         # Get or create project
         try:
@@ -128,10 +136,10 @@ class TestingTool:
         
         # Get or create test dataset
         try:
-            dataset = project.datasets.get(dataset_name=TEST_DATASET_NAME)
+            dataset = project.datasets.get(dataset_name=dataset_name)
             print(f"  ✓ Found existing dataset: {dataset.name}")
         except dl.exceptions.NotFound:
-            dataset = project.datasets.create(dataset_name=TEST_DATASET_NAME)
+            dataset = project.datasets.create(dataset_name=dataset_name)
             print(f"  ✓ Created new dataset: {dataset.name}")
         
         _TEST_RESOURCES["dataset_id"] = dataset.id
@@ -182,15 +190,6 @@ class TestingTool:
         )
         _TEST_RESOURCES["items"]["embedding"] = embed_item.id
         
-        # App test item
-        app_item = self._get_or_create_prompt_item(
-            dataset=dataset,
-            folder=TEST_FOLDERS["app_tests"],
-            name="app_prompt",
-            prompt_content="Say 'Hello, I am working!' in exactly those words."
-        )
-        _TEST_RESOURCES["items"]["app_test"] = app_item.id
-    
     def _get_or_create_prompt_item(self, dataset, folder: str, name: str, prompt_content: str) -> dl.Item:
         """Get existing PromptItem or create new one."""
         try:
@@ -413,6 +412,33 @@ class TestingTool:
             print(f"  ⚠️ Error reading response: {e}")
             return ""
     
+    def _find_nim_dpk(self, category: list[str] = ["NIM", "Model"], nlp: str = "Conversational") -> str:
+        """
+        Find an existing NIM DPK by filtering on attributes.
+        
+        Filters by Category containing 'NIM' and optionally NLP attribute.
+        Returns the first matching DPK name, or None if not found.
+        
+        Args:
+            category: Category attribute to match (default: ["NIM", "Model"])
+            nlp: NLP attribute to match (default: "Conversational")
+        """
+        try:
+            filters = dl.Filters(resource=dl.FiltersResource.DPK)
+            filters.add(field='attributes.Category', values=category)
+            if nlp:
+                filters.add(field='attributes.NLP', values=nlp)
+            
+            dpks = list(dl.dpks.list(filters=filters).all())
+            if dpks:
+                dpk_name = dpks[0].name
+                print(f"  Found NIM DPK: {dpk_name} (Category={category}, NLP={nlp})")
+                return dpk_name
+        except Exception as e:
+            print(f"  ⚠️ Error finding NIM DPK: {e}")
+        
+        return None
+    
     def _create_test_models(self, project):
         """
         Create test model entities by cloning from existing DPKs.
@@ -423,17 +449,28 @@ class TestingTool:
         """
         global _TEST_RESOURCES
         
-        # Source DPKs to clone from
-        dpk_sources = {
-            "embedding": {
-                "dpk_name": "text-embeddings-3",
+        # Find existing NIM DPKs by attributes
+        dpk_sources = {}
+        
+        # Find an embedding NIM DPK
+        embedding_dpk = self._find_nim_dpk(category=["NIM", "Model"], nlp="Embeddings")
+        if embedding_dpk:
+            dpk_sources["embedding"] = {
+                "dpk_name": embedding_dpk,
                 "test_model_name": "nim-embedding-test-model"
-            },
-            "llm": {
-                "dpk_name": "chat-completion",
+            }
+        else:
+            print("  ⚠️ No NIM embedding DPK found")
+        
+        # Find an LLM NIM DPK
+        llm_dpk = self._find_nim_dpk(category=["NIM", "Model"], nlp="Conversational")
+        if llm_dpk:
+            dpk_sources["llm"] = {
+                "dpk_name": llm_dpk,
                 "test_model_name": "nim-llm-test-model"
             }
-        }
+        else:
+            print("  ⚠️ No NIM LLM DPK found")
         
         # Create embedding and LLM test models
         for model_type, config in dpk_sources.items():
@@ -549,87 +586,106 @@ class TestingTool:
             self._init_test_resources()
         return _TEST_RESOURCES["project_id"]
     
-    # =========================================================================
-    # Step 4.1: Detect Model Type (heuristics-based, no API calls)
-    # =========================================================================
-    
+    # ==========================================================================================
+    # Detect Model Type + Verify via API Call (single step)
+    # ==========================================================================================
+
     def detect_model_type(self, model_id: str) -> dict:
         """
-        Detect model type using name-based heuristics.
-        
-        No API calls needed - if model is in NVIDIA's list, it's valid.
-        
-        Args:
-            model_id: NVIDIA model ID (e.g., "nvidia/llama-3.1-70b-instruct")
-            
+        Detect model type via heuristics AND verify with a real API call.
+
+        1. Pattern-match the model name to guess the type (embedding, rerank, vlm, llm).
+        2. Make a lightweight API call to confirm the model responds and gather
+           extra info (e.g., embedding dimension).
+
         Returns:
-            {
-                "status": "success",
-                "type": "llm" | "vlm" | "embedding" | "rerank",
-                "dimension": int (for embeddings, estimated)
-            }
+            dict with keys:
+                status:    "success" | "error" | "skipped"
+                type:      "embedding" | "rerank" | "vlm" | "llm"
+                response:  truncated API response (str)
+                dimension: embedding dimension (only for embedding type)
+                error:     error message (only on failure)
         """
         model_lower = model_id.lower()
-        
-        # Embedding patterns -
+
+        # --- Heuristic type detection ---
+
         embedding_patterns = [
-            "embed", "e5-", "bge-", "nv-embed", "embedqa", 
+            "embed", "e5-", "bge-", "nv-embed", "embedqa",
             "arctic-embed", "snowflake", "retriever-embedding"
         ]
-        if any(p in model_lower for p in embedding_patterns):
-            return {
-                "status": "success",
-                "type": "embedding",
-                "dimension": self._estimate_embedding_dim(model_id)
-            }
-        
-        # Rerank patterns
         rerank_patterns = ["rerank", "retriev", "nv-rerankqa"]
-        if any(p in model_lower for p in rerank_patterns):
-            return {
-                "status": "success",
-                "type": "rerank"
-            }
-        
-        # VLM patterns (vision models)
         vlm_patterns = [
-            "vision", "vlm", "llava", "vila", "kosmos", 
+            "vision", "vlm", "llava", "vila", "kosmos",
             "deplot", "neva", "paligemma", "fuyu", "cogvlm",
-            "11b-vision", "90b-vision"
+            "11b-vision", "90b-vision", "multimodal", "cosmos"
         ]
-        if any(p in model_lower for p in vlm_patterns):
-            return {
-                "status": "success",
-                "type": "vlm"
-            }
-        
-        # Default to LLM (most common)
-        return {
-            "status": "success",
-            "type": "llm"
-        }
-    
-    def _estimate_embedding_dim(self, model_id: str) -> int:
-        """Estimate embedding dimension based on model name."""
-        model_lower = model_id.lower()
-        
-        # Known dimensions
-        if "nv-embed" in model_lower:
-            return 4096
-        if "e5-large" in model_lower or "bge-large" in model_lower:
-            return 1024
-        if "e5-base" in model_lower or "bge-base" in model_lower:
-            return 768
-        if "arctic" in model_lower:
-            return 1024
-        if "embedqa" in model_lower:
-            return 4096
-        
-        # Default
-        return 1024
-      
+
+        if any(p in model_lower for p in embedding_patterns):
+            model_type = "embedding"
+        elif any(p in model_lower for p in rerank_patterns):
+            model_type = "rerank"
+        elif any(p in model_lower for p in vlm_patterns):
+            model_type = "vlm"
+        else:
+            model_type = "llm"
+
+        print(f"  Heuristic type: {model_type}")
+
+        # --- Rerank: no API test yet ---
+        if model_type == "rerank":
+            return {"status": "skipped", "type": "rerank", "response": None, "error": None}
+
+        # --- API call to verify + gather info ---
+        result = {"status": "pending", "type": model_type, "response": None, "error": None}
+
+        try:
+            if model_type == "embedding":
+                response = self.client.embeddings.create(
+                    input=["Hello, this is a test."],
+                    model=model_id,
+                    encoding_format="float",
+                    extra_body={"input_type": "query", "truncate": "NONE"}
+                )
+                dim = len(response.data[0].embedding)
+                print(f"  Embedding dimension: {dim}")
+                result.update({
+                    "status": "success",
+                    "response": f"embedding dim={dim}",
+                    "dimension": dim,
+                })
+
+            elif model_type in ("llm", "vlm"):
+                messages = [{"role": "user", "content": "Say hello in one word."}]
+
+                if model_type == "vlm":
+                    messages = [{"role": "user", "content": [
+                        {"type": "text", "text": "Describe this image in one word."},
+                        {"type": "image_url", "image_url": {
+                            "url": f"data:image/png;base64,{TEST_IMAGE_B64}"
+                        }},
+                    ]}]
+
+                response = self.client.chat.completions.create(
+                    model=model_id,
+                    messages=messages,
+                    max_tokens=30,
+                    temperature=0.2,
+                )
+                content = response.choices[0].message.content or ""
+                print(f"  API response: {content[:80]}")
+                result.update({
+                    "status": "success",
+                    "response": content[:200],
+                })
+
+        except Exception as e:
+            result.update({"status": "error", "error": str(e)})
+
+        return result
+
     # =========================================================================
-    # Step 4: Test Model Adapter (Execute adapter file directly)
+    # Test Model Adapter (Execute adapter file directly)
     # =========================================================================
     def _get_adapter_path(self, model_type: str) -> str:
         """Get the adapter file path for the given model type."""
@@ -637,11 +693,11 @@ class TestingTool:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         adapters_mapping = {
             "embedding": "models/api/embeddings/base.py",
-            "vlm": "models/api/vlm/base.py",
-            "vlm_video": "models/api/vlm/base.py",  # Video uses same VLM adapter
-            "llm": "models/api/llm/base.py"
+            "vlm": "models/api/chat_completions/base.py",
+            "vlm_video": "models/api/chat_completions/base.py",
+            "llm": "models/api/chat_completions/base.py"
         }
-        return os.path.join(repo_root, adapters_mapping.get(model_type, "models/api/llm/base.py"))
+        return os.path.join(repo_root, adapters_mapping.get(model_type, "models/api/chat_completions/base.py"))
     
     def get_test_item_id(self, model_type: str) -> str:
         """Get test item ID for the given model type."""
@@ -692,10 +748,6 @@ class TestingTool:
         model = dl.models.get(model_id=model_id)
         model.configuration["nim_model_name"] = nim_model_id
         
-        # Set nim_invoke_url for VLM models that need it
-        if nim_invoke_url:
-            model.configuration["nim_invoke_url"] = nim_invoke_url
-        
         if model_type == "embedding":
             if embeddings_size is None:
                 raise ValueError("Embeddings size must be set for embedding model")
@@ -729,9 +781,6 @@ class TestingTool:
             if dl.token_expired() or not dl.token():
                 print("  Refreshing Dataloop session...")
                 dl.login()
-            
-            # Ensure API key is in environment
-            os.environ["NGC_API_KEY"] = self.api_key
             
             # Prepare model entity with NIM model config
             model = self._prepare_model_entity(model_type, nim_model_id, embeddings_size, nim_invoke_url)
@@ -811,7 +860,7 @@ class TestingTool:
             return result
     
     # =========================================================================
-    # Step 5: Publish and Test DPK as App
+    # Publish and Test DPK as App
     # =========================================================================
     
     def publish_and_test_dpk(
@@ -1114,7 +1163,7 @@ class TestingTool:
         Get the folder path for a model's manifest.
         
         Pattern: models/api/{type}/{provider}/{model_name}/
-        Example: models/api/llm/meta/llama_3_1_8b_instruct/
+        Example: models/api/chat_completions/meta/llama_3_1_8b_instruct/
         
         Args:
             model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
@@ -1135,14 +1184,14 @@ class TestingTool:
         
         # Map model_type to folder name
         type_folder_map = {
-            "llm": "llm",
-            "vlm": "vlm",
-            "vlm_video": "vlm",
+            "llm": "chat_completions",
+            "vlm": "chat_completions",
+            "vlm_video": "chat_completions",
             "embedding": "embeddings",
             "object_detection": "object_detection",
             "ocr": "ocr"
         }
-        type_folder = type_folder_map.get(model_type, "llm")
+        type_folder = type_folder_map.get(model_type, "chat_completions")
         
         return os.path.join(REPO_ROOT, "models", "api", type_folder, provider, model_name)
     
@@ -1151,7 +1200,7 @@ class TestingTool:
         Get the folder path for a model in the models/api/ directory.
         
         Structure: models/api/{type}/{publisher}/{model_name}/
-        e.g., models/api/llm/meta/llama_3_1_8b_instruct/
+        e.g., models/api/chat_completions/meta/llama_3_1_8b_instruct/
         
         Args:
             model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
@@ -1163,10 +1212,10 @@ class TestingTool:
         # Map type to folder name
         type_folders = {
             "embedding": "embeddings",
-            "llm": "llm",
-            "vlm": "vlm"
+            "llm": "chat_completions",
+            "vlm": "chat_completions"
         }
-        type_folder = type_folders.get(model_type, model_type)
+        type_folder = type_folders.get(model_type, "chat_completions")
         
         # Parse model_id into publisher and model name
         if "/" in model_id:
@@ -1217,22 +1266,26 @@ class TestingTool:
         test_platform: bool = False,
         cleanup: bool = True,
         save_manifest: bool = True,
+        skip_adapter_test: bool = False,
     ):
         """
-        Test a single model: adapter -> manifest (if passed) -> platform (if requested).
+        Test a single model: detect + API call -> adapter -> manifest -> platform.
         
         Steps:
-        1. Detect model type
-        2. Test model adapter
-        3. If adapter passed -> create DPK manifest (always)
+        1. Detect model type + test API call (heuristic + smoke test in one step)
+        2. Test model adapter (skipped if skip_adapter_test=True)
+        3. Create DPK manifest (always when API call passed)
         4. If test_platform=True -> publish DPK and test on service (expensive)
-        5. Save manifest to models/ folder (if save_manifest and adapter passed)
+        5. Save manifest to models/ folder (if save_manifest and API call passed)
         
         Args:
             model_id: NVIDIA model ID
             test_platform: If True, publish DPK and test on service after manifest creation. Expensive.
             cleanup: If True, cleanup DPK/app after platform test
             save_manifest: If True, save manifest JSON to models/ folder when adapter passed
+            skip_adapter_test: If True, skip the adapter exec test (Step 2). Useful for
+                bulk/threaded onboarding where the API smoke test (Step 1) is sufficient
+                and the adapter test is not thread-safe due to shared platform resources.
         
         Environment variables required:
         - NGC_API_KEY: NVIDIA NGC API key
@@ -1255,38 +1308,50 @@ class TestingTool:
             "test_platform_ran": False,
         }
         
-        # Step 1: Detect model type
-        print("\n📋 Step 1: Detecting model type...")
+        # Step 1: Detect model type + test API call
+        print("\n📋 Step 1: Detecting model type + testing API call...")
         type_result = self.detect_model_type(model_id)
         model_type = type_result["type"]
         result["type"] = model_type
         result["model_type"] = model_type
-        result["steps"]["detect_type"] = type_result
-        print(f"  Type: {model_type}")
+        result["steps"]["detect_and_test"] = type_result
+        print(f"  Type: {model_type} | Status: {type_result['status']}")
         
         if model_type == "rerank":
             print("\n⚠️ Rerank models not yet supported")
             result["status"] = "skipped"
             return result
         
-        # Step 2: Test model adapter
-        print(f"\n📋 Step 2: Testing {model_type} adapter...")
-        adapter_result = self.test_model_adapter(
-            nim_model_id=model_id,
-            model_type=model_type,
-            embeddings_size=type_result.get("dimension")
-        )
-        print(f"  Status: {adapter_result['status']}")
-        print(f"  Response: {str(adapter_result.get('response', adapter_result.get('error')))[:100]}...")
-        result["steps"]["adapter"] = adapter_result
-        
-        if adapter_result["status"] != "success":
-            print(f"\n❌ Adapter test failed: {adapter_result.get('error')}")
+        if type_result["status"] == "error":
+            print(f"\n❌ API call failed: {type_result.get('error')}")
             result["status"] = "error"
-            result["error"] = adapter_result.get("error")
+            result["error"] = f"API call failed: {type_result.get('error')}"
             return result
         
-        # Step 3: Create DPK manifest (always when adapter passed)
+        # Step 2: Test model adapter (optional, not thread-safe)
+        if skip_adapter_test:
+            print(f"\n📋 Step 2: Skipping adapter test (skip_adapter_test=True)")
+            result["steps"]["adapter"] = {"status": "skipped", "reason": "skip_adapter_test=True"}
+        else:
+            print(f"\n📋 Step 2: Testing {model_type} adapter...")
+            # Lock required: _prepare_model_entity mutates a shared platform model entity
+            with _ADAPTER_TEST_LOCK:
+                adapter_result = self.test_model_adapter(
+                    nim_model_id=model_id,
+                    model_type=model_type,
+                    embeddings_size=type_result.get("dimension")
+                )
+            print(f"  Status: {adapter_result['status']}")
+            print(f"  Response: {str(adapter_result.get('response', adapter_result.get('error')))[:100]}...")
+            result["steps"]["adapter"] = adapter_result
+            
+            if adapter_result["status"] != "success":
+                print(f"\n❌ Adapter test failed: {adapter_result.get('error')}")
+                result["status"] = "error"
+                result["error"] = adapter_result.get("error")
+                return result
+        
+        # Step 3: Create DPK manifest (always when API call passed)
         print(f"\n📋 Step 3: Creating DPK manifest...")
         dpk_generator = DPKGeneratorClient()
         dpk_result = dpk_generator.create_nim_dpk_manifest(model_id, model_type)
@@ -1335,231 +1400,10 @@ class TestingTool:
         return result
 
 
-    def test_multiple_models(
-        self,
-        models: list[str],
-        test_platform_fraction: float = 0.1,
-        cleanup: bool = True,
-        save_manifest: bool = True,
-        max_workers: int = 10,
-        probe_batch_size: int = 5,
-    ):
-        """
-        Test multiple models with "First Success" approach:
-        
-        Phase 1: Probe batch - test first N models in parallel (adapter only)
-        Phase 2: First success gets platform test to validate setup
-        Phase 3: Remaining models in parallel (adapter -> manifest)
-        Phase 4: Platform test for ~10% of successes
-        
-        This ensures we find a working model for validation even if models[0] is broken.
-        
-        Args:
-            models: List of model IDs to test
-            test_platform_fraction: Fraction of models to test on platform (e.g. 0.1 = 10%)
-            cleanup: If True, cleanup after platform test
-            save_manifest: If True, save manifest JSON to models/ folder
-            max_workers: Max parallel workers
-            probe_batch_size: Number of models to test in initial probe (default: 5)
-        """
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        
-        if not models:
-            print("No models to test")
-            return []
-        
-        results = []
-        
-        # =====================================================================
-        # Phase 1: Probe batch - find first working model
-        # =====================================================================
-        probe_size = min(probe_batch_size, len(models))
-        probe_models = models[:probe_size]
-        remaining_models = models[probe_size:]
-        
-        print("\n" + "=" * 60)
-        print(f"PHASE 1: Probe batch ({probe_size} models) - finding first working model")
-        print("=" * 60)
-        
-        def test_adapter_and_manifest(model_id: str):
-            try:
-                return self.test_single_model(
-                    model_id,
-                    test_platform=False,
-                    cleanup=cleanup,
-                    save_manifest=save_manifest,
-                )
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                return {"model_id": model_id, "status": "error", "error": str(e)}
-        
-        probe_results = []
-        with ThreadPoolExecutor(max_workers=min(max_workers, probe_size)) as executor:
-            future_to_model = {
-                executor.submit(test_adapter_and_manifest, m): m
-                for m in probe_models
-            }
-            for future in as_completed(future_to_model):
-                model_id = future_to_model[future]
-                try:
-                    result = future.result()
-                    probe_results.append(result)
-                    status = "✓" if result.get("status") == "success" else "✗"
-                    print(f"  {status} {model_id}")
-                except Exception as e:
-                    probe_results.append({"model_id": model_id, "status": "error", "error": str(e)})
-                    print(f"  ✗ {model_id}: {e}")
-        
-        results.extend(probe_results)
-        
-        # =====================================================================
-        # Phase 2: Platform test for FIRST successful model
-        # =====================================================================
-        first_success = next((r for r in probe_results if r.get("status") == "success"), None)
-        platform_validated = False
-        
-        if first_success:
-            print("\n" + "=" * 60)
-            print(f"PHASE 2: Platform test for first success ({first_success['model_id']})")
-            print("=" * 60)
-            
-            try:
-                publish_result = self.publish_and_test_dpk(
-                    dpk_name=first_success["dpk_name"],
-                    manifest=first_success["manifest"],
-                    model_type=first_success["model_type"],
-                    cleanup=cleanup
-                )
-                first_success["steps"]["publish_test"] = publish_result
-                first_success["test_platform_ran"] = True
-                
-                if publish_result["status"] == "success":
-                    print(f"  ✓ Platform test passed: {first_success['model_id']}")
-                    platform_validated = True
-                else:
-                    print(f"  ✗ Platform test failed: {first_success['model_id']}")
-                    print(f"  Error: {publish_result.get('error')}")
-                    first_success["status"] = "error"
-                    first_success["error"] = publish_result.get("error")
-            except Exception as e:
-                print(f"  ✗ Platform test error: {e}")
-                first_success["status"] = "error"
-                first_success["error"] = str(e)
-            
-            # STOP if platform test failed - likely systemic issue
-            if not platform_validated:
-                print("\n" + "=" * 60)
-                print("STOPPING - Platform test failed")
-                print("=" * 60)
-                print("  Fix the platform issue before testing more models.")
-                self._print_summary(results)
-                return results
-        else:
-            print("\n" + "=" * 60)
-            print("PHASE 2: SKIPPED - No models passed in probe batch")
-            print("=" * 60)
-            print("  All probe models failed. Check API key or model availability.")
-            self._print_summary(results)
-            return results
-        
-        # =====================================================================
-        # Phase 3: Remaining models in parallel (adapter -> manifest)
-        # =====================================================================
-        if remaining_models:
-            print("\n" + "=" * 60)
-            print(f"PHASE 3: Remaining {len(remaining_models)} models (parallel)")
-            print("=" * 60)
-            
-            phase3_results = []
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                future_to_model = {
-                    executor.submit(test_adapter_and_manifest, m): m
-                    for m in remaining_models
-                }
-                for future in as_completed(future_to_model):
-                    model_id = future_to_model[future]
-                    try:
-                        result = future.result()
-                        phase3_results.append(result)
-                        status = "✓" if result.get("status") == "success" else "✗"
-                        print(f"  {status} {model_id}")
-                    except Exception as e:
-                        phase3_results.append({"model_id": model_id, "status": "error", "error": str(e)})
-                        print(f"  ✗ {model_id}: {e}")
-            
-            results.extend(phase3_results)
-        
-        # =====================================================================
-        # Phase 4: Platform test for ~10% of remaining successes (optional)
-        # =====================================================================
-        # Exclude the first_success which already had platform test
-        all_successes = [r for r in results if r.get("status") == "success" and not r.get("test_platform_ran")]
-        n_platform = max(0, int(len(all_successes) * test_platform_fraction))
-        platform_models = all_successes[:n_platform]
-        
-        if platform_models:
-            print("\n" + "=" * 60)
-            print(f"PHASE 4: Additional platform tests ({len(platform_models)} models)")
-            print("=" * 60)
-            
-            for r in platform_models:
-                model_id = r["model_id"]
-                print(f"\n  Testing: {model_id}")
-                
-                try:
-                    publish_result = self.publish_and_test_dpk(
-                        dpk_name=r["dpk_name"],
-                        manifest=r["manifest"],
-                        model_type=r["model_type"],
-                        cleanup=cleanup
-                    )
-                    r["steps"]["publish_test"] = publish_result
-                    r["test_platform_ran"] = True
-                    
-                    if publish_result["status"] == "success":
-                        print(f"    ✓ Passed")
-                    else:
-                        print(f"    ✗ Failed: {publish_result.get('error')}")
-                        r["status"] = "error"
-                        r["error"] = publish_result.get("error")
-                except Exception as e:
-                    print(f"    ✗ Error: {e}")
-                    r["steps"]["publish_test"] = {"status": "error", "error": str(e)}
-                    r["test_platform_ran"] = True
-        
-        self._print_summary(results)
-        return results
-    
-    def _print_summary(self, results: list):
-        """Print test summary."""
-        print(f"\n{'='*60}")
-        print("📊 TEST SUMMARY")
-        print(f"{'='*60}")
-        passed = sum(1 for r in results if r.get("status") == "success")
-        platform_tested = sum(1 for r in results if r.get("test_platform_ran"))
-        print(f"✅ Passed: {passed}/{len(results)}")
-        print(f"❌ Failed: {len(results) - passed}/{len(results)}")
-        print(f"🔧 Platform tested: {platform_tested}/{len(results)}")
-        print()
-        for r in results:
-            status = "✅" if r.get("status") == "success" else "❌"
-            plat = " [platform]" if r.get("test_platform_ran") else ""
-            print(f"  {status} {r.get('model_id', 'unknown')}{plat}")
-            if r.get("status") != "success":
-                error = r.get('error', 'Unknown')
-                print(f"      Error: {error[:80] if error else 'Unknown'}")
-
-
 if __name__ == "__main__":
-    # ==========================================================================
-    # test_multiple_models with Option C:
-    # 1. First model: full end-to-end (adapter -> manifest -> platform test)
-    # 2. Remaining models: parallel (adapter -> manifest)
-    # 3. Platform test for ~10% of remaining models that passed
-    # ==========================================================================
     
     TEST_MODELS = [
+        "nvidia/cosmos-reason2-8b",
         "nvidia/nv-embed-v1",                          # Embedding
         "meta/llama-3.1-8b-instruct",                  # LLM
         "meta/llama-3.2-11b-vision-instruct",          # VLM (image)
@@ -1567,11 +1411,13 @@ if __name__ == "__main__":
         # "nvidia/nv-rerankqa-mistral-4b-v3",          # Rerank - not supported yet
     ]
     
-    tester = TestingTool()
-    results = tester.test_multiple_models(
-        TEST_MODELS,
-        test_platform_fraction=0.1,  # Platform test for ~10% of remaining models
-        save_manifest=True,
-        max_workers=10,              # Parallel workers for Phase 2
-    )
+    tester = Tester()
+    for model in TEST_MODELS:
+        results = tester.test_single_model(
+            model,
+            test_platform=True,
+            cleanup=True,
+            save_manifest=False,
+        )
+        print(results)
     
