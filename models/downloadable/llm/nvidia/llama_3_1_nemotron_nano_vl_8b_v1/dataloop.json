@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.49",
     "name": "nim-nvidia-llama-3.1-nemotron-nano-vl-8b-v1-downloadable",
     "displayName": "NIM Llama 3.1 Nemotron Nano Vl 8B V1 Downloadable",
     "description": "NVIDIA NIM Llama 3.1 Nemotron Nano Vl 8B V1 adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.49"
     }
 }

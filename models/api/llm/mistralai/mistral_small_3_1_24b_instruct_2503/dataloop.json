@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-small-3-1-24b-instruct-2503",
   "displayName": "Mistral Small 3.1 24B Instruct 2503",
-  "version": "0.3.48",
+  "version": "0.3.49",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-small-3.1-24b-instruct-2503",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.48"
+    "gitTag": "0.3.49"
   }
 }
