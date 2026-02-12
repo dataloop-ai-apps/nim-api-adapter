@@ -1,7 +1,7 @@
 {
   "name": "nv-yolox-page-elements-v1",
   "displayName": "nv-yolox-page-elements-v1",
-  "version": "0.3.42",
+  "version": "0.3.48",
   "scope": "public",
   "description": "YOLOX-L model fine-tuned for detecting tables, charts, and titles in documents, served by NIM API.",
   "attributes": {
@@ -15,7 +15,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.42"
+    "gitTag": "0.3.48"
   },
   "components": {
     "computeConfigs": [
@@ -24,7 +24,7 @@
         "runtime": {
           "podType": "regular-xs",
           "concurrency": 1,
-          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.1.11",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43",
           "autoscaler": {
             "type": "rabbitmq",
             "minReplicas": 0,
@@ -83,7 +83,7 @@
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_invoke_url": "cv/nvidia/nv-yolox-page-elements-v1"
+          "nim_model_name": "cv/nvidia/nv-yolox-page-elements-v1"
         },
         "description": "YOLOX-L model for document element detection, served by NIM API."
       }

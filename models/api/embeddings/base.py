@@ -1,67 +1,41 @@
-from openai import OpenAI
 import dtlpy as dl
 import logging
 import os
+import sys
 
-# Toggleable logger - set NIM_DISABLE_LOGGING=1 to disable
-if os.environ.get("NIM_DISABLE_LOGGING", "").lower() in ("1", "true", "yes"):
-    logger = logging.getLogger("NIM Adapter")
-    logger.addHandler(logging.NullHandler())
-    logger.propagate = False
-else:
-    logger = logging.getLogger("NIM Adapter")
+# Add parent directory to path so we can import the shared base
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from base_adapter import NIMBaseAdapter, logger
 
 
-class ModelAdapter(dl.BaseModelAdapter):
-    def load(self, local_path, **kwargs):
-        
-        self.base_url = self.configuration.get("base_url", "https://integrate.api.nvidia.com/v1")
-        logger.info(f"Using base URL: {self.base_url}")
-        
-        self.nim_model_name = self.configuration.get("nim_model_name")
-        if self.nim_model_name is None:
-            raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
-        
-        self.api_key = os.environ.get("NGC_API_KEY")
-        if not self.api_key:
-            raise ValueError("Missing NGC_API_KEY environment variable")
-        
-        # Create OpenAI client
-        self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
-        
-        # Validate API key early (no token consumption)
-        # Calls /v1/models to verify auth; if invalid, fails fast before any inference
-        if self.base_url.rstrip("/") == "https://integrate.api.nvidia.com/v1":
-            try:
-                self.client.models.list()
-                logger.info(f"API key validated for {self.nim_model_name}, base URL: {self.base_url}")
-            except Exception as e:
-                raise ValueError(f"API key validation failed: {e}")
-        else:
-            logger.info(f"Skipping API key validation for {self.nim_model_name}, base URL: {self.base_url}")
-        
+class ModelAdapter(NIMBaseAdapter):
 
     def call_model_open_ai(self, text):
-        response = self.client.embeddings.create(
+        kwargs = dict(
             input=[text],
             model=self.nim_model_name,
             encoding_format="float",
-            extra_body={
-                "input_type": "query",
-                "truncate": "NONE"
-            }
         )
-        embedding = response.data[0].embedding
-        return embedding
+        if self.use_nvidia_extra_body:
+            kwargs["extra_body"] = {"input_type": "query", "truncate": "NONE"}
+        try:
+            response = self.client.embeddings.create(**kwargs)
+            embedding = response.data[0].embedding
+            return embedding
+        except Exception as e:
+            logger.error(f"Embeddings API call failed. Base URL: {self.base_url}, Model: {self.nim_model_name}, Error: {e}")
+            raise
 
     def embed(self, batch, **kwargs):
+        
+        if self.using_downloadable:
+            self.check_jwt_expiration()
+            
         embeddings = []
         for item in batch:
             if isinstance(item, str):
-                self.adapter_defaults.upload_features = True
                 text = item
             else:
-                self.adapter_defaults.upload_features = False
                 try:
                     prompt_item = dl.PromptItem.from_item(item)
                     is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False)

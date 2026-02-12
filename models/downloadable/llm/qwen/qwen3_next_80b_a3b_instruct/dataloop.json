@@ -1,0 +1,85 @@
+{
+    "version": "0.3.48",
+    "name": "nim-qwen-qwen3-next-80b-a3b-instruct-downloadable",
+    "displayName": "NIM Qwen3 Next 80B A3B Instruct Downloadable",
+    "description": "NVIDIA NIM Qwen3 Next 80B A3B Instruct adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Application",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "qwen-qwen3-next-80b-a3b-instruct-downloadable-module",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "nim-downloadable-runner",
+                "displayName": "qwen-qwen3-next-80b-a3b-instruct-downloadable-runner",
+                "moduleName": "qwen-qwen3-next-80b-a3b-instruct-downloadable-module",
+                "panelNames": [
+                    "downloadable-panel"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/qwen-qwen3-next-80b-a3b-instruct:0.3.42",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.48"
+    }
+}

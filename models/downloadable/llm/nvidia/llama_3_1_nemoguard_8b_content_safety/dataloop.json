@@ -1,0 +1,85 @@
+{
+    "version": "0.3.48",
+    "name": "nim-nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable",
+    "displayName": "NIM Llama 3.1 Nemoguard 8B Content Safety Downloadable",
+    "description": "NVIDIA NIM Llama 3.1 Nemoguard 8B Content Safety adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Application",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable-module",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "downloadable-panel",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "nim-downloadable-runner",
+                "displayName": "nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable-runner",
+                "moduleName": "nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable-module",
+                "panelNames": [
+                    "downloadable-panel"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-llama-3.1-nemoguard-8b-content-safety:0.3.42",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.48"
+    }
+}

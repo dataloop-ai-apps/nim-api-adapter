@@ -5,6 +5,6 @@ ENV HOME=/tmp
 RUN pip install openai
 
 
-# docker build --no-cache -t gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.11 -f Dockerfile .
-# docker push gcr.io/viewo-g/piper/agent/runner/cpu/nim-api:0.1.11
+# docker build --no-cache -t hub.dataloop.ai/dtlpy-runner-images/piper/agent/runner/cpu/nim-api:0.1.11 -f Dockerfile .
+# docker push hub.dataloop.ai/dtlpy-runner-images/piper/agent/runner/cpu/nim-api:0.1.11
 
