@@ -693,11 +693,11 @@ class Tester:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         adapters_mapping = {
             "embedding": "models/api/embeddings/base.py",
-            "vlm": "models/api/chat_completions/base.py",
-            "vlm_video": "models/api/chat_completions/base.py",
-            "llm": "models/api/chat_completions/base.py"
+            "vlm": "models/api/vlm/base.py",
+            "vlm_video": "models/api/vlm/base.py",
+            "llm": "models/api/llm/base.py"
         }
-        return os.path.join(repo_root, adapters_mapping.get(model_type, "models/api/chat_completions/base.py"))
+        return os.path.join(repo_root, adapters_mapping.get(model_type, "models/api/llm/base.py"))
     
     def get_test_item_id(self, model_type: str) -> str:
         """Get test item ID for the given model type."""
@@ -1163,7 +1163,7 @@ class Tester:
         Get the folder path for a model's manifest.
         
         Pattern: models/api/{type}/{provider}/{model_name}/
-        Example: models/api/chat_completions/meta/llama_3_1_8b_instruct/
+        Example: models/api/llm/meta/llama_3_1_8b_instruct/
         
         Args:
             model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
@@ -1184,14 +1184,14 @@ class Tester:
         
         # Map model_type to folder name
         type_folder_map = {
-            "llm": "chat_completions",
-            "vlm": "chat_completions",
-            "vlm_video": "chat_completions",
+            "llm": "llm",
+            "vlm": "vlm",
+            "vlm_video": "vlm",
             "embedding": "embeddings",
             "object_detection": "object_detection",
             "ocr": "ocr"
         }
-        type_folder = type_folder_map.get(model_type, "chat_completions")
+        type_folder = type_folder_map.get(model_type, "llm")
         
         return os.path.join(REPO_ROOT, "models", "api", type_folder, provider, model_name)
     
@@ -1200,7 +1200,7 @@ class Tester:
         Get the folder path for a model in the models/api/ directory.
         
         Structure: models/api/{type}/{publisher}/{model_name}/
-        e.g., models/api/chat_completions/meta/llama_3_1_8b_instruct/
+        e.g., models/api/llm/meta/llama_3_1_8b_instruct/
         
         Args:
             model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
@@ -1212,10 +1212,10 @@ class Tester:
         # Map type to folder name
         type_folders = {
             "embedding": "embeddings",
-            "llm": "chat_completions",
-            "vlm": "chat_completions"
+            "llm": "llm",
+            "vlm": "vlm"
         }
-        type_folder = type_folders.get(model_type, "chat_completions")
+        type_folder = type_folders.get(model_type, "llm")
         
         # Parse model_id into publisher and model name
         if "/" in model_id:

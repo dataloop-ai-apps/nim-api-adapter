@@ -39,8 +39,8 @@ from typing import Optional, List, Dict
 # Model type to folder mapping
 MODEL_TYPE_FOLDERS = {
     "embedding": "embeddings",
-    "llm": "chat_completions",
-    "vlm": "chat_completions",
+    "llm": "llm",
+    "vlm": "vlm",
     "object_detection": "object_detection",
     "ocr": "ocr"
 }
@@ -145,7 +145,7 @@ class GitHubClient:
         if model_type:
             type_folders.append(MODEL_TYPE_FOLDERS.get(model_type, model_type))
         # Also search common folders as fallback
-        type_folders.extend(["chat_completions", "llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
+        type_folders.extend(["llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
         type_folders = list(dict.fromkeys(type_folders))  # Remove duplicates, preserve order
         
         # Search in both models/api/{type} and models/{type} (for backwards compatibility)
@@ -204,9 +204,9 @@ class GitHubClient:
         """
         Get the folder path for a model.
         
-        Returns: e.g., "models/api/chat_completions/nvidia/llama_3_1_70b_instruct"
+        Returns: e.g., "models/api/llm/nvidia/llama_3_1_70b_instruct"
         """
-        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "chat_completions")
+        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
         publisher, model_name = self._parse_model_id(model_id)
         return f"models/api/{type_folder}/{publisher}/{model_name}"
     
@@ -600,7 +600,7 @@ class GitHubClient:
             return True
         
         # Check old path: models/{type}/{publisher}/{model_name}/dataloop.json
-        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "chat_completions")
+        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
         publisher, model_name = self._parse_model_id(model_id)
         old_path = f"models/{type_folder}/{publisher}/{model_name}/dataloop.json"
         if self._get_file_content(old_path):

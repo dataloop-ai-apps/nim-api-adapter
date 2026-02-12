@@ -24,8 +24,8 @@ MCP_SERVER_PATH = os.environ.get("MCP_SERVER_PATH")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADAPTER_MAPPING = {
     "embedding": "models/api/embeddings/base.py",
-    "vlm": "models/api/chat_completions/base.py",
-    "llm": "models/api/chat_completions/base.py"
+    "vlm": "models/api/vlm/base.py",
+    "llm": "models/api/llm/base.py"
 }
 
 # DPK version - keep in sync with codebase
@@ -126,7 +126,7 @@ class DPKGeneratorClient:
         
         try:
             # Get adapter path
-            adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/chat_completions/base.py")
+            adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/llm/base.py")
             adapter_path = os.path.join(REPO_ROOT, adapter_rel_path)
             result["adapter_path"] = adapter_path
             
@@ -247,7 +247,7 @@ class DPKGeneratorClient:
     @staticmethod
     def get_adapter_path(model_type: str) -> str:
         """Get the adapter file path for a model type."""
-        adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/chat_completions/base.py")
+        adapter_rel_path = ADAPTER_MAPPING.get(model_type, "models/api/llm/base.py")
         return os.path.join(REPO_ROOT, adapter_rel_path)
 
 
