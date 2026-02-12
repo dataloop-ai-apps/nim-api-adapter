@@ -449,28 +449,17 @@ class Tester:
         """
         global _TEST_RESOURCES
         
-        # Find existing NIM DPKs by attributes
-        dpk_sources = {}
-        
-        # Find an embedding NIM DPK
-        embedding_dpk = self._find_nim_dpk(category=["NIM", "Model"], nlp="Embeddings")
-        if embedding_dpk:
-            dpk_sources["embedding"] = {
-                "dpk_name": embedding_dpk,
+        # Use known DPK names directly
+        dpk_sources = {
+            "embedding": {
+                "dpk_name": "nim-nv-embedqa-e5-v5",
                 "test_model_name": "nim-embedding-test-model"
-            }
-        else:
-            print("  ⚠️ No NIM embedding DPK found")
-        
-        # Find an LLM NIM DPK
-        llm_dpk = self._find_nim_dpk(category=["NIM", "Model"], nlp="Conversational")
-        if llm_dpk:
-            dpk_sources["llm"] = {
-                "dpk_name": llm_dpk,
+            },
+            "llm": {
+                "dpk_name": "nim-llama-3-1-8b-instruct",
                 "test_model_name": "nim-llm-test-model"
             }
-        else:
-            print("  ⚠️ No NIM LLM DPK found")
+        }
         
         # Create embedding and LLM test models
         for model_type, config in dpk_sources.items():
@@ -1415,8 +1404,8 @@ if __name__ == "__main__":
     for model in TEST_MODELS:
         results = tester.test_single_model(
             model,
-            test_platform=True,
-            cleanup=True,
+            test_platform=False,
+            cleanup=False,
             save_manifest=False,
         )
         print(results)

@@ -1,44 +1,15 @@
-from openai import OpenAI
 import dtlpy as dl
 import logging
-import time
 import os
+import sys
 import json
-import httpx
 
-# Toggleable logger - set NIM_DISABLE_LOGGING=1 to disable
-if os.environ.get("NIM_DISABLE_LOGGING", "").lower() in ("1", "true", "yes"):
-    logger = logging.getLogger("NIM VLM Adapter")
-    logger.addHandler(logging.NullHandler())
-    logger.propagate = False
-else:
-    logger = logging.getLogger("NIM VLM Adapter")
+# Add parent directory to path so we can import the shared base
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from base_adapter import NIMBaseAdapter, logger
 
 
-def get_downloadable_endpoint_and_cookie(app_id: str):
-    """
-    Resolve Dataloop app route and obtain JWT-APP cookie via redirect.
-    Use when the model adapter should talk to a downloadable NIM app (.apps.dataloop.ai).
-
-    Returns:
-        (base_url, cookies_dict): base_url is the redirected API root; cookies_dict is the cookies as a dict.
-    """
-    import requests
-    app = dl.apps.get(app_id=app_id)
-    route = list(app.routes.values())[0].rstrip("/")
-    base_before = "/".join(route.split("/")[:-1])
-    session = requests.Session()
-    resp = session.get(base_before, headers=dl.client_api.auth, verify=False)
-    base_url = resp.url.rstrip("/")
-    # OpenAI client uses /v1/chat/completions etc.; server expects /v1, so base must end with /v1
-    if not base_url.endswith("/v1"):
-        base_url = f"{base_url}/v1"
-    cookies_dict = {cookie.name: cookie.value for cookie in session.cookies}
-    logger.debug(f"Resolved base URL: {base_url}, cookies: {list(cookies_dict.keys())}")
-    return base_url, cookies_dict
-
-
-class ModelAdapter(dl.BaseModelAdapter):
+class ModelAdapter(NIMBaseAdapter):
     """
     VLM adapter for NVIDIA NIM vision models using OpenAI-compatible API (images only).
 
@@ -46,49 +17,6 @@ class ModelAdapter(dl.BaseModelAdapter):
     standard OpenAI chat completions format with image_url in messages.
     Guided JSON output (guided_json in configuration) is sent via nvext like the LLM adapter.
     """
-
-    def load(self, local_path, **kwargs):
-        self.nim_model_name = self.configuration.get("nim_model_name")
-        if self.nim_model_name is None:
-            raise ValueError("Missing `nim_model_name` from model.configuration, cant load the model without it")
-
-        app_id = self.configuration.get("app_id")
-        if app_id:
-            self.use_nvidia_extra_body = False  #  consistency with embeddings
-            self.base_url, cookies_dict = get_downloadable_endpoint_and_cookie(app_id)
-            logger.info(f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}")
-            # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
-            # Create httpx client with verify=False and cookies from requests session
-            http_client = httpx.Client(verify=False, follow_redirects=True, cookies=cookies_dict)
-            self.client = OpenAI(
-                base_url=self.base_url,
-                api_key="",  # omit Bearer token so only Cookie header is sent
-                http_client=http_client,
-            )
-            try:
-                import requests
-                # Downloadable app exposes GET /v1/health/live (see app OpenAPI docs)
-                health_url = self.base_url.rstrip("/") + "/health/live"
-                r = requests.get(health_url, cookies=cookies_dict, timeout=10, verify=False)
-                r.raise_for_status()
-                logger.info(f"Downloadable endpoint healthy for {self.nim_model_name}, base URL: {self.base_url}")
-            except Exception as e:
-                raise ValueError(f"Health check failed: {e}")
-        else:
-            self.use_nvidia_extra_body = True
-            self.base_url = self.configuration.get("base_url", "https://integrate.api.nvidia.com/v1")
-            logger.info(f"Using base URL: {self.base_url}")
-            self.api_key = os.environ.get("NGC_API_KEY")
-            if not self.api_key:
-                raise ValueError("Missing NGC_API_KEY environment variable")
-            self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
-            
-            try:
-                self.client.models.list()
-                logger.info(f"API key validated for {self.nim_model_name}, base URL: {self.base_url}")
-            except Exception as e:
-                raise ValueError(f"API key validation failed: {e}")
-        
 
     def prepare_item_func(self, item: dl.Item):
         return dl.PromptItem.from_item(item=item)
@@ -127,7 +55,7 @@ class ModelAdapter(dl.BaseModelAdapter):
         if extra_body:
             kwargs["extra_body"] = extra_body
 
-        response =self.client.chat.completions.create(**kwargs)
+        response = self.client.chat.completions.create(**kwargs)
 
         if stream is True:
             for chunk in response:
@@ -136,10 +64,12 @@ class ModelAdapter(dl.BaseModelAdapter):
                 yield chunk.choices[0].delta.content or ""
         else:
             yield response.choices[0].message.content or ""
-            
 
     def predict(self, batch, **kwargs):
         """Run prediction on a batch of prompts."""
+        if self.using_downloadable:
+            self.check_jwt_expiration()
+
         system_prompt = self.model_entity.configuration.get('system_prompt', '')
         model_name = self.model_entity.name
         for prompt_item in batch:
@@ -195,4 +125,3 @@ if __name__ == '__main__':
     
     adapter = ModelAdapter(model)
     adapter.predict_items([item])
-    
