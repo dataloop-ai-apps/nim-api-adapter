@@ -301,3 +301,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     build_downloadable_nim(model_name=args.model, manifest_path=args.path, skip_docker=args.skip_docker)
+
+
+# python agent/downloadables_create.py --model meta/llama-3.1-8b-instruct --path llm/meta/llama_3_1_8b_instruct
