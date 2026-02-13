@@ -4,8 +4,8 @@
 # IMAGE_NAME is provider/model (e.g. baai/bge-m3) -> nvcr.io/nim/<IMAGE_NAME>:latest
 # NIM_START_SCRIPT is obtained via: docker inspect nvcr.io/nim/${IMAGE_NAME}:latest --format "{{json .Config.Entrypoint}}"
 
-ARG IMAGE_NAME=nvidia/nvclip
-ARG NIM_START_SCRIPT=/opt/nim/start_server.sh
+ARG IMAGE_NAME
+ARG NIM_START_SCRIPT
 FROM nvcr.io/nim/${IMAGE_NAME}:latest
 
 # NGC API key for model downloads (set via environment or build arg)
@@ -18,7 +18,6 @@ ENV HOME=/tmp
 ENV PIP_INDEX_URL=https://pypi.org/simple
 
 # NIM start script path (passed from docker inspect during build)
-ARG NIM_START_SCRIPT
 ENV NIM_START_SCRIPT=${NIM_START_SCRIPT}
 
 USER root
@@ -37,10 +36,12 @@ RUN apt-get update && \
     ${PYTHON_PATH} -m pip install --no-cache-dir \
         https://storage.googleapis.com/dtlpy/dev/dtlpy-1.119.5-py3-none-any.whl \
         https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl && \
-    # Cleanup build dependencies
+    # Cleanup build dependencies only (no autoremove - base NIM images have
+    # pre-installed libs like libgomp1 that autoremove would incorrectly remove)
     apt-get purge -y gcc python3-dev && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    # Create NIM cache directory writable by non-root user
+    mkdir -p /tmp/.nim && chmod 777 /tmp/.nim
 
 USER 1000
 
@@ -55,7 +56,7 @@ USER 1000
 # docker run -it --rm --gpus all -e NGC_API_KEY=$NGC_API_KEY -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" -p 8000:8000 nvcr.io/nim/nvidia/nvclip:latest
 
 # Build example:
-# docker build --build-arg IMAGE_NAME=nvclip --no-cache -t gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:0.1.13 -f Dockerfile.template .
+# docker build --build-arg IMAGE_NAME=meta/llama-3.1-8b-instruct --no-cache -t gcr.io/viewo-g/piper/agent/runner/gpu/meta-llama-3.1-8b-instruct:0.1.13 -f Dockerfile.template .
 # docker push gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:0.1.13
 
 # Bash without running the image entrypoint (use --entrypoint "" then your command):
