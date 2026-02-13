@@ -39,7 +39,9 @@ RUN apt-get update && \
     # Cleanup build dependencies only (no autoremove - base NIM images have
     # pre-installed libs like libgomp1 that autoremove would incorrectly remove)
     apt-get purge -y gcc python3-dev && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    # Create NIM cache directory writable by non-root user
+    mkdir -p /tmp/.nim && chmod 777 /tmp/.nim
 
 USER 1000
 
