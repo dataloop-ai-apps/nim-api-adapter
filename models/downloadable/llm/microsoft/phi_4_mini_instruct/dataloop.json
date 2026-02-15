@@ -1,5 +1,5 @@
 {
-    "version": "0.3.51",
+    "version": "0.3.52",
     "name": "nim-microsoft-phi-4-mini-instruct-downloadable",
     "displayName": "NIM Phi 4 Mini Instruct Downloadable",
     "description": "NVIDIA NIM Phi 4 Mini Instruct adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.51"
+        "gitTag": "0.3.52"
     }
 }
