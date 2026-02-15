@@ -1,5 +1,5 @@
 {
-    "version": "0.3.55",
+    "version": "0.3.56",
     "name": "nim-nvidia-nvidia-nemotron-nano-9b-v2-downloadable",
     "displayName": "NIM Nvidia Nemotron Nano 9B V2 Downloadable",
     "description": "NVIDIA NIM Nvidia Nemotron Nano 9B V2 adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.55"
+        "gitTag": "0.3.56"
     }
 }

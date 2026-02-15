@@ -1,7 +1,7 @@
 {
   "name": "nim-glm4-7",
   "displayName": "Glm4.7",
-  "version": "0.3.55",
+  "version": "0.3.56",
   "scope": "public",
   "description": "NVIDIA NIM adapter for z-ai/glm4.7",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.55"
+    "gitTag": "0.3.56"
   }
 }

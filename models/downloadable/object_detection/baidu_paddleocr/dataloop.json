@@ -1,5 +1,5 @@
 {
-    "version": "0.3.55",
+    "version": "0.3.56",
     "name": "nim-baidu-paddleocr-downloadable",
     "displayName": "NIM Paddleocr Downloadable",
     "description": "NVIDIA NIM Paddleocr adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.55"
+        "gitTag": "0.3.56"
     }
 }
