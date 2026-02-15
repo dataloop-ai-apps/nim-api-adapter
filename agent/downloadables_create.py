@@ -74,9 +74,11 @@ def _component_names_from_manifest_path(manifest_path: str) -> dict:
     """
     Service, module, and panel names from the matching API model path.
     Format: s-/m-/p- + model_name (underscores→hyphens, first 28 chars) + "-" + 4 alphanumeric. ≤35 chars.
+    Trailing hyphens are stripped before adding the suffix to avoid "--".
     """
     model_name = _model_name_from_manifest_path(manifest_path)
-    base = model_name[:_MODEL_NAME_MAX] + "-" + _alnum_suffix(manifest_path)
+    prefix = model_name[:_MODEL_NAME_MAX].rstrip("-")
+    base = prefix + "-" + _alnum_suffix(manifest_path)
     return {
         "service": f"s-{base}",
         "module": f"m-{base}",
