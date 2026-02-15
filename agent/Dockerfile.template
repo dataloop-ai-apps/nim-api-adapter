@@ -21,7 +21,7 @@ ENV HOME=/tmp
 # Override the base image's internal NVIDIA pip index with public PyPI
 ENV PIP_INDEX_URL=https://pypi.org/simple
 
-# NIM start script path (passed from docker inspect during build)
+# Store original entrypoint so Dataloop agent can invoke it when needed
 ENV NIM_START_SCRIPT=${NIM_START_SCRIPT}
 
 USER root
@@ -50,10 +50,14 @@ RUN apt-get update && \
 
 USER 1000
 
+# Clear the base image's entrypoint so the container doesn't auto-start
+# The Dataloop agent will invoke $NIM_START_SCRIPT when ready
+ENTRYPOINT []
+CMD []
 
 # --- Notes ---
 # Find CMD/ENTRYPOINT (run on host):
-#   docker inspect nvcr.io/nim/nvidia/nvclip:latest --format "Entrypoint: {{.Config.Entrypoint}}"
+#   docker inspect nvcr.io/nim/meta/llama-3.1-8b-instruct:latest --format "Entrypoint: {{.Config.Entrypoint}}"
 #   docker inspect nvcr.io/nim/nvidia/nvclip:latest --format "Cmd: {{.Config.Cmd}}"
 # Then from inside the container (after docker run ... bash), run: <entrypoint> <cmd args...>
 
