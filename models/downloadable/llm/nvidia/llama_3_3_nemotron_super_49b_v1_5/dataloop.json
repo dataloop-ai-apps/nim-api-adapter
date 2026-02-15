@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable-module",
+                "name": "m-nim-nvidia-llama-3.3-nemotron-sup",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nim-nvidia-llama-3.3-nemotron-sup",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nim-nvidia-llama-3.3-nemotron-sup",
                 "displayName": "nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable-runner",
-                "moduleName": "nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable-module",
+                "moduleName": "m-nim-nvidia-llama-3.3-nemotron-sup",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nim-nvidia-llama-3.3-nemotron-sup"
                 ],
                 "initParams": {},
                 "runtime": {

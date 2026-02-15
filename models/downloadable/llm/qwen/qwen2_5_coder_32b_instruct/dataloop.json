@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "qwen-qwen2.5-coder-32b-instruct-downloadable-module",
+                "name": "m-nim-qwen-qwen2.5-coder-32b-instru",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nim-qwen-qwen2.5-coder-32b-instru",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nim-qwen-qwen2.5-coder-32b-instru",
                 "displayName": "qwen-qwen2.5-coder-32b-instruct-downloadable-runner",
-                "moduleName": "qwen-qwen2.5-coder-32b-instruct-downloadable-module",
+                "moduleName": "m-nim-qwen-qwen2.5-coder-32b-instru",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nim-qwen-qwen2.5-coder-32b-instru"
                 ],
                 "initParams": {},
                 "runtime": {

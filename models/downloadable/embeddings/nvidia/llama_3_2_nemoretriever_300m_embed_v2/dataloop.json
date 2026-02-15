@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-module",
+                "name": "m-nim-nvidia-llama-3.2-nemoretrieve",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nim-nvidia-llama-3.2-nemoretrieve",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nim-nvidia-llama-3.2-nemoretrieve",
                 "displayName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-runner",
-                "moduleName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-module",
+                "moduleName": "m-nim-nvidia-llama-3.2-nemoretrieve",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nim-nvidia-llama-3.2-nemoretrieve"
                 ],
                 "initParams": {},
                 "runtime": {

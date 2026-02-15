@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "google-gemma-3-1b-it-downloadable-module",
+                "name": "m-nim-google-gemma-3-1b-it-download",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nim-google-gemma-3-1b-it-download",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nim-google-gemma-3-1b-it-download",
                 "displayName": "google-gemma-3-1b-it-downloadable-runner",
-                "moduleName": "google-gemma-3-1b-it-downloadable-module",
+                "moduleName": "m-nim-google-gemma-3-1b-it-download",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nim-google-gemma-3-1b-it-download"
                 ],
                 "initParams": {},
                 "runtime": {

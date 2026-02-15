@@ -42,6 +42,22 @@ def _extract_version() -> str:
     raise ValueError("Could not find version in .bumpversion.cfg")
 
 
+MAX_NAME_LEN = 35
+
+
+def _component_names_from_app_name(app_name: str) -> dict:
+    """
+    Service, module, and panel names from app (DPK) name: prefix s-/m-/p-
+    and truncate so each name is at most MAX_NAME_LEN (35) characters.
+    """
+    base = app_name[: MAX_NAME_LEN - 2]
+    return {
+        "service": f"s-{base}",
+        "module": f"m-{base}",
+        "panel": f"p-{base}",
+    }
+
+
 def _get_nim_entrypoint(model_name: str) -> str:
     """
     Get the NIM container's entrypoint (start script) using docker inspect.
@@ -109,7 +125,14 @@ def create_manifest(
     manifest_content = manifest_content.replace('{{IMAGE_VERSION}}', image_version)
     
     manifest = json.loads(manifest_content)
-    
+    app_name = manifest["name"]
+    names = _component_names_from_app_name(app_name)
+    manifest["components"]["modules"][0]["name"] = names["module"]
+    manifest["components"]["panels"][0]["name"] = names["panel"]
+    manifest["components"]["services"][0]["name"] = names["service"]
+    manifest["components"]["services"][0]["moduleName"] = names["module"]
+    manifest["components"]["services"][0]["panelNames"] = [names["panel"]]
+
     # Override runner image if provided (for skip_docker mode)
     if runner_image_override:
         manifest['components']['services'][0]['runtime']['runnerImage'] = runner_image_override
@@ -279,18 +302,49 @@ def build_downloadable_nim(model_name: str, manifest_path: str, skip_docker: boo
     return manifest
 
 
+def fix_existing_downloadable_manifests() -> int:
+    """
+    Set service, module, and panel names in all models/downloadable/**/dataloop.json
+    from app name: s-/m-/p- + app_name, each ≤35 chars. Returns number updated.
+    """
+    repo = _get_repo_root()
+    downloadable_dir = repo / "models" / "downloadable"
+    if not downloadable_dir.exists():
+        return 0
+    count = 0
+    for path in sorted(downloadable_dir.rglob("dataloop.json")):
+        if "tests" in path.parts:
+            continue
+        try:
+            with open(path) as f:
+                manifest = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            continue
+        app_name = manifest.get("name")
+        if not app_name or "components" not in manifest:
+            continue
+        names = _component_names_from_app_name(app_name)
+        manifest["components"]["modules"][0]["name"] = names["module"]
+        manifest["components"]["panels"][0]["name"] = names["panel"]
+        manifest["components"]["services"][0]["name"] = names["service"]
+        manifest["components"]["services"][0]["moduleName"] = names["module"]
+        manifest["components"]["services"][0]["panelNames"] = [names["panel"]]
+        with open(path, "w") as f:
+            json.dump(manifest, f, indent=4)
+        count += 1
+    return count
+
+
 if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Build downloadable NIM models")
     parser.add_argument(
         "--model", "-m",
-        required=True,
         help="NIM model name (e.g., 'nvidia/llama-3.2-nemoretriever-300m-embed-v2')"
     )
     parser.add_argument(
         "--path", "-p",
-        required=True,
         help="Manifest path relative to models/downloadable/ (e.g., 'embeddings/nvidia/llama_3_2_nemoretriever_300m_embed_v2')"
     )
     parser.add_argument(
@@ -298,9 +352,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip Docker build and keep existing runner image (useful for template updates)"
     )
-    
+    parser.add_argument(
+        "--fix-existing",
+        action="store_true",
+        help="Update all existing downloadable manifests to use s-/m-/p- + app name (≤35 chars)"
+    )
     args = parser.parse_args()
-    build_downloadable_nim(model_name=args.model, manifest_path=args.path, skip_docker=args.skip_docker)
+    if args.fix_existing:
+        n = fix_existing_downloadable_manifests()
+        print(f"Updated {n} manifest(s)")
+    else:
+        if not args.model or not args.path:
+            parser.error("--model and --path are required unless --fix-existing")
+        build_downloadable_nim(model_name=args.model, manifest_path=args.path, skip_docker=args.skip_docker)
 
 
 # python agent/downloadables_create.py --model meta/llama-3.1-8b-instruct --path llm/meta/llama_3_1_8b_instruct

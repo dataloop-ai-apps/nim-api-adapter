@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "openai-gpt-oss-20b-downloadable-module",
+                "name": "m-nim-openai-gpt-oss-20b-downloadab",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nim-openai-gpt-oss-20b-downloadab",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nim-openai-gpt-oss-20b-downloadab",
                 "displayName": "openai-gpt-oss-20b-downloadable-runner",
-                "moduleName": "openai-gpt-oss-20b-downloadable-module",
+                "moduleName": "m-nim-openai-gpt-oss-20b-downloadab",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nim-openai-gpt-oss-20b-downloadab"
                 ],
                 "initParams": {},
                 "runtime": {
