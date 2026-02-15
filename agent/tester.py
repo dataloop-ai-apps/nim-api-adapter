@@ -74,7 +74,7 @@ class Tester:
     Environment variables required:
     - NGC_API_KEY: NVIDIA NGC API key
     - DATALOOP_TEST_PROJECT: Dataloop project name for testing
-    - OPENROUTER_API_KEY: OpenRouter API key (for MCP)
+    - OPENROUTER_API_KEY: OpenRouter API key (for MCP) (optional)
     """
     
     def __init__(self, api_key: str = None, dpk_mcp=None, auto_init: bool = True):
@@ -84,8 +84,6 @@ class Tester:
             dpk_mcp: MCP client for DPK agent
             auto_init: Automatically initialize test resources
         """
-        import dotenv
-        dotenv.load_dotenv()
         self.api_key = api_key or os.environ.get("NGC_API_KEY")
         if not self.api_key:
             raise ValueError("NGC_API_KEY is not set")
@@ -98,7 +96,7 @@ class Tester:
         self.dpk_mcp = dpk_mcp
         self.openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
         if not self.openrouter_api_key:
-            raise ValueError("OPENROUTER_API_KEY is not set")
+            print("OPENROUTER_API_KEY is not set")
         
         # Initialize test resources if needed
         if auto_init:
@@ -398,7 +396,7 @@ class Tester:
         """
         try:
             prompt_item = dl.PromptItem.from_item(item)
-            messages = prompt_item.to_messages(model_name=model_name or "model")
+            messages = prompt_item.to_messages(model_name=model_name)
             assistant_msgs = [m for m in messages if m.get('role') == 'assistant']
             
             if assistant_msgs:
@@ -412,7 +410,7 @@ class Tester:
             print(f"  ⚠️ Error reading response: {e}")
             return ""
     
-    def _find_nim_dpk(self, category: list[str] = ["NIM", "Model"], nlp: str = "Conversational") -> str:
+    def _find_nim_dpk(self,nlp: str = "Conversational") -> str:
         """
         Find an existing NIM DPK by filtering on attributes.
         
@@ -425,14 +423,20 @@ class Tester:
         """
         try:
             filters = dl.Filters(resource=dl.FiltersResource.DPK)
-            filters.add(field='attributes.Category', values=category)
-            if nlp:
-                filters.add(field='attributes.NLP', values=nlp)
+            filters.add(
+            field='codebase.gitUrl',
+            values=[
+                'https://github.com/dataloop-ai-apps/nim-api-adapter.git',
+                'https://github.com/dataloop-ai-apps/nim-api-adapter',
+            ],
+            operator=dl.FiltersOperations.IN,
+        )
+            filters.add(field='attributes.NLP', values=nlp)
             
             dpks = list(dl.dpks.list(filters=filters).all())
             if dpks:
                 dpk_name = dpks[0].name
-                print(f"  Found NIM DPK: {dpk_name} (Category={category}, NLP={nlp})")
+                print(f"  Found NIM DPK: {dpk_name} (NLP={nlp})")
                 return dpk_name
         except Exception as e:
             print(f"  ⚠️ Error finding NIM DPK: {e}")
@@ -443,20 +447,23 @@ class Tester:
         """
         Create test model entities by cloning from existing DPKs.
         
-        Uses:
-        - text-embeddings-3 DPK for embedding model
-        - chat-completion DPK for LLM/VLM model
+        Uses _find_nim_dpk to discover NIM DPKs by codebase + Category + NLP:
+        - Embeddings DPK for embedding model (nlp="Embeddings")
+        - Conversational DPK for LLM/VLM model (nlp="Conversational")
+        Falls back to known DPK names if lookup returns none.
         """
         global _TEST_RESOURCES
         
-        # Use known DPK names directly
+        # Resolve DPK names via filter (codebase + Category + NLP), fallback to known names
+        embedding_dpk = self._find_nim_dpk(nlp="Embeddings")
+        llm_dpk = self._find_nim_dpk(nlp="Conversational")
         dpk_sources = {
             "embedding": {
-                "dpk_name": "nim-nv-embedqa-e5-v5",
+                "dpk_name": embedding_dpk or "nim-nv-embedqa-e5-v5",
                 "test_model_name": "nim-embedding-test-model"
             },
             "llm": {
-                "dpk_name": "nim-llama-3-1-8b-instruct",
+                "dpk_name": llm_dpk or "nim-llama-3-1-8b-instruct",
                 "test_model_name": "nim-llm-test-model"
             }
         }
@@ -691,17 +698,7 @@ class Tester:
     def get_test_item_id(self, model_type: str) -> str:
         """Get test item ID for the given model type."""
         global _TEST_RESOURCES
-        
-        # Map model types to item keys
-        item_mapping = {
-            "embedding": "embedding",
-            "llm": "llm",
-            "vlm": "vlm",
-            "vlm_video": "vlm_video"
-        }
-        
-        item_key = item_mapping.get(model_type, "llm")
-        item_id = _TEST_RESOURCES["items"].get(item_key)
+        item_id = _TEST_RESOURCES["items"].get(model_type) or _TEST_RESOURCES["items"].get("llm")
         
         if not item_id:
             raise ValueError(f"No test item found for type: {model_type}")
@@ -711,17 +708,8 @@ class Tester:
     def get_test_model_id(self, model_type: str) -> str:
         """Get test model ID for the given model type."""
         global _TEST_RESOURCES
-        
-        # Map model types to model keys (vlm_video uses vlm model)
-        model_mapping = {
-            "embedding": "embedding",
-            "llm": "llm",
-            "vlm": "vlm",
-            "vlm_video": "vlm"
-        }
-        
-        model_key = model_mapping.get(model_type, "llm")
-        model_id = _TEST_RESOURCES["models"].get(model_key)
+                
+        model_id = _TEST_RESOURCES["models"].get(model_type) or _TEST_RESOURCES["models"].get("llm")
         
         if not model_id:
             raise ValueError(f"No test model found for type: {model_type}")
@@ -894,20 +882,21 @@ class Tester:
         app = None
         
         try:
-            # Step 1: Check if DPK exists, delete if it does
-            print(f"    🔍 Checking if DPK '{dpk_name}' exists...")
-            try:
-                existing_dpk = dl.dpks.get(dpk_name=dpk_name)
-                print(f"    ⚠️ DPK exists, cleaning up...")
-                existing_app = None
-                try:
-                    existing_app = project.apps.get(app_name=existing_dpk.display_name)
-                except dl.exceptions.NotFound:
-                    pass
-                self._cleanup_dpk_and_app(project, app=existing_app, dpk=existing_dpk)
-                print(f"    ✓ Cleaned up existing DPK")
-            except dl.exceptions.NotFound:
-                print(f"    ✓ DPK does not exist, proceeding...")
+            # # Step 1: Check if DPK exists, delete if it does
+            # print(f"    🔍 Checking if DPK '{dpk_name}' exists...")
+            # try:
+            #     existing_dpk = dl.dpks.get(dpk_name=dpk_name)
+            #     scope = existing_dpk.scope
+            #     print(f"    ⚠️ DPK exists, cleaning up...")
+            #     existing_app = None
+            #     try:
+            #         existing_app = project.apps.get(app_name=existing_dpk.display_name)
+            #     except dl.exceptions.NotFound:
+            #         pass
+            #     self._cleanup_dpk_and_app(project, app=existing_app, dpk=existing_dpk)
+            #     print(f"    ✓ Cleaned up existing DPK")
+            # except dl.exceptions.NotFound:
+            #     print(f"    ✓ DPK does not exist, proceeding...")
             
             # Step 2: Publish DPK
             print(f"    📦 Publishing DPK...")
@@ -920,8 +909,11 @@ class Tester:
                 test_manifest = copy.deepcopy(manifest)
                 
                 # Override scope to "project" for testing (final manifest is "public")
+                test_manifest["name"] = manifest["name"]+'agent-test'
                 test_manifest["scope"] = "project"
-                print(f"    📝 Scope set to 'project' for testing")
+                print(f"    📝 Name set to '{manifest['name']}+agent-test' for testing")
+                print(f"    📝 Scope set to '{test_manifest['scope']}' for testing")
+
                 
                 # Remove codebase (git) so it uses local files from temp_dir
                 if "codebase" in test_manifest:
@@ -1256,6 +1248,7 @@ class Tester:
         cleanup: bool = True,
         save_manifest: bool = True,
         skip_adapter_test: bool = False,
+        create_dpk_manifest: bool = True,
     ):
         """
         Test a single model: detect + API call -> adapter -> manifest -> platform.
@@ -1263,18 +1256,20 @@ class Tester:
         Steps:
         1. Detect model type + test API call (heuristic + smoke test in one step)
         2. Test model adapter (skipped if skip_adapter_test=True)
-        3. Create DPK manifest (always when API call passed)
+        3. Create DPK manifest (only when create_dpk_manifest=True and API call passed)
         4. If test_platform=True -> publish DPK and test on service (expensive)
-        5. Save manifest to models/ folder (if save_manifest and API call passed)
+        5. Save manifest to models/ folder (if save_manifest and manifest was created)
         
         Args:
             model_id: NVIDIA model ID
             test_platform: If True, publish DPK and test on service after manifest creation. Expensive.
             cleanup: If True, cleanup DPK/app after platform test
-            save_manifest: If True, save manifest JSON to models/ folder when adapter passed
+            save_manifest: If True, save manifest JSON to models/ folder when manifest was created
             skip_adapter_test: If True, skip the adapter exec test (Step 2). Useful for
                 bulk/threaded onboarding where the API smoke test (Step 1) is sufficient
                 and the adapter test is not thread-safe due to shared platform resources.
+            create_dpk_manifest: If True, create DPK manifest in Step 3. If False, skip manifest
+                creation; Steps 4 and 5 are skipped when no manifest exists.
         
         Environment variables required:
         - NGC_API_KEY: NVIDIA NGC API key
@@ -1340,28 +1335,33 @@ class Tester:
                 result["error"] = adapter_result.get("error")
                 return result
         
-        # Step 3: Create DPK manifest (always when API call passed)
-        print(f"\n📋 Step 3: Creating DPK manifest...")
-        dpk_generator = DPKGeneratorClient()
-        dpk_result = dpk_generator.create_nim_dpk_manifest(model_id, model_type)
-        result["steps"]["dpk_generate"] = dpk_result
+        # Step 3: Create DPK manifest (only when create_dpk_manifest=True)
+        dpk_result = None
+        if create_dpk_manifest:
+            print(f"\n📋 Step 3: Creating DPK manifest...")
+            dpk_generator = DPKGeneratorClient()
+            dpk_result = dpk_generator.create_nim_dpk_manifest(model_id, model_type)
+            result["steps"]["dpk_generate"] = dpk_result
+            
+            if dpk_result["status"] != "success":
+                print(f"  ❌ DPK manifest creation failed: {dpk_result.get('error')}")
+                result["status"] = "error"
+                result["error"] = dpk_result.get("error")
+                return result
+            
+            result["dpk_name"] = dpk_result["dpk_name"]
+            result["manifest"] = dpk_result["manifest"]
+            print(f"  ✅ DPK manifest: {dpk_result['dpk_name']}")
+        else:
+            print(f"\n📋 Step 3: Skipping DPK manifest (create_dpk_manifest=False)")
+            result["steps"]["dpk_generate"] = {"status": "skipped", "reason": "create_dpk_manifest=False"}
         
-        if dpk_result["status"] != "success":
-            print(f"  ❌ DPK manifest creation failed: {dpk_result.get('error')}")
-            result["status"] = "error"
-            result["error"] = dpk_result.get("error")
-            return result
-        
-        result["dpk_name"] = dpk_result["dpk_name"]
-        result["manifest"] = dpk_result["manifest"]
-        print(f"  ✅ DPK manifest: {dpk_result['dpk_name']}")
-        
-        # Step 4: Test on platform (publish DPK, deploy service, test) - only if requested
-        if test_platform:
+        # Step 4: Test on platform (publish DPK, deploy service, test) - only if requested and we have a manifest
+        if test_platform and result.get("manifest"):
             print(f"\n📋 Step 4: Testing on platform (publish, deploy, test)...")
             publish_result = self.publish_and_test_dpk(
-                dpk_name=dpk_result["dpk_name"],
-                manifest=dpk_result["manifest"],
+                dpk_name=result["dpk_name"],
+                manifest=result["manifest"],
                 model_type=model_type,
                 cleanup=cleanup
             )
@@ -1376,12 +1376,13 @@ class Tester:
             
             print(f"  ✅ Platform test passed!")
         else:
-            result["steps"]["publish_test"] = {"status": "skipped", "reason": "test_platform=False"}
+            reason = "test_platform=False" if not test_platform else "no manifest (create_dpk_manifest=False)"
+            result["steps"]["publish_test"] = {"status": "skipped", "reason": reason}
         
-        # Step 5: Save manifest to repo
-        if save_manifest:
+        # Step 5: Save manifest to repo (only when we have a manifest)
+        if save_manifest and result.get("manifest"):
             print(f"\n📋 Step 5: Saving manifest to models/ folder...")
-            manifest_path = self.save_manifest_to_repo(model_id, model_type, dpk_result["manifest"])
+            manifest_path = self.save_manifest_to_repo(model_id, model_type, result["manifest"])
             result["manifest_path"] = manifest_path
         
         result["status"] = "success"
