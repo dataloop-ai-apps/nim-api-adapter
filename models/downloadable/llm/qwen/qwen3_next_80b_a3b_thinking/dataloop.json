@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-qwen-qwen3-next-80b-a3b-think",
+                "name": "m-qwen-qwen3-next-80b-a3b-thin-5sgx",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-qwen-qwen3-next-80b-a3b-think",
+                "name": "p-qwen-qwen3-next-80b-a3b-thin-5sgx",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-qwen-qwen3-next-80b-a3b-think",
+                "name": "s-qwen-qwen3-next-80b-a3b-thin-5sgx",
                 "displayName": "qwen-qwen3-next-80b-a3b-thinking-downloadable-runner",
-                "moduleName": "m-nim-qwen-qwen3-next-80b-a3b-think",
+                "moduleName": "m-qwen-qwen3-next-80b-a3b-thin-5sgx",
                 "panelNames": [
-                    "p-nim-qwen-qwen3-next-80b-a3b-think"
+                    "p-qwen-qwen3-next-80b-a3b-thin-5sgx"
                 ],
                 "initParams": {},
                 "runtime": {

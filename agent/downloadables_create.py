@@ -17,7 +17,9 @@ Usage:
     )
 """
 
+import hashlib
 import json
+import string
 import subprocess
 from pathlib import Path
 
@@ -43,14 +45,38 @@ def _extract_version() -> str:
 
 
 MAX_NAME_LEN = 35
+_MODEL_NAME_MAX = 28  # so that "m-" + 28 + "-" + 4 alphanumeric = 35
+_RANDOM_SUFFIX_LEN = 4
+_ALNUM = string.ascii_lowercase + string.digits
 
 
-def _component_names_from_app_name(app_name: str) -> dict:
+def _model_name_from_manifest_path(manifest_path: str) -> str:
     """
-    Service, module, and panel names from app (DPK) name: prefix s-/m-/p-
-    and truncate so each name is at most MAX_NAME_LEN (35) characters.
+    Get model name from manifest path: provider folder + model folder.
+    Path is like "llm/google/gemma_3_1b_it". Returns e.g. "google-gemma-3-1b-it" (_ → -).
     """
-    base = app_name[: MAX_NAME_LEN - 2]
+    path = manifest_path.replace("\\", "/").strip("/")
+    parts = path.split("/")
+    if len(parts) >= 3:
+        raw = f"{parts[1]}-{parts[2]}"
+    else:
+        raw = path.replace("/", "-") if path else "downloadable"
+    return raw.replace("_", "-")
+
+
+def _alnum_suffix(manifest_path: str, length: int = _RANDOM_SUFFIX_LEN) -> str:
+    """Deterministic alphanumeric suffix from path (same path -> same suffix)."""
+    h = hashlib.md5(manifest_path.encode()).hexdigest()
+    return "".join(_ALNUM[int(h[i : i + 2], 16) % len(_ALNUM)] for i in range(0, length * 2, 2))
+
+
+def _component_names_from_manifest_path(manifest_path: str) -> dict:
+    """
+    Service, module, and panel names from the matching API model path.
+    Format: s-/m-/p- + model_name (underscores→hyphens, first 28 chars) + "-" + 4 alphanumeric. ≤35 chars.
+    """
+    model_name = _model_name_from_manifest_path(manifest_path)
+    base = model_name[:_MODEL_NAME_MAX] + "-" + _alnum_suffix(manifest_path)
     return {
         "service": f"s-{base}",
         "module": f"m-{base}",
@@ -125,8 +151,7 @@ def create_manifest(
     manifest_content = manifest_content.replace('{{IMAGE_VERSION}}', image_version)
     
     manifest = json.loads(manifest_content)
-    app_name = manifest["name"]
-    names = _component_names_from_app_name(app_name)
+    names = _component_names_from_manifest_path(manifest_path)
     manifest["components"]["modules"][0]["name"] = names["module"]
     manifest["components"]["panels"][0]["name"] = names["panel"]
     manifest["components"]["services"][0]["name"] = names["service"]
@@ -320,10 +345,10 @@ def fix_existing_downloadable_manifests() -> int:
                 manifest = json.load(f)
         except (json.JSONDecodeError, OSError):
             continue
-        app_name = manifest.get("name")
-        if not app_name or "components" not in manifest:
+        if "components" not in manifest:
             continue
-        names = _component_names_from_app_name(app_name)
+        manifest_path = str(path.parent.relative_to(downloadable_dir)).replace("\\", "/")
+        names = _component_names_from_manifest_path(manifest_path)
         manifest["components"]["modules"][0]["name"] = names["module"]
         manifest["components"]["panels"][0]["name"] = names["panel"]
         manifest["components"]["services"][0]["name"] = names["service"]

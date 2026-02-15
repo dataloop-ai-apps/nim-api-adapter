@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-meta-llama-3.2-90b-vision-ins",
+                "name": "m-meta-llama-3-2-90b-vision-in-cv1v",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-meta-llama-3.2-90b-vision-ins",
+                "name": "p-meta-llama-3-2-90b-vision-in-cv1v",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-meta-llama-3.2-90b-vision-ins",
+                "name": "s-meta-llama-3-2-90b-vision-in-cv1v",
                 "displayName": "meta-llama-3.2-90b-vision-instruct-downloadable-runner",
-                "moduleName": "m-nim-meta-llama-3.2-90b-vision-ins",
+                "moduleName": "m-meta-llama-3-2-90b-vision-in-cv1v",
                 "panelNames": [
-                    "p-nim-meta-llama-3.2-90b-vision-ins"
+                    "p-meta-llama-3-2-90b-vision-in-cv1v"
                 ],
                 "initParams": {},
                 "runtime": {

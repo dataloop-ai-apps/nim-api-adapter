@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-sarvamai-sarvam-m-downloadabl",
+                "name": "m-sarvamai-sarvam-m-kkzg",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-sarvamai-sarvam-m-downloadabl",
+                "name": "p-sarvamai-sarvam-m-kkzg",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-sarvamai-sarvam-m-downloadabl",
+                "name": "s-sarvamai-sarvam-m-kkzg",
                 "displayName": "sarvamai-sarvam-m-downloadable-runner",
-                "moduleName": "m-nim-sarvamai-sarvam-m-downloadabl",
+                "moduleName": "m-sarvamai-sarvam-m-kkzg",
                 "panelNames": [
-                    "p-nim-sarvamai-sarvam-m-downloadabl"
+                    "p-sarvamai-sarvam-m-kkzg"
                 ],
                 "initParams": {},
                 "runtime": {

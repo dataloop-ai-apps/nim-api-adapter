@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-meta-llama-3.1-70b-instruct-d",
+                "name": "m-meta-llama-3-1-70b-instruct-umie",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-meta-llama-3.1-70b-instruct-d",
+                "name": "p-meta-llama-3-1-70b-instruct-umie",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-meta-llama-3.1-70b-instruct-d",
+                "name": "s-meta-llama-3-1-70b-instruct-umie",
                 "displayName": "meta-llama-3.1-70b-instruct-downloadable-runner",
-                "moduleName": "m-nim-meta-llama-3.1-70b-instruct-d",
+                "moduleName": "m-meta-llama-3-1-70b-instruct-umie",
                 "panelNames": [
-                    "p-nim-meta-llama-3.1-70b-instruct-d"
+                    "p-meta-llama-3-1-70b-instruct-umie"
                 ],
                 "initParams": {},
                 "runtime": {

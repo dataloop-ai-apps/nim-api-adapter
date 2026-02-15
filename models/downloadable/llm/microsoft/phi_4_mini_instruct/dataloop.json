@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-microsoft-phi-4-mini-instruct",
+                "name": "m-microsoft-phi-4-mini-instruc-y2bk",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-microsoft-phi-4-mini-instruct",
+                "name": "p-microsoft-phi-4-mini-instruc-y2bk",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-microsoft-phi-4-mini-instruct",
+                "name": "s-microsoft-phi-4-mini-instruc-y2bk",
                 "displayName": "microsoft-phi-4-mini-instruct-downloadable-runner",
-                "moduleName": "m-nim-microsoft-phi-4-mini-instruct",
+                "moduleName": "m-microsoft-phi-4-mini-instruc-y2bk",
                 "panelNames": [
-                    "p-nim-microsoft-phi-4-mini-instruct"
+                    "p-microsoft-phi-4-mini-instruc-y2bk"
                 ],
                 "initParams": {},
                 "runtime": {

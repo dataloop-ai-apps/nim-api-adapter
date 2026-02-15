@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "m-nim-nvidia-nvidia-nemotron-nano-9",
+                "name": "m-nvidia-nvidia-nemotron-nano--ej01",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "p-nim-nvidia-nvidia-nemotron-nano-9",
+                "name": "p-nvidia-nvidia-nemotron-nano--ej01",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "s-nim-nvidia-nvidia-nemotron-nano-9",
+                "name": "s-nvidia-nvidia-nemotron-nano--ej01",
                 "displayName": "nvidia-nvidia-nemotron-nano-9b-v2-downloadable-runner",
-                "moduleName": "m-nim-nvidia-nvidia-nemotron-nano-9",
+                "moduleName": "m-nvidia-nvidia-nemotron-nano--ej01",
                 "panelNames": [
-                    "p-nim-nvidia-nvidia-nemotron-nano-9"
+                    "p-nvidia-nvidia-nemotron-nano--ej01"
                 ],
                 "initParams": {},
                 "runtime": {
