@@ -1,7 +1,7 @@
 {
   "name": "nim-qwen3-next-80b-a3b-instruct",
   "displayName": "Qwen3 Next 80B A3B Instruct",
-  "version": "0.3.50",
+  "version": "0.3.53",
   "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen3-next-80b-a3b-instruct",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.50"
+    "gitTag": "0.3.53"
   }
 }
