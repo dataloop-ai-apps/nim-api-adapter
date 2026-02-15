@@ -4,13 +4,17 @@
 # IMAGE_NAME is provider/model (e.g. baai/bge-m3) -> nvcr.io/nim/<IMAGE_NAME>:latest
 # NIM_START_SCRIPT is obtained via: docker inspect nvcr.io/nim/${IMAGE_NAME}:latest --format "{{json .Config.Entrypoint}}"
 
+# IMAGE_NAME must be provided via --build-arg (no default - required)
 ARG IMAGE_NAME
-ARG NIM_START_SCRIPT
 FROM nvcr.io/nim/${IMAGE_NAME}:latest
+
+# Re-declare ARG after FROM (ARGs before FROM go out of scope)
+ARG NIM_START_SCRIPT=/opt/nim/start_server.sh
 
 # NGC API key for model downloads (set via environment or build arg)
 ENV NIM_CACHE_PATH=/tmp/.nim
 ENV NIM_HTTP_API_PORT=3000
+ENV NIM_SERVER_PORT=3000
 ENV VERIFY="false"
 ENV HOME=/tmp
 
@@ -38,7 +42,8 @@ RUN apt-get update && \
         https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl && \
     # Cleanup build dependencies only (no autoremove - base NIM images have
     # pre-installed libs like libgomp1 that autoremove would incorrectly remove)
-    apt-get purge -y gcc python3-dev && \
+    # NOTE: Keep gcc installed - Triton requires it at runtime for JIT kernel compilation
+    apt-get purge -y python3-dev && \
     rm -rf /var/lib/apt/lists/* && \
     # Create NIM cache directory writable by non-root user
     mkdir -p /tmp/.nim && chmod 777 /tmp/.nim
