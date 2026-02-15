@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "meta-llama-4-scout-17b-16e-instruct-downloadable-module",
+                "name": "m-meta-llama-4-scout-17b-16e-i-xu84",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-meta-llama-4-scout-17b-16e-i-xu84",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-meta-llama-4-scout-17b-16e-i-xu84",
                 "displayName": "meta-llama-4-scout-17b-16e-instruct-downloadable-runner",
-                "moduleName": "meta-llama-4-scout-17b-16e-instruct-downloadable-module",
+                "moduleName": "m-meta-llama-4-scout-17b-16e-i-xu84",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-meta-llama-4-scout-17b-16e-i-xu84"
                 ],
                 "initParams": {},
                 "runtime": {

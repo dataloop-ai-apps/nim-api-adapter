@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-nv-embedqa-e5-v5-downloadable-module",
+                "name": "m-nvidia-nv-embedqa-e5-v5-an8m",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nvidia-nv-embedqa-e5-v5-an8m",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nvidia-nv-embedqa-e5-v5-an8m",
                 "displayName": "nvidia-nv-embedqa-e5-v5-downloadable-runner",
-                "moduleName": "nvidia-nv-embedqa-e5-v5-downloadable-module",
+                "moduleName": "m-nvidia-nv-embedqa-e5-v5-an8m",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nvidia-nv-embedqa-e5-v5-an8m"
                 ],
                 "initParams": {},
                 "runtime": {

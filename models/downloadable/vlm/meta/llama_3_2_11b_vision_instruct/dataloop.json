@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "meta-llama-3.2-11b-vision-instruct-downloadable-module",
+                "name": "m-meta-llama-3-2-11b-vision-in-y99e",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-meta-llama-3-2-11b-vision-in-y99e",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-meta-llama-3-2-11b-vision-in-y99e",
                 "displayName": "meta-llama-3.2-11b-vision-instruct-downloadable-runner",
-                "moduleName": "meta-llama-3.2-11b-vision-instruct-downloadable-module",
+                "moduleName": "m-meta-llama-3-2-11b-vision-in-y99e",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-meta-llama-3-2-11b-vision-in-y99e"
                 ],
                 "initParams": {},
                 "runtime": {
