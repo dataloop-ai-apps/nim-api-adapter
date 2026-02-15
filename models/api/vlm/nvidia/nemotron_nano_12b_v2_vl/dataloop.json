@@ -159,6 +159,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.53"
+    "gitTag": "0.3.54"
   }
 }
