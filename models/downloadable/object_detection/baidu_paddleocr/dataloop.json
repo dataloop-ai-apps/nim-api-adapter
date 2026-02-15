@@ -1,0 +1,85 @@
+{
+    "version": "0.3.53",
+    "name": "nim-baidu-paddleocr-downloadable",
+    "displayName": "NIM Paddleocr Downloadable",
+    "description": "NVIDIA NIM Paddleocr adapter - runs start_server.sh and streams logs",
+    "scope": "project",
+    "attributes": {
+        "Category": [
+            "Application",
+            "NIM"
+        ],
+        "Provider": "NVIDIA",
+        "Application Type": "Model"
+    },
+    "components": {
+        "modules": [
+            {
+                "name": "m-object-detection-baidu-paddl-s13x",
+                "entryPoint": "models/downloadable/main.py",
+                "className": "Runner",
+                "initInputs": [],
+                "integrations": [
+                    "dl-ngc-api-key"
+                ],
+                "config": {
+                    "isCustomServer": true
+                },
+                "functions": [
+                    {
+                        "name": "dummy",
+                        "output": [],
+                        "input": []
+                    }
+                ]
+            }
+        ],
+        "panels": [
+            {
+                "name": "p-object-detection-baidu-paddl-s13x",
+                "supportedSlots": [
+                    {
+                        "type": "datasetBrowser",
+                        "configuration": {}
+                    }
+                ],
+                "conditions": {}
+            }
+        ],
+        "services": [
+            {
+                "name": "s-object-detection-baidu-paddl-s13x",
+                "displayName": "baidu-paddleocr-downloadable-runner",
+                "moduleName": "m-object-detection-baidu-paddl-s13x",
+                "panelNames": [
+                    "p-object-detection-baidu-paddl-s13x"
+                ],
+                "initParams": {},
+                "runtime": {
+                    "podType": "gpu-t4-m",
+                    "numReplicas": 1,
+                    "concurrency": 10,
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/baidu-paddleocr:0.3.50",
+                    "singleAgent": false,
+                    "autoscaler": {
+                        "type": "rabbitmq",
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "queueLength": 1
+                    },
+                    "preemptible": false
+                },
+                "drainTime": 600,
+                "onReset": "failed",
+                "runExecutionAsProcess": false,
+                "executionTimeout": 3600,
+                "maxAttempts": 3
+            }
+        ]
+    },
+    "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.53"
+    }
+}
