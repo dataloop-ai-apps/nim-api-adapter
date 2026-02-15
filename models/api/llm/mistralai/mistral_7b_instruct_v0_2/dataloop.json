@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-7b-instruct-v0-2",
   "displayName": "Mistral 7B Instruct V0.2",
-  "version": "0.3.52",
+  "version": "0.3.53",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-7b-instruct-v0.2",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.52"
+    "gitTag": "0.3.53"
   }
 }

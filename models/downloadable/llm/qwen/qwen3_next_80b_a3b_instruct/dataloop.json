@@ -1,5 +1,5 @@
 {
-    "version": "0.3.52",
+    "version": "0.3.53",
     "name": "nim-qwen-qwen3-next-80b-a3b-instruct-downloadable",
     "displayName": "NIM Qwen3 Next 80B A3B Instruct Downloadable",
     "description": "NVIDIA NIM Qwen3 Next 80B A3B Instruct adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.52"
+        "gitTag": "0.3.53"
     }
 }
