@@ -1,5 +1,5 @@
 {
-    "version": "0.3.54",
+    "version": "0.3.55",
     "name": "nim-openai-gpt-oss-20b-downloadable",
     "displayName": "NIM Gpt Oss 20B Downloadable",
     "description": "NVIDIA NIM Gpt Oss 20B adapter - runs start_server.sh and streams logs",
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.54"
+        "gitTag": "0.3.55"
     }
 }
