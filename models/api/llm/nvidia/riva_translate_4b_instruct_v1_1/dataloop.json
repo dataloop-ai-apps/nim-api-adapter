@@ -1,7 +1,7 @@
 {
   "name": "nim-riva-translate-4b-instruct-v1-1",
   "displayName": "Riva Translate 4B Instruct V1.1",
-  "version": "0.3.50",
+  "version": "0.3.51",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct-v1.1",
   "attributes": {
@@ -162,6 +162,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.50"
+    "gitTag": "0.3.51"
   }
 }
