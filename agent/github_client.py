@@ -286,9 +286,10 @@ class GitHubClient:
             if skip_next > 0:
                 skip_next -= 1
                 continue
-                
-            if line.startswith('[bumpversion:file:'):
-                path = line.replace('[bumpversion:file:', '').replace(']', '')
+
+            stripped = line.strip()
+            if stripped.startswith('[bumpversion:file:'):
+                path = stripped.replace('[bumpversion:file:', '').replace(']', '').strip()
                 existing_paths.add(path)
                 
                 # Check if this is a deprecated path
@@ -299,7 +300,7 @@ class GitHubClient:
             
             filtered_lines.append(line)
         
-        # Add new entries
+        # Add new entries (only if not already present)
         new_entries = []
         for path in new_manifest_paths:
             if path not in existing_paths:
@@ -368,13 +369,15 @@ class GitHubClient:
             
             new_manifest_paths = []
             
-            # Add new model manifests
+            # Add new model manifests (API and downloadable)
             for model in new_models:
                 model_id = model["model_id"]
                 model_type = model["model_type"]
                 manifest = model["manifest"]
-                
-                manifest_path = self._get_manifest_path(model_id, model_type)
+
+                # Use explicit manifest_path if provided (downloadables),
+                # otherwise derive from model_id and model_type (API models).
+                manifest_path = model.get("manifest_path") or self._get_manifest_path(model_id, model_type)
                 new_manifest_paths.append(manifest_path)
                 
                 print(f"  📄 Creating: {manifest_path}")
@@ -496,7 +499,14 @@ class GitHubClient:
         """Generate PR title for unified PR."""
         parts = []
         if new_models:
-            parts.append(f"Add {len(new_models)} model{'s' if len(new_models) > 1 else ''}")
+            api_count = sum(1 for m in new_models if m.get("model_type") != "downloadable")
+            dl_count = sum(1 for m in new_models if m.get("model_type") == "downloadable")
+            add_parts = []
+            if api_count:
+                add_parts.append(f"{api_count} API model{'s' if api_count > 1 else ''}")
+            if dl_count:
+                add_parts.append(f"{dl_count} downloadable{'s' if dl_count > 1 else ''}")
+            parts.append(f"Add {' + '.join(add_parts)}")
         if deprecated_models:
             parts.append(f"Deprecate {len(deprecated_models)}")
         return f"[NIM] {' + '.join(parts)}"

@@ -395,7 +395,7 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}, {"model_id": "b"}],
             deprecated_models=[]
         )
-        self.assertIn("Add 2 models", title)
+        self.assertIn("Add 2 API models", title)
 
     def test_deprecated_only(self):
         title = self.client._generate_unified_pr_title(
@@ -409,7 +409,7 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}],
             deprecated_models=[{"model_id": "old"}]
         )
-        self.assertIn("Add 1 model", title)
+        self.assertIn("Add 1 API model", title)
         self.assertIn("Deprecate 1", title)
 
 

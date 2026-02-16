@@ -62,6 +62,7 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
                 if name not in seen:
                     seen.add(name)
                     publisher = ""
+                    model_tasks = []
                     for label in resource.get("labels", []):
                         if label.get("key") == "publisher":
                             publisher = label.get("values", [""])[0]
@@ -441,12 +442,13 @@ class NIMAgent:
     def fetch_models(self):
         """
         Fetch all supported NIM models.
-        
+
         - api_models: All models from the OpenAI-compatible endpoint (source of truth
           for what is actually callable via /chat/completions, /embeddings, etc.)
-        - downloadable_models: The subset of api_models that are ALSO listed as
-          "run anywhere" in the NGC Catalog (intersection).
-        
+        - downloadable_models: (1) OpenAI ∩ NGC "run anywhere", plus (2) existing
+          repo models (models/api, incl. object_detection) that are run-anywhere,
+          so we compare downloadables for OD etc. with Dataloop.
+
         Populates: self.api_models, self.downloadable_models
         """
         # 1. All callable models from OpenAI endpoint
@@ -454,19 +456,40 @@ class NIMAgent:
         self.api_models = get_openai_nim_models(api_key=self.nim_api_key)
         openai_names = {m["name"] for m in self.api_models}
         print(f"  OpenAI models: {len(self.api_models)}")
-        
+
         # 2. Downloadable = OpenAI ∩ NGC "run anywhere"
         print("📡 Fetching NGC Catalog downloadable models...")
         catalog_downloadable = get_downloadable_models()
         catalog_dl_names = {m["name"] for m in catalog_downloadable}
         print(f"  NGC downloadable (catalog): {len(catalog_downloadable)}")
-        
+
         # Intersection: only models that are both on OpenAI AND downloadable in catalog
         downloadable_names = openai_names & catalog_dl_names
         self.downloadable_models = [m for m in self.api_models if m["name"] in downloadable_names]
-        
+
         print(f"  Downloadable (OpenAI ∩ catalog): {len(self.downloadable_models)}")
-        print(f"  API-only (OpenAI, not downloadable): {len(self.api_models) - len(self.downloadable_models)}")
+
+        # 3. Also include existing repo models (e.g. object_detection) that are run-anywhere,
+        #    so we compare them with Dataloop and know which downloadables to add.
+        repo_downloadables = get_repository_downloadable_models()
+        existing_normalized = {self._normalize(m["id"]) for m in self.downloadable_models}
+        added = 0
+        for r in repo_downloadables:
+            nim = r["nim_model_name"]
+            if self._normalize(nim) in existing_normalized:
+                continue
+            self.downloadable_models.append({
+                "id": nim,
+                "name": nim,
+                "publisher": nim.split("/")[0] if "/" in nim else "nvidia",
+                "relative_path": r["relative_path"],
+            })
+            existing_normalized.add(self._normalize(nim))
+            added += 1
+        if added:
+            print(f"  Downloadable (+ existing repo run-anywhere, e.g. OD): +{added} -> {len(self.downloadable_models)} total")
+
+        print(f"  API-only (OpenAI, not downloadable): {len(self.api_models) - (len(self.downloadable_models) - added)}")
     
     # =========================================================================
     # Compare with Dataloop
@@ -572,22 +595,8 @@ class NIMAgent:
         """Fetch all NIM DPKs from Dataloop marketplace."""
         print("\n📡 Fetching DPKs from Dataloop...")
         
-        filters = dl.Filters(resource=dl.FiltersResource.DPK)
-        filters.add(field='scope', values='public')
-        filters.add(field='attributes.Category', values='NIM')
-        
-        dpks = dl.dpks.list(filters=filters)
-        
-        self.dataloop_dpks = []
-        for dpk in dpks.all():
-            self.dataloop_dpks.append({
-                "name": dpk.name,
-                "display_name": dpk.display_name,
-                "version": dpk.version,
-                "id": dpk.id
-            })
-        
-        print(f"✅ Found {len(self.dataloop_dpks)} NIM DPKs")
+        dpks, _ =self.tester._find_nim_dpk()
+        self.dataloop_dpks = dpks
         return self.dataloop_dpks
     
     def _normalize(self, name: str) -> str:
@@ -669,7 +678,7 @@ class NIMAgent:
     # Step 3: Onboarding Pipeline
     # =========================================================================
     
-    def onboard_model(self, model_id: str, skip_adapter_test: bool = False) -> dict:
+    def onboard_api_model(self, model_id: str, skip_adapter_test: bool = False) -> dict:
         """
         Run full onboarding pipeline for a single model (without PR).
         
@@ -720,7 +729,7 @@ class NIMAgent:
         
         return result
     
-    def onboard_multiple_models(
+    def onboard_api_models(
         self, 
         models: list = None, 
         limit: int = None,
@@ -760,11 +769,11 @@ class NIMAgent:
             model_ids = model_ids[:limit]
         
         if not model_ids:
-            print("\nNo models to onboard")
+            print("\nNo API models to onboard")
             return []
         
         print(f"\n{'='*60}")
-        print(f"Onboarding {len(model_ids)} models (max_workers={max_workers})")
+        print(f"Onboarding {len(model_ids)} API models (max_workers={max_workers})")
         print(f"{'='*60}")
         
         self.results = []
@@ -772,7 +781,7 @@ class NIMAgent:
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_model = {
-                executor.submit(self.onboard_model, model_id, skip_adapter_test): model_id
+                executor.submit(self.onboard_api_model, model_id, skip_adapter_test): model_id
                 for model_id in model_ids
             }
             
@@ -786,7 +795,7 @@ class NIMAgent:
                         "status": "error",
                         "error": str(e),
                     }
-                    print(f"\n❌ {model_id}: unhandled exception: {e}")
+                    print(f"\n[FAIL] {model_id}: unhandled exception: {e}")
                 
                 self.results.append(result)
                 
@@ -801,10 +810,147 @@ class NIMAgent:
         successful = len([r for r in self.results if r["status"] == "success"])
         failed = len(self.results) - successful
         print(f"\n{'='*60}")
-        print(f"Onboarding complete: {successful} succeeded, {failed} failed out of {len(self.results)}")
+        print(f"API onboarding complete: {successful} succeeded, {failed} failed out of {len(self.results)}")
         print(f"{'='*60}")
         
         return self.results
+
+    # =========================================================================
+    # Downloadable onboarding
+    # =========================================================================
+
+    def _resolve_downloadable_relative_path(self, model: dict) -> str | None:
+        """
+        Resolve relative_path for a downloadable model (e.g. 'llm/meta/llama_3_1_8b_instruct').
+
+        If model already has 'relative_path' (repo-sourced), use it.
+        Otherwise look it up from existing API manifests.
+        """
+        if model.get("relative_path"):
+            return model["relative_path"]
+
+        model_id = model.get("id") or model.get("name", "")
+        norm = _normalize_nim_name(model_id)
+        for repo_model in get_all_repository_models():
+            if _normalize_nim_name(repo_model["nim_model_name"]) == norm:
+                return repo_model["relative_path"]
+        return None
+
+    @staticmethod
+    def _nim_model_name_from_id(model_id: str) -> str:
+        """
+        Convert model id (e.g. 'meta/llama-3.1-8b-instruct') to the NIM model name
+        used by ``build_downloadable_nim`` (same format as the --model arg).
+        """
+        # model_id may already be the right format (publisher/model-name)
+        return model_id
+
+    def onboard_downloadable_models(
+        self,
+        models: list = None,
+        limit: int = None,
+        skip_docker: bool = False,
+    ) -> list:
+        """
+        Build downloadable NIM images + manifests for each model in *models*.
+
+        For every model:
+        1. Resolve the manifest_path (relative_path from models/api).
+        2. Call ``build_downloadable_nim(model_name, manifest_path, skip_docker)``.
+        3. Read back the created manifest and add to ``self.successful_manifests``
+           so the PR step picks them up.
+
+        Args:
+            models: List of model dicts (default: self.downloadable_to_add)
+            limit: Max number of models to process
+            skip_docker: If True, skip Docker build (manifest-only update)
+        """
+        from downloadables_create import build_downloadable_nim
+
+        if models is None:
+            models = self.downloadable_to_add
+
+        if limit:
+            models = models[:limit]
+
+        if not models:
+            print("\nNo downloadable models to onboard")
+            return []
+
+        print(f"\n{'='*60}")
+        print(f"Onboarding {len(models)} downloadable models")
+        print(f"{'='*60}")
+
+        downloadable_results = []
+
+        for model in models:
+            model_id = model.get("id") or model.get("name", "")
+            relative_path = self._resolve_downloadable_relative_path(model)
+
+            if not relative_path:
+                msg = f"Cannot resolve relative_path for {model_id} - skipping"
+                print(f"\n[SKIP] {msg}")
+                downloadable_results.append({
+                    "model_id": model_id,
+                    "status": "skipped",
+                    "error": msg,
+                    "kind": "downloadable",
+                })
+                continue
+
+            model_name = self._nim_model_name_from_id(model_id)
+            print(f"\n{'='*60}")
+            print(f"Building downloadable: {model_name} -> {relative_path}")
+            print(f"{'='*60}")
+
+            try:
+                manifest = build_downloadable_nim(
+                    model_name=model_name,
+                    manifest_path=relative_path,
+                    skip_docker=skip_docker,
+                )
+
+                result = {
+                    "model_id": model_id,
+                    "status": "success",
+                    "manifest": manifest,
+                    "manifest_path": f"models/downloadable/{relative_path}/dataloop.json",
+                    "kind": "downloadable",
+                }
+                downloadable_results.append(result)
+
+                # Add to successful_manifests so the PR step includes them.
+                # Use a special model_type 'downloadable' so github_client
+                # generates the right path under models/downloadable/.
+                self.successful_manifests.append({
+                    "model_id": model_id,
+                    "model_type": "downloadable",
+                    "dpk_name": manifest.get("name", model_id),
+                    "manifest": manifest,
+                    "manifest_path": f"models/downloadable/{relative_path}/dataloop.json",
+                })
+
+                print(f"\n[OK] Downloadable built: {model_id}")
+
+            except Exception as e:
+                result = {
+                    "model_id": model_id,
+                    "status": "error",
+                    "error": str(e),
+                    "kind": "downloadable",
+                }
+                downloadable_results.append(result)
+                print(f"\n[FAIL] Downloadable build failed for {model_id}: {e}")
+
+        self.results.extend(downloadable_results)
+
+        successful = len([r for r in downloadable_results if r["status"] == "success"])
+        failed = len(downloadable_results) - successful
+        print(f"\n{'='*60}")
+        print(f"Downloadable onboarding complete: {successful} succeeded, {failed} failed out of {len(downloadable_results)}")
+        print(f"{'='*60}")
+
+        return downloadable_results
     
     # =========================================================================
     # Open PRs
@@ -821,15 +967,18 @@ class NIMAgent:
         """
         github = self._get_github()
         
-        # Prepare new models
-        new_models = [
-            {
+        # Prepare new models (API + downloadable)
+        new_models = []
+        for item in self.successful_manifests:
+            entry = {
                 "model_id": item["model_id"],
                 "model_type": item.get("model_type", "llm"),
-                "manifest": item["manifest"]
+                "manifest": item["manifest"],
             }
-            for item in self.successful_manifests
-        ]
+            # Downloadable manifests carry an explicit manifest_path
+            if item.get("manifest_path"):
+                entry["manifest_path"] = item["manifest_path"]
+            new_models.append(entry)
         
         # Prepare deprecated models (API deprecated = no longer on OpenAI)
         deprecated_models = []
@@ -960,46 +1109,54 @@ class NIMAgent:
     # =========================================================================
     
     def run(
-        self, 
-        limit: int = None, 
-        open_pr: bool = True, 
+        self,
+        limit: int = None,
+        open_pr: bool = True,
         max_workers: int = 10,
+        skip_docker: bool = False,
     ):
         """
         Run the complete flow.
-        
+
         Args:
             limit: Max number of models to onboard (for testing)
             open_pr: Whether to open PRs after successful tests
             max_workers: Max parallel workers for testing (default: 10)
+            skip_docker: If True, skip Docker build for downloadables (manifest-only)
         """
         print("=" * 60)
         print("NIM Agent")
         print("=" * 60)
         print(f"Limit: {limit or 'all'}")
         print(f"Max workers: {max_workers}")
-        
+
         # Step 1: Fetch from NVIDIA (OpenAI endpoint + NGC catalog for downloadables)
         self.fetch_models()
-        
+
         # Step 2: Compare with Dataloop
         self.fetch_dataloop_dpks()
         self.compare()
-        
-        # Step 3: Run onboarding pipeline (parallel threads using onboard_model)
-        self.onboard_multiple_models(
+
+        # Step 3a: Onboard API models (parallel)
+        self.onboard_api_models(
             limit=limit,
             max_workers=max_workers,
         )
-        
-        # Step 4: Open PR (new + deprecated models in one PR)
+
+        # Step 3b: Onboard downloadable models (Docker build + manifest creation)
+        self.onboard_downloadable_models(
+            limit=limit,
+            skip_docker=skip_docker,
+        )
+
+        # Step 4: Open PR (new API + new downloadable + deprecated, all in one PR)
         if open_pr:
             self.open_new_and_deprecated_pr()
-        
+
         # Step 5: Report
         self.print_report()
         self.save_results()
-        
+
         return self.generate_report()
 
 if __name__ == "__main__":

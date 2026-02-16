@@ -412,7 +412,7 @@ class Tester:
             print(f"  ⚠️ Error reading response: {e}")
             return ""
     
-    def _find_nim_dpk(self, category: list[str] = ["NIM", "Model"], nlp: str = "Conversational") -> str:
+    def _find_nim_dpk(self, nlp: str = "Conversational") -> tuple[list[dl.Dpk], str]:
         """
         Find an existing NIM DPK by filtering on attributes.
         
@@ -424,16 +424,25 @@ class Tester:
             nlp: NLP attribute to match (default: "Conversational")
         """
         try:
-            filters = dl.Filters(resource=dl.FiltersResource.DPK)
-            filters.add(field='attributes.Category', values=category)
+            filters = dl.Filters(resource=dl.
+                                 FiltersResource.DPK)
+            filters.add(
+                        field='codebase.gitUrl',
+                        values=[
+                            'https://github.com/dataloop-ai-apps/nim-api-adapter.git',
+                            'https://github.com/dataloop-ai-apps/nim-api-adapter',
+                        ],
+                        operator=dl.FiltersOperations.IN,
+                        )
             if nlp:
                 filters.add(field='attributes.NLP', values=nlp)
             
             dpks = list(dl.dpks.list(filters=filters).all())
             if dpks:
                 dpk_name = dpks[0].name
-                print(f"  Found NIM DPK: {dpk_name} (Category={category}, NLP={nlp})")
-                return dpk_name
+                print(f"  Found NIM DPK: {dpk_name} (NLP={nlp})")
+                return dpks, dpk_name
+        
         except Exception as e:
             print(f"  ⚠️ Error finding NIM DPK: {e}")
         
@@ -442,30 +451,41 @@ class Tester:
     def _create_test_models(self, project):
         """
         Create test model entities by cloning from existing DPKs.
-        
-        Uses:
-        - text-embeddings-3 DPK for embedding model
-        - chat-completion DPK for LLM/VLM model
+
+        Uses _find_nim_dpk to locate DPKs by NLP attribute, with hardcoded
+        fallback names if the dynamic search fails.
         """
         global _TEST_RESOURCES
-        
-        # Use known DPK names directly
+
         dpk_sources = {
             "embedding": {
-                "dpk_name": "nim-nv-embedqa-e5-v5",
-                "test_model_name": "nim-embedding-test-model"
+                "nlp": "Embeddings",
+                "fallback_dpk_name": "nim-nv-embedqa-e5-v5",
+                "test_model_name": "nim-embedding-test-model",
             },
             "llm": {
-                "dpk_name": "nim-llama-3-1-8b-instruct",
-                "test_model_name": "nim-llm-test-model"
-            }
+                "nlp": "Conversational",
+                "fallback_dpk_name": "nim-llama-3-1-8b-instruct",
+                "test_model_name": "nim-llm-test-model",
+            },
         }
-        
-        # Create embedding and LLM test models
+
         for model_type, config in dpk_sources.items():
-            model = self._get_or_create_model(project, config)
+            # Try dynamic lookup first
+            dpk_name = config["fallback_dpk_name"]
+            result = self._find_nim_dpk(nlp=config["nlp"])
+            if result:
+                _, dpk_name = result
+                print(f"  Using DPK from _find_nim_dpk (NLP={config['nlp']}): {dpk_name}")
+            else:
+                print(f"  _find_nim_dpk returned nothing for NLP={config['nlp']}, using fallback: {dpk_name}")
+
+            model = self._get_or_create_model(
+                project,
+                {"dpk_name": dpk_name, "test_model_name": config["test_model_name"]},
+            )
             _TEST_RESOURCES["models"][model_type] = model.id
-        
+
         # VLM uses the same model entity as LLM (chat-completion based)
         _TEST_RESOURCES["models"]["vlm"] = _TEST_RESOURCES["models"]["llm"]
     
