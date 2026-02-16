@@ -14,12 +14,15 @@ class ModelAdapter(NIMBaseAdapter):
     def prepare_item_func(self, item: dl.Item):
         return dl.PromptItem.from_item(item=item)
 
-    def _flatten_messages(self, messages: list[dict]) -> list[dict]:
+    def _flatten_messages(self, messages: list[dict], context: str = None) -> list[dict]:
         """
         Flatten message content from array format to plain string.
         
         Some NVIDIA NIM LLM models expect plain string content, not the 
         OpenAI multimodal format [{"type": "text", "text": "..."}].
+        
+        If context is provided, it will be inserted as an assistant message
+        before the last user message with the format "Context: {context}".
         """
         flattened = []
         for msg in messages:
@@ -41,12 +44,27 @@ class ModelAdapter(NIMBaseAdapter):
             else:
                 flattened.append({"role": role, "content": content})
         
+        # Insert context as assistant message before the last user message
+        if context:
+            # Find the index of the last user message
+            last_user_idx = None
+            for i in range(len(flattened) - 1, -1, -1):
+                if flattened[i].get("role") == "user":
+                    last_user_idx = i
+                    break
+            
+            if last_user_idx is not None:
+                # Insert context assistant message before the last user message
+                context_message = {"role": "assistant", "content": f"Context: {context}"}
+                flattened.insert(last_user_idx, context_message)
+        
         return flattened
 
-    def call_model(self, messages: list[dict]):
+    def call_model(self, messages: list[dict], context: str = None):
         """Call NVIDIA NIM chat completions API."""
         # Flatten messages - LLMs expect plain string content, not multimodal arrays
-        messages = self._flatten_messages(messages)
+        # Context is injected as assistant message before the last user message
+        messages = self._flatten_messages(messages, context=context)
         
         stream = self.configuration.get("stream")
         max_tokens = self.configuration.get("max_tokens", 512)
@@ -105,13 +123,13 @@ class ModelAdapter(NIMBaseAdapter):
                 messages.insert(0, {"role": "system", "content": system_prompt})
 
             nearest_items = prompt_item.prompts[-1].metadata.get('nearestItems', [])
+            context = None
             if len(nearest_items) > 0:
                 context = prompt_item.build_context(nearest_items=nearest_items,
                                                     add_metadata=add_metadata)
                 logger.info(f"Nearest items Context: {context}")
-                messages.append({"role": "assistant", "content": context})
 
-            stream_response = self.call_model(messages=messages)
+            stream_response = self.call_model(messages=messages, context=context)
             response = ""
             for chunk in stream_response:
                 #  Build text that includes previous stream

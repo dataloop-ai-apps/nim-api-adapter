@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.56",
     "name": "nim-sarvamai-sarvam-m-downloadable",
     "displayName": "NIM Sarvam M Downloadable",
     "description": "NVIDIA NIM Sarvam M adapter - runs start_server.sh and streams logs",
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "sarvamai-sarvam-m-downloadable-module",
+                "name": "m-sarvamai-sarvam-m-kkzg",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-sarvamai-sarvam-m-kkzg",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-sarvamai-sarvam-m-kkzg",
                 "displayName": "sarvamai-sarvam-m-downloadable-runner",
-                "moduleName": "sarvamai-sarvam-m-downloadable-module",
+                "moduleName": "m-sarvamai-sarvam-m-kkzg",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-sarvamai-sarvam-m-kkzg"
                 ],
                 "initParams": {},
                 "runtime": {
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.56"
     }
 }

@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.56",
     "name": "nim-meta-llama-3.1-70b-instruct-downloadable",
     "displayName": "NIM Llama 3.1 70B Instruct Downloadable",
     "description": "NVIDIA NIM Llama 3.1 70B Instruct adapter - runs start_server.sh and streams logs",
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "meta-llama-3.1-70b-instruct-downloadable-module",
+                "name": "m-meta-llama-3-1-70b-instruct-umie",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-meta-llama-3-1-70b-instruct-umie",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-meta-llama-3-1-70b-instruct-umie",
                 "displayName": "meta-llama-3.1-70b-instruct-downloadable-runner",
-                "moduleName": "meta-llama-3.1-70b-instruct-downloadable-module",
+                "moduleName": "m-meta-llama-3-1-70b-instruct-umie",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-meta-llama-3-1-70b-instruct-umie"
                 ],
                 "initParams": {},
                 "runtime": {
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.56"
     }
 }

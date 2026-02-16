@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.56",
     "name": "nim-nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable",
     "displayName": "NIM Llama 3.2 Nemoretriever 300M Embed V2 Downloadable",
     "description": "NVIDIA NIM Llama 3.2 Nemoretriever 300M Embed V2 adapter - runs start_server.sh and streams logs",
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-module",
+                "name": "m-nvidia-llama-3-2-nemoretriev-49dc",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nvidia-llama-3-2-nemoretriev-49dc",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nvidia-llama-3-2-nemoretriev-49dc",
                 "displayName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-runner",
-                "moduleName": "nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable-module",
+                "moduleName": "m-nvidia-llama-3-2-nemoretriev-49dc",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nvidia-llama-3-2-nemoretriev-49dc"
                 ],
                 "initParams": {},
                 "runtime": {
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.56"
     }
 }

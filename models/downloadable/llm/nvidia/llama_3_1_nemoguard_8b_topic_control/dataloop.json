@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.56",
     "name": "nim-nvidia-llama-3.1-nemoguard-8b-topic-control-downloadable",
     "displayName": "NIM Llama 3.1 Nemoguard 8B Topic Control Downloadable",
     "description": "NVIDIA NIM Llama 3.1 Nemoguard 8B Topic Control adapter - runs start_server.sh and streams logs",
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-llama-3.1-nemoguard-8b-topic-control-downloadable-module",
+                "name": "m-nvidia-llama-3-1-nemoguard-8-60xw",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nvidia-llama-3-1-nemoguard-8-60xw",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nvidia-llama-3-1-nemoguard-8-60xw",
                 "displayName": "nvidia-llama-3.1-nemoguard-8b-topic-control-downloadable-runner",
-                "moduleName": "nvidia-llama-3.1-nemoguard-8b-topic-control-downloadable-module",
+                "moduleName": "m-nvidia-llama-3-1-nemoguard-8-60xw",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nvidia-llama-3-1-nemoguard-8-60xw"
                 ],
                 "initParams": {},
                 "runtime": {
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.56"
     }
 }

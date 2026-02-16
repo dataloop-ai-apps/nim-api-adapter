@@ -1,18 +1,21 @@
 {
     "version": "0.3.56",
-    "name": "nim-{{MODEL_NAME}}-downloadable",
-    "displayName": "NIM {{MODEL_DISPLAY_NAME}} Downloadable",
-    "description": "NVIDIA NIM {{MODEL_DISPLAY_NAME}} adapter - runs start_server.sh and streams logs",
+    "name": "nim-baidu-paddleocr-downloadable",
+    "displayName": "NIM Paddleocr Downloadable",
+    "description": "NVIDIA NIM Paddleocr adapter - runs start_server.sh and streams logs",
     "scope": "project",
     "attributes": {
-        "Category": ["Application", "NIM"],
+        "Category": [
+            "Application",
+            "NIM"
+        ],
         "Provider": "NVIDIA",
         "Application Type": "Model"
     },
     "components": {
         "modules": [
             {
-                "name": "{{MODEL_NAME}}-downloadable-module",
+                "name": "m-object-detection-baidu-paddl-s13x",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -33,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-object-detection-baidu-paddl-s13x",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -45,16 +48,18 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
-                "displayName": "{{MODEL_NAME}}-downloadable-runner",
-                "moduleName": "{{MODEL_NAME}}-downloadable-module",
-                "panelNames": ["downloadable-panel"],
+                "name": "s-object-detection-baidu-paddl-s13x",
+                "displayName": "baidu-paddleocr-downloadable-runner",
+                "moduleName": "m-object-detection-baidu-paddl-s13x",
+                "panelNames": [
+                    "p-object-detection-baidu-paddl-s13x"
+                ],
                 "initParams": {},
                 "runtime": {
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
+                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/baidu-paddleocr:0.3.50",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",

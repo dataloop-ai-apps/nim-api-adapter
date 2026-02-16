@@ -16,8 +16,7 @@ class ModelAdapter(NIMBaseAdapter):
             model=self.nim_model_name,
             encoding_format="float",
         )
-        if self.use_nvidia_extra_body:
-            kwargs["extra_body"] = {"input_type": "query", "truncate": "NONE"}
+        kwargs["extra_body"] = {"input_type": "query", "truncate": "NONE"}
         try:
             response = self.client.embeddings.create(**kwargs)
             embedding = response.data[0].embedding

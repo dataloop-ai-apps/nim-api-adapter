@@ -106,7 +106,7 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             http_client=http_client,
         )
         try:
-            health_url = self.base_url.rstrip("/") + "/models"
+            health_url = self.base_url.rstrip("/") + "/manifest"
             r = requests.get(
                 health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False
             )

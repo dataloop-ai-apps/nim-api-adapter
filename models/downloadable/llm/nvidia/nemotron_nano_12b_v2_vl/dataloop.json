@@ -1,5 +1,5 @@
 {
-    "version": "0.3.48",
+    "version": "0.3.56",
     "name": "nim-nvidia-nemotron-nano-12b-v2-vl-downloadable",
     "displayName": "NIM Nemotron Nano 12B V2 Vl Downloadable",
     "description": "NVIDIA NIM Nemotron Nano 12B V2 Vl adapter - runs start_server.sh and streams logs",
@@ -15,7 +15,7 @@
     "components": {
         "modules": [
             {
-                "name": "nvidia-nemotron-nano-12b-v2-vl-downloadable-module",
+                "name": "m-nvidia-nemotron-nano-12b-v2-yle4",
                 "entryPoint": "models/downloadable/main.py",
                 "className": "Runner",
                 "initInputs": [],
@@ -36,7 +36,7 @@
         ],
         "panels": [
             {
-                "name": "downloadable-panel",
+                "name": "p-nvidia-nemotron-nano-12b-v2-yle4",
                 "supportedSlots": [
                     {
                         "type": "datasetBrowser",
@@ -48,11 +48,11 @@
         ],
         "services": [
             {
-                "name": "nim-downloadable-runner",
+                "name": "s-nvidia-nemotron-nano-12b-v2-yle4",
                 "displayName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-runner",
-                "moduleName": "nvidia-nemotron-nano-12b-v2-vl-downloadable-module",
+                "moduleName": "m-nvidia-nemotron-nano-12b-v2-yle4",
                 "panelNames": [
-                    "downloadable-panel"
+                    "p-nvidia-nemotron-nano-12b-v2-yle4"
                 ],
                 "initParams": {},
                 "runtime": {
@@ -80,6 +80,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.48"
+        "gitTag": "0.3.56"
     }
 }
