@@ -1,0 +1,29 @@
+# ordered list of dpks to publish and install
+dpks:
+    - name: nv-yolox-page-elements-v1
+      install_app: True
+      integrations:
+          - key: "dl-ngc-api-key"  # integration key
+            value: "NGC_API_KEY"  # integration value (integration name or id)
+
+# ordered list of datasets to create from local assets or to get from installed apps
+datasets:
+    - name: chart_image
+      type: local
+
+# ordered list of models to get from apps
+models:
+    - name: nv-yolox-page-elements-v1
+      deploy_model: False
+      source_app: nv-yolox-page-elements-v1
+
+# list of pipeline variables to update with reference
+variables:
+    - name: dataset
+      resource_type: datasets
+      resource_value:
+          resource_name: chart_image
+    - name: model
+      resource_type: models
+      resource_value:
+          resource_name: nv-yolox-page-elements-v1
