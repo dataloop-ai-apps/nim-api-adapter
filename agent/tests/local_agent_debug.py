@@ -23,7 +23,7 @@ elif MODE == "run":
 
 elif MODE == "run_agentic":
     agent.run_agentic(
-        limit=15,
+        limit=10,
         open_pr=False,
         skip_docker=True,
         downloadable_preview=True,

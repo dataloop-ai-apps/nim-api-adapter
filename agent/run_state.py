@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 
-DEFAULT_STATE_PATH = Path("agent/output/run_state.json")
+DEFAULT_STATE_PATH = Path("agent/run_data/run_state.json")
 
 DEFAULT_CONFIG = {
     "quarantine_after": 3,

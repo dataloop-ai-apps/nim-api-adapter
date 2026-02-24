@@ -35,11 +35,11 @@ NVIDIA API --> Fetch Models --> Compare with Dataloop --> Find New Models
 | File | Description |
 |------|-------------|
 | `nim_agent.py` | Main orchestrator - coordinates the entire flow |
-| `tester.py` | Testing operations - type detection, adapter testing, DPK validation |
+| `nim_tester.py` | Testing operations - type detection, adapter testing, DPK validation |
 | `dpk_mcp_handler.py` | DPK manifest generation via MCP tools |
 | `github_client.py` | GitHub operations - branches, commits, PRs |
 | `run_state.py` | Run State Persistence for NIM Agent |
-| `adapters/` | Model adapter implementations (LLM, VLM, Embedding) |
+| `models/api/` | Model adapter implementations (LLM, VLM, Embedding) |
 
 ## Detailed Flow
 
@@ -141,7 +141,7 @@ from nim_agent import NIMAgent
 agent = NIMAgent()
 
 # Run full flow
-agent.run(open_pr=True, pr_by_type=True)
+agent.run(open_pr=True)
 ```
 
 ### Test Single Model
@@ -150,7 +150,7 @@ agent.run(open_pr=True, pr_by_type=True)
 from nim_agent import NIMAgent
 
 agent = NIMAgent()
-result = agent.onboard_model("nvidia/llama-3.1-70b-instruct")
+result = agent.onboard_api_model("nvidia/llama-3.1-70b-instruct")
 print(result)
 ```
 
@@ -217,7 +217,8 @@ flowchart TD
     ClassifyLoop["For each result: classify_error(error_string)"] --> RecordState
     RecordState["Update state: success clears history, 404/permanent increments counter, transient retries next run"]
 
-    RecordState --> PRGate{"PR gate: any successes AND failure rate < 80%?"}
+    RecordState --> PRGate{"PR gate: successes > 0 AND failure rate < 80%?
+    (permanent errors excluded from rate)"}
     PRGate -->|Yes| OpenPR["open_new_and_deprecated_pr()"]
     PRGate -->|No| SkipPR["Skip PR (log reason)"]
 
@@ -232,7 +233,7 @@ flowchart TD
 |------|-----------|----------------|
 | Anomaly gate | >50% of DPKs suddenly deprecated | Abort run, save state, no PR |
 | Quarantine filter | Model failed 3+ consecutive runs | Skip model (probe sample still tested) |
-| PR gate | At least 1 success AND failure rate < 80% | Skip PR creation |
+| PR gate | At least 1 success AND failure rate < 80% (permanent errors excluded) | Skip PR creation |
 | Environment gate | Auth/key errors detected | Abort entire run immediately |
 
 ### Error Classification
@@ -247,7 +248,7 @@ Errors are classified without LLM, using pattern matching:
 
 ### Run State
 
-State is persisted in `agent/output/run_state.json` and stored as a GitHub Action artifact between CI runs.
+State is persisted in `agent/run_data/run_state.json` and stored as a GitHub Action artifact between CI runs.
 
 ```json
 {
@@ -307,7 +308,7 @@ The workflow downloads the previous `run_state.json` artifact, runs `run-agentic
 
 ### Adding New Model Types
 
-1. Add adapter in `adapters/` folder
+1. Add adapter in `models/api/` folder
 2. Update `ADAPTER_MAPPING` in `dpk_mcp_handler.py`
-3. Update detection patterns in `tester.py`
+3. Update detection patterns in `nim_tester.py`
 4. Add folder mapping in `github_client.py`

@@ -415,10 +415,10 @@ class TestDetectModelType(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("tester", fromlist=["Tester"]).Tester,
+            __import__("nim_tester", fromlist=["Tester"]).Tester,
             "__init__", lambda self, **kw: None
         ):
-            from tester import Tester
+            from nim_tester import Tester
             self.tester = Tester()
             # Mock the OpenAI client so no real API calls are made
             self.tester.client = MagicMock()

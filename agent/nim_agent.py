@@ -18,7 +18,7 @@ from urllib.parse import quote
 from openai import OpenAI
 import dtlpy as dl
 
-from tester import Tester
+from nim_tester import Tester
 from dpk_mcp_handler import DPKGeneratorClient, infer_model_type, model_to_dpk_name
 from github_client import GitHubClient
 from downloadables_create import model_name_from_downloadable_dpk_name
@@ -1166,7 +1166,7 @@ class NIMAgent:
             for item in report["failed"][:5]:
                 print(f"      - {item['model_id']}: {item['error'][:50]}...")
     
-    def save_results(self, output_dir: str = "agent/output"):
+    def save_results(self, output_dir: str = "agent/run_data"):
         """Save all results to files."""
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1268,7 +1268,7 @@ class NIMAgent:
             open_pr:      Create a PR if there are successes
             max_workers:  Parallel workers for onboarding
             skip_docker:  Skip Docker build for downloadables
-            state_path:   Path to run_state.json (default: agent/output/run_state.json)
+            state_path:   Path to run_state.json (default: agent/run_data/run_state.json)
             downloadable_preview: Do not build downloadable manifests or docker; only print which downloadables are resolvable - For Debug usage
         """
         from run_state import RunState, classify_error
@@ -1373,20 +1373,29 @@ class NIMAgent:
             succeeded = len([r for r in self.results if r["status"] == "success"])
             failed = len(self.results) - succeeded
             attempted = len(self.results)
-            failure_rate = failed / attempted if attempted else 0
+            permanent = len([
+                r for r in self.results
+                if r["status"] != "success"
+                and classify_error(r.get("error", "")) == "permanent"
+            ])
+            real_attempted = attempted - permanent
+            failure_rate = (failed - permanent) / real_attempted if real_attempted else 0
 
             run_record["attempted"] = attempted
             run_record["succeeded"] = succeeded
             run_record["failed"] = failed
+            run_record["permanent_errors"] = permanent
 
-            # --- PR gate ---
-            should_pr = open_pr and succeeded > 0 and failure_rate < state.pr_max_failure_rate
+            # --- PR gate (permanent errors like 404 are excluded from failure rate) ---
+            pr_summary = (
+                f"succeeded={succeeded}, failed={failed}, permanent={permanent}, "
+                f"failure_rate={failure_rate:.0%}"
+            )
 
-            if should_pr:
-                print(f"\n  PR gate: PASS  (succeeded={succeeded}, failure_rate={failure_rate:.0%})")
-                self.open_new_and_deprecated_pr()
+            if not open_pr:
                 run_record["status"] = "completed"
-                run_record["pr_opened"] = True
+                run_record["pr_opened"] = False
+                print(f"\n  PR gate: SKIP  (open_pr=False) | {pr_summary}")
             elif env_error:
                 run_record["status"] = "env_error"
                 run_record["pr_opened"] = False
@@ -1394,11 +1403,16 @@ class NIMAgent:
             elif succeeded == 0:
                 run_record["status"] = "no_successes"
                 run_record["pr_opened"] = False
-                print(f"\n  PR gate: SKIP  (0 successes)")
-            else:
+                print(f"\n  PR gate: SKIP  (0 successes) | {pr_summary}")
+            elif failure_rate >= state.pr_max_failure_rate:
                 run_record["status"] = "high_failure_rate"
                 run_record["pr_opened"] = False
-                print(f"\n  PR gate: SKIP  (failure_rate={failure_rate:.0%} >= {state.pr_max_failure_rate:.0%})")
+                print(f"\n  PR gate: SKIP  (failure_rate {failure_rate:.0%} >= {state.pr_max_failure_rate:.0%}) | {pr_summary}")
+            else:
+                print(f"\n  PR gate: PASS  | {pr_summary}")
+                self.open_new_and_deprecated_pr()
+                run_record["status"] = "completed"
+                run_record["pr_opened"] = True
 
         except Exception as exc:
             run_record["status"] = "error"
