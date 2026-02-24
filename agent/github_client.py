@@ -35,15 +35,12 @@ import re
 from datetime import datetime
 from typing import Optional, List, Dict
 
-
-# Model type to folder mapping
-MODEL_TYPE_FOLDERS = {
-    "embedding": "embeddings",
-    "llm": "llm",
-    "vlm": "vlm",
-    "object_detection": "object_detection",
-    "ocr": "ocr"
-}
+from dpk_mcp_handler import (
+    parse_model_id,
+    get_model_folder,
+    get_manifest_path,
+    MODEL_TYPE_FOLDERS,
+)
 
 
 class GitHubClient:
@@ -103,26 +100,6 @@ class GitHubClient:
     # =========================================================================
     # Path Helpers
     # =========================================================================
-    
-    def _parse_model_id(self, model_id: str) -> tuple:
-        """
-        Parse model ID into publisher and model name.
-        
-        Args:
-            model_id: e.g., "nvidia/llama-3.1-70b-instruct" or "meta/llama-3-8b"
-            
-        Returns:
-            (publisher, model_name) tuple
-        """
-        if "/" in model_id:
-            parts = model_id.split("/", 1)
-            publisher = parts[0].lower().replace("-", "_")
-            model_name = parts[1].lower().replace(".", "_").replace("-", "_")
-        else:
-            publisher = "nvidia"
-            model_name = model_id.lower().replace(".", "_").replace("-", "_")
-        
-        return publisher, model_name
     
     def _find_model_folder_by_dpk_name(self, dpk_name: str, model_type: str) -> Optional[str]:
         """
@@ -199,21 +176,6 @@ class GitHubClient:
             pass
         
         return manifests
-    
-    def _get_model_folder(self, model_id: str, model_type: str) -> str:
-        """
-        Get the folder path for a model.
-        
-        Returns: e.g., "models/api/llm/nvidia/llama_3_1_70b_instruct"
-        """
-        type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
-        publisher, model_name = self._parse_model_id(model_id)
-        return f"models/api/{type_folder}/{publisher}/{model_name}"
-    
-    def _get_manifest_path(self, model_id: str, model_type: str) -> str:
-        """Get full path to dataloop.json for a model."""
-        folder = self._get_model_folder(model_id, model_type)
-        return f"{folder}/dataloop.json"
     
     # =========================================================================
     # Config File Updates
@@ -377,7 +339,7 @@ class GitHubClient:
 
                 # Use explicit manifest_path if provided (downloadables),
                 # otherwise derive from model_id and model_type (API models).
-                manifest_path = model.get("manifest_path") or self._get_manifest_path(model_id, model_type)
+                manifest_path = model.get("manifest_path") or get_manifest_path(model_id, model_type)
                 new_manifest_paths.append(manifest_path)
                 
                 print(f"  📄 Creating: {manifest_path}")
@@ -605,13 +567,13 @@ class GitHubClient:
         Checks both new path (models/api/) and old path (models/) for backwards compatibility.
         """
         # Check new path: models/api/{type}/{publisher}/{model_name}/dataloop.json
-        manifest_path = self._get_manifest_path(model_id, model_type)
+        manifest_path = get_manifest_path(model_id, model_type)
         if self._get_file_content(manifest_path):
             return True
         
         # Check old path: models/{type}/{publisher}/{model_name}/dataloop.json
         type_folder = MODEL_TYPE_FOLDERS.get(model_type, "llm")
-        publisher, model_name = self._parse_model_id(model_id)
+        publisher, model_name = parse_model_id(model_id)
         old_path = f"models/{type_folder}/{publisher}/{model_name}/dataloop.json"
         if self._get_file_content(old_path):
             return True
@@ -635,109 +597,182 @@ class GitHubClient:
 # =========================================================================
 
 if __name__ == "__main__":
+    """
+    Dry-run test of all GitHub client functions (no PR creation, no writes).
+    Run: python agent/github_client.py
+    """
+    import pprint
     from dotenv import load_dotenv
-    # Load .env from repo root (parent of agent/)
+
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     load_dotenv(os.path.join(repo_root, ".env"))
     
-    print("GitHub Client Test")
-    print("=" * 40)
-    
-    # Check if token exists
-    token = os.environ.get("GITHUB_TOKEN")
-    if not token:
-        print("❌ GITHUB_TOKEN not set")
-        print("\nTo use this client:")
-        print("1. Create a GitHub Personal Access Token")
-        print("2. Set GITHUB_TOKEN environment variable")
-    else:
-        print("✅ GITHUB_TOKEN found")
-        repo_name = os.environ.get("GITHUB_REPO")
-        print(f"📦 Target repo: {repo_name}")
-        
-        try:
-            client = GitHubClient()
-            repo = client.repository
-            print(f"✅ Connected to: {repo.full_name}")
-            print(f"   Default branch: {repo.default_branch}")
-            print(f"   Open PRs: {repo.get_pulls(state='open').totalCount}")
-            
-            # Test path generation
-            print("\n📁 Path examples:")
-            print(f"   nvidia/llama-3.1-70b-instruct (llm):")
-            print(f"      {client._get_manifest_path('nvidia/llama-3.1-70b-instruct', 'llm')}")
-            print(f"   nvidia/nv-embed-v1 (embedding):")
-            print(f"      {client._get_manifest_path('nvidia/nv-embed-v1', 'embedding')}")
-            print(f"   meta/llama-3-8b (vlm):")
-            print(f"      {client._get_manifest_path('meta/llama-3-8b', 'vlm')}")
-            
-            # =================================================================
-            # DUMMY PR TEST - Create and delete
-            # =================================================================
-            print("\n" + "=" * 40)
-            print("🧪 DUMMY PR TEST")
-            print("=" * 40)
-            
-            test_input = input("\nCreate a dummy PR to test? (y/n): ").strip().lower()
-            if test_input == 'y':
-                # Create dummy manifest
-                dummy_manifest = {
-                    "name": "test-dummy-model",
-                    "displayName": "Test Dummy Model (DELETE ME)",
-                    "version": "0.0.1",
-                    "description": "This is a test PR - please delete",
-                    "components": {
-                        "modules": [{
-                            "name": "test-module",
-                            "entryPoint": "base.py",
-                            "className": "ModelAdapter"
-                        }]
-                    }
-                }
-                
-                print("\n📝 Creating dummy PR...")
-                result = client.create_model_pr(
-                    model_id="test/dummy-model-delete-me",
-                    model_type="llm",
-                    manifest=dummy_manifest,
-                    description="⚠️ **TEST PR - PLEASE DELETE**\n\nThis is a test PR created by the GitHub client test script."
-                )
-                
-                if result["status"] == "success":
-                    print(f"\n✅ Dummy PR created!")
-                    print(f"   URL: {result['pr_url']}")
-                    print(f"   PR #: {result['pr_number']}")
-                    print(f"   Branch: {result['branch_name']}")
-                    
-                    # Ask to close/delete
-                    delete_input = input("\nClose this PR now? (y/n): ").strip().lower()
-                    if delete_input == 'y':
-                        print("\n🗑️ Closing PR...")
-                        closed = client.close_pr(
-                            result['pr_number'],
-                            comment="🧪 Test completed - closing automatically."
-                        )
-                        if closed:
-                            print("✅ PR closed!")
-                            
-                            # Delete the branch
-                            try:
-                                branch_ref = repo.get_git_ref(f"heads/{result['branch_name']}")
-                                branch_ref.delete()
-                                print(f"✅ Branch '{result['branch_name']}' deleted!")
-                            except Exception as e:
-                                print(f"⚠️ Could not delete branch: {e}")
-                        else:
-                            print("❌ Failed to close PR")
-                    else:
-                        print(f"\n⚠️ PR left open - remember to delete it manually!")
-                        print(f"   {result['pr_url']}")
-                else:
-                    print(f"\n❌ Failed to create PR: {result['error']}")
-            else:
-                print("Skipped dummy PR test.")
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            print(f"❌ Connection failed: {e}")
+    print("=" * 60)
+    print("GITHUB CLIENT DRY-RUN")
+    print("=" * 60)
+
+    # -------------------------------------------------------------------
+    # 1. _parse_model_id  (pure logic, no network)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("1. _parse_model_id")
+    print("-" * 60)
+
+    client = GitHubClient()
+    test_ids = [
+        "nvidia/llama-3.1-70b-instruct",
+        "meta/llama-3-8b",
+        "baidu/paddleocr",
+        "nv-embed-v1",
+    ]
+    for mid in test_ids:
+        pub, name = parse_model_id(mid)
+        print(f"  {mid:45s} -> publisher={pub}, name={name}")
+
+    # -------------------------------------------------------------------
+    # 2. _get_manifest_path  (pure logic)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("2. _get_manifest_path")
+    print("-" * 60)
+
+    path_tests = [
+        ("nvidia/llama-3.1-70b-instruct", "llm"),
+        ("nvidia/nv-embed-v1", "embedding"),
+        ("meta/llama-3-8b", "vlm"),
+        ("baidu/paddleocr", "ocr"),
+    ]
+    for mid, mtype in path_tests:
+        path = get_manifest_path(mid, mtype)
+        print(f"  {mid} ({mtype}) -> {path}")
+
+    # -------------------------------------------------------------------
+    # 3. _update_dataloop_cfg  (pure string transform)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("3. _update_dataloop_cfg")
+    print("-" * 60)
+
+    sample_cfg = json.dumps({
+        "manifests": [
+            "models/api/llm/nvidia/llama_3_1_70b_instruct/dataloop.json",
+            "models/api/embeddings/nvidia/nv_embed_v1/dataloop.json",
+        ],
+        "public_app": False,
+    }, indent="\t")
+
+    updated_cfg = client._update_dataloop_cfg(
+        existing_content=sample_cfg,
+        new_manifest_paths=["models/api/vlm/meta/llama_3_8b/dataloop.json"],
+        deprecated_manifest_paths=["models/api/llm/nvidia/llama_3_1_70b_instruct/dataloop.json"],
+    )
+    result_manifests = json.loads(updated_cfg).get("manifests", [])
+    print(f"  Before: 2 manifests")
+    print(f"  After:  {len(result_manifests)} manifests")
+    for m in result_manifests:
+        print(f"    {m}")
+
+    # -------------------------------------------------------------------
+    # 4. _update_bumpversion_cfg  (pure string transform)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("4. _update_bumpversion_cfg")
+    print("-" * 60)
+
+    sample_bump = (
+        "[bumpversion]\n"
+        "current_version = 1.0.0\n"
+        "\n"
+        "[bumpversion:file:models/api/llm/nvidia/llama_3_1_70b_instruct/dataloop.json]\n"
+        'search = "{current_version}"\n'
+        'replace = "{new_version}"\n'
+        "\n"
+        "[bumpversion:file:models/api/embeddings/nvidia/nv_embed_v1/dataloop.json]\n"
+        'search = "{current_version}"\n'
+        'replace = "{new_version}"\n'
+    )
+    updated_bump = client._update_bumpversion_cfg(
+        existing_content=sample_bump,
+        new_manifest_paths=["models/api/vlm/meta/llama_3_8b/dataloop.json"],
+        deprecated_manifest_paths=["models/api/llm/nvidia/llama_3_1_70b_instruct/dataloop.json"],
+    )
+    print("  Result:")
+    for line in updated_bump.splitlines():
+        if line.strip():
+            print(f"    {line}")
+
+    # -------------------------------------------------------------------
+    # 5. _generate_unified_pr_title  (pure logic)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("5. _generate_unified_pr_title")
+    print("-" * 60)
+
+    title_cases = [
+        (
+            [{"model_id": "a", "model_type": "llm"}, {"model_id": "b", "model_type": "embedding"}],
+            [],
+            "2 API, 0 deprecated",
+        ),
+        (
+            [{"model_id": "a", "model_type": "llm"}, {"model_id": "b", "model_type": "downloadable"}],
+            [{"model_id": "c"}],
+            "1 API + 1 downloadable + 1 deprecated",
+        ),
+        (
+            [],
+            [{"model_id": "x"}, {"model_id": "y"}],
+            "0 new, 2 deprecated",
+        ),
+    ]
+    for new, dep, desc in title_cases:
+        title = client._generate_unified_pr_title(new, dep)
+        print(f"  {desc:45s} -> {title}")
+
+    # -------------------------------------------------------------------
+    # 6. _generate_unified_pr_body (snippet)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("6. _generate_unified_pr_body (first 15 lines)")
+    print("-" * 60)
+
+    body = client._generate_unified_pr_body(
+        new_models=[
+            {"model_id": "nvidia/llama-3.1-70b-instruct", "model_type": "llm"},
+            {"model_id": "nvidia/nv-embed-v1", "model_type": "embedding"},
+        ],
+        deprecated_models=[{"model_id": "old-model-x"}],
+        failed_models=[{"model_id": "broken-model", "error": "timeout"}],
+    )
+    for line in body.strip().splitlines()[:15]:
+        print(f"  {line}")
+    print("  ...")
+
+    # -------------------------------------------------------------------
+    # 7. GitHub connection + read-only checks (needs GITHUB_TOKEN)
+    # -------------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("7. GitHub connection (read-only)")
+    print("-" * 60)
+
+    try:
+        repo = client.repository
+        print(f"  Connected to: {repo.full_name}")
+        print(f"  Default branch: {repo.default_branch}")
+        print(f"  Open PRs: {repo.get_pulls(state='open').totalCount}")
+
+        existing_pr = client.check_pr_exists()
+        print(f"  Existing NIM PR: {existing_pr or 'None'}")
+
+        for mid, mtype in [("nvidia/llama-3.1-70b-instruct", "llm"), ("fake/nonexistent", "llm")]:
+            exists = client.check_model_exists(mid, mtype)
+            print(f"  Model exists '{mid}': {exists}")
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"  Connection failed: {e}")
+
+    print("\n" + "=" * 60)
+    print("GITHUB CLIENT DRY-RUN COMPLETE")
+    print("=" * 60)

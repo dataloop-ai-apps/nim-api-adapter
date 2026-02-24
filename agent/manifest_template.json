@@ -57,10 +57,13 @@
                     "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
                     "singleAgent": false,
                     "autoscaler": {
-                        "type": "rabbitmq",
-                        "minReplicas": 1,
-                        "maxReplicas": 1,
-                        "queueLength": 1
+                        "type": "rps",
+                        "minReplicas": 0,
+                        "maxReplicas": 5,
+                        "threshold": 100,
+                        "rateSeconds": 30,
+                        "polling_interval": 10,
+                        "cooldownPeriod": "3600"
                     },
                     "preemptible": false
                 },

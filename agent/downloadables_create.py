@@ -50,6 +50,29 @@ _RANDOM_SUFFIX_LEN = 4
 _ALNUM = string.ascii_lowercase + string.digits
 
 
+def model_name_from_downloadable_dpk_name(dpk_name: str) -> str | None:
+    """
+    Derive NIM model id (publisher/name) from a downloadable DPK name.
+
+    DPK names are set as ``nim-{{MODEL_NAME}}-downloadable``, where MODEL_NAME is
+    ``model_name.replace("/", "-")`` in create_manifest(). This reverses that.
+
+    Example: "nim-nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable"
+             -> "nvidia/llama-3.2-nemoretriever-300m-embed-v2"
+    """
+    if not dpk_name or "downloadable" not in dpk_name.lower():
+        return None
+    s = dpk_name.strip()
+    if s.lower().startswith("nim-"):
+        s = s[4:]
+    if s.lower().endswith("-downloadable"):
+        s = s[: -len("-downloadable")].rstrip("-")
+    if not s or "-" not in s:
+        return None
+    first_dash = s.index("-")
+    return s[:first_dash] + "/" + s[first_dash + 1 :]
+
+
 def _model_name_from_manifest_path(manifest_path: str) -> str:
     """
     Get model name from manifest path: provider folder + model folder.

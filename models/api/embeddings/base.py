@@ -10,6 +10,13 @@ from base_adapter import NIMBaseAdapter, logger
 
 class ModelAdapter(NIMBaseAdapter):
 
+    def _api_health_check(self):
+        self.client.embeddings.create(
+            input=["health check"],
+            model=self.nim_model_name,
+            encoding_format="float",
+        )
+
     def call_model_open_ai(self, text):
         kwargs = dict(
             input=[text],
@@ -37,7 +44,7 @@ class ModelAdapter(NIMBaseAdapter):
             else:
                 try:
                     prompt_item = dl.PromptItem.from_item(item)
-                    is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False)
+                    is_hyde = item.metadata.get('prompt', dict()).get('is_hyde', False) 
                     if is_hyde is True:
                         messages = prompt_item.to_messages(model_name=self.configuration.get('hyde_model_name'))[-1]
                         if messages['role'] == 'assistant':
