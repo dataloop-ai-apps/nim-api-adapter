@@ -35,6 +35,9 @@ class ServiceRunner(dl.BaseServiceRunner):
         )
         self.asr_service = riva.client.ASRService(auth)
 
+    def predict(self, batch, **kwargs):
+        return []
+
     def audio_transcript(self, item: dl.Item, context: dl.Context) -> dl.Item:
         output_dir = context.node.metadata.get("customNodeConfig", {}).get("output_dir", "")
         dataset = item.dataset
