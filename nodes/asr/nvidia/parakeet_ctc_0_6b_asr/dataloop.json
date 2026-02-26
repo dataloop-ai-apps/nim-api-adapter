@@ -55,12 +55,7 @@
         "initInputs": [
           {
             "type": "Json",
-            "name": "model_config",
-            "value": {
-              "riva_server": "grpc.nvcf.nvidia.com:443",
-              "function_id": "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965",
-              "language_code": "en-US"
-            }
+            "name": "model_config"
           }
         ],
         "functions": [
@@ -92,6 +87,13 @@
       {
         "name": "parakeet-ctc-0-6b-asr",
         "moduleName": "parakeet-ctc-0-6b-asr-module",
+        "initParams": {
+          "model_config": {
+            "riva_server": "grpc.nvcf.nvidia.com:443",
+            "function_id": "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965",
+            "language_code": "en-US"
+          }
+        },
         "runtime": {
           "podType": "regular-xs",
           "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/audio_transcript:0.0.1",
