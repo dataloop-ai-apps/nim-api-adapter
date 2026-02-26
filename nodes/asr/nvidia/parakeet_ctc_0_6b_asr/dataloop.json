@@ -1,8 +1,13 @@
 {
-  "displayName": "Audio Transcript (Parakeet CTC 0.6B ASR) - Husam New 22",
-  "name": "parakeet-ctc-0-6b-asr-husam-new-22",
-  "description": "Audio transcription pipeline node using NVIDIA Parakeet CTC 0.6B ASR. Transcribes audio items and uploads the resulting text files. newnew",
-  "version": "0.3.59",
+  "displayName": "Audio Transcript (Parakeet CTC 0.6B ASR)",
+  "name": "parakeet-ctc-0-6b-asr",
+  "description": "Audio transcription pipeline node using NVIDIA Parakeet CTC 0.6B ASR. Transcribes audio items and uploads the resulting text files.",
+  "version": "0.3.56",
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.56"
+  },
   "attributes": {
     "Provider": "NVIDIA",
     "Category": "Application",
@@ -13,7 +18,7 @@
       "Pipeline Node"
     ]
   },
-  "scope": "project",
+  "scope": "public",
   "components": {
     "pipelineNodes": [
       {
@@ -36,7 +41,7 @@
               "props": {
                 "title": true,
                 "type": "string",
-                "default": "",
+                "default": "/",
                 "required": false,
                 "placeholder": "Remote directory for transcript upload (leave empty to use the audio item's directory)"
               },
