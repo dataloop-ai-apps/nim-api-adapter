@@ -60,7 +60,12 @@
         "initInputs": [
           {
             "type": "Json",
-            "name": "model_config"
+            "name": "model_config",
+            "default": {
+              "riva_server": "grpc.nvcf.nvidia.com:443",
+              "function_id": "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965",
+              "language_code": "en-US"
+            }
           }
         ],
         "functions": [

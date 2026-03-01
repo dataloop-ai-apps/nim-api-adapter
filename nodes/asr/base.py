@@ -5,6 +5,7 @@ import dtlpy as dl
 import riva.client
 
 DEFAULT_RIVA_SERVER = "grpc.nvcf.nvidia.com:443"
+DEFAULT_FUNCTION_ID = "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965"
 DEFAULT_LANGUAGE_CODE = "en-US"
 
 
@@ -13,12 +14,8 @@ class ServiceRunner(dl.BaseServiceRunner):
     def __init__(self, model_config=None):
         model_config = model_config or {}
         self.riva_server = model_config.get("riva_server", DEFAULT_RIVA_SERVER)
-        self.function_id = model_config.get("function_id", "")
+        self.function_id = model_config.get("function_id", DEFAULT_FUNCTION_ID)
         self.language_code = model_config.get("language_code", DEFAULT_LANGUAGE_CODE)
-
-        if not self.function_id:
-            raise ValueError("Missing 'function_id' in model_config. "
-                             "Set it in the dataloop.json initInputs.")
 
         self.api_key = os.environ.get("NGC_API_KEY")
         if not self.api_key:
