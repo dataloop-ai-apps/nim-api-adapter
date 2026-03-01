@@ -2,11 +2,11 @@
   "displayName": "Audio Transcript (Parakeet CTC 0.6B ASR)",
   "name": "parakeet-ctc-0-6b-asr",
   "description": "Audio transcription pipeline node using NVIDIA Parakeet CTC 0.6B ASR. Transcribes audio items and uploads the resulting text files.",
-  "version": "0.3.57",
+  "version": "0.3.58",
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.57"
+    "gitTag": "0.3.58"
   },
   "attributes": {
     "Provider": "NVIDIA",
