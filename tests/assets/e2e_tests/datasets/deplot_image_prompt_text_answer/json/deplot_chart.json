@@ -1,0 +1,38 @@
+{
+  "id": "6832ed4ef3c4d6dd7bd53f84",
+  "datasetId": "6832dc835e70cf2c8895c762",
+  "url": "https://rc-gate.dataloop.ai/api/v1/items/6832ed4ef3c4d6dd7bd53f84",
+  "dataset": "https://rc-gate.dataloop.ai/api/v1/datasets/6832dc835e70cf2c8895c762",
+  "createdAt": "2025-05-25T10:13:34.607Z",
+  "dir": "/",
+  "filename": "/deplot_chart.jpg",
+  "type": "file",
+  "hidden": false,
+  "metadata": {
+    "system": {
+      "channels": 3,
+      "encoding": "7bit",
+      "height": 462,
+      "isBinary": true,
+      "mimetype": "image/jpeg",
+      "originalname": "deplot_chart.jpg",
+      "refs": [],
+      "size": 25823,
+      "taskStatusLog": [],
+      "thumbnailId": "6832ed507ca9690f77c7b41d",
+      "width": 311
+    },
+    "tags": {
+      "predict": true
+    }
+  },
+  "name": "deplot_chart.jpg",
+  "creator": "ofir.g@dataloop.ai",
+  "updatedAt": "2025-05-25T10:13:36.120Z",
+  "updatedBy": "ofir.g@dataloop.ai",
+  "stream": "https://rc-gate.dataloop.ai/api/v1/items/6832ed4ef3c4d6dd7bd53f84/stream",
+  "thumbnail": "https://rc-gate.dataloop.ai/api/v1/items/6832ed4ef3c4d6dd7bd53f84/thumbnail",
+  "annotations": [],
+  "annotationsCount": 0,
+  "annotated": false
+}
