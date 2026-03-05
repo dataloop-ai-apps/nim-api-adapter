@@ -59,7 +59,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/openai-gpt-oss-20b:0.3.42",
+                    "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/openai-gpt-oss-20b:0.3.42",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",
@@ -81,5 +81,10 @@
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
         "gitTag": "0.3.58"
-    }
+    },
+    "dependencies": [
+        {
+            "name": "nim-gpt-oss-20b"
+        }
+    ]
 }
