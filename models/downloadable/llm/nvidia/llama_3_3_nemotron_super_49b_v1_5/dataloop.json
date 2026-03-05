@@ -81,5 +81,10 @@
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
         "gitTag": "0.3.58"
-    }
+    },
+    "dependencies": [
+        {
+            "name": "nim-llama-3-3-nemotron-super-49b-v1-5"
+        }
+    ]
 }
