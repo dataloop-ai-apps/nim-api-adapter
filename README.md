@@ -4,56 +4,48 @@ Dataloop model adapters for [NVIDIA NIM](https://build.nvidia.com/) — providin
 
 Models are available in two deployment modes: **API** (hosted by NVIDIA) and **Downloadable** (self-hosted on Dataloop infrastructure). Both modes expose an OpenAI-compatible interface and share the same adapter codebase.
 
-## Deployment Modes
+## Architecture
 
-### API Models
+```mermaid
+graph TB
+    subgraph "Dataloop Platform"
+        MODEL_A["Model A<br/><i>project scope</i>"]
+        MODEL_B["Model B<br/><i>project scope</i>"]
+        MODEL_C["Model C<br/><i>project scope</i>"]
 
-API models run on NVIDIA's hosted infrastructure. Inference requests are sent to `https://integrate.api.nvidia.com/v1` using an NGC API key. No GPU resources are required on your side.
+        subgraph "Self-Hosted Service (project / org scope)"
+            DL_SVC["Downloadable NIM Service<br/><i>GPU pod running NIM container</i>"]
+        end
+    end
 
-**How it works:**
-1. Install the model DPK from the Dataloop marketplace
-2. Provide your NGC API key via the `dl-ngc-api-key` integration
-3. The adapter forwards requests to NVIDIA's API and returns results
+    NVIDIA["NVIDIA Cloud<br/><i>integrate.api.nvidia.com</i>"]
+
+    MODEL_A -- "app_id →<br/>self-hosted" --> DL_SVC
+    MODEL_B -- "app_id →<br/>self-hosted" --> DL_SVC
+    MODEL_C -- "no app_id →<br/>NVIDIA API" --> NVIDIA
+```
+
+Each **API model app** (e.g. `nim-llama-3-1-8b-instruct`) provides a model entity and adapter code. It can talk to **either** backend:
+
+| Backend | When | GPU on Dataloop |
+|---------|------|:---------------:|
+| **NVIDIA Cloud** | No `app_id` in model config — requests go to `integrate.api.nvidia.com` via NGC API key | No |
+| **Self-Hosted (Downloadable)** | `app_id` is set — requests route to a local NIM service running on Dataloop | Yes |
+
+The **Downloadable app** (e.g. `nim-meta-llama-3.1-8b-instruct-downloadable`) provisions the GPU service and declares the API model app as a dependency (auto-installed). The service can be installed at **project or org scope**, and **multiple models can point to the same service** by sharing the same `app_id`.
 
 **Configuration:**
 
 | Field | Description |
 |-------|-------------|
 | `nim_model_name` | NVIDIA model identifier (e.g. `meta/llama-3.1-8b-instruct`) |
-| `base_url` | NVIDIA API endpoint (default: `https://integrate.api.nvidia.com/v1`) |
+| `app_id` | Downloadable service installation ID — when set, routes to self-hosted instead of NVIDIA cloud |
+| `base_url` | NVIDIA API endpoint (default: `https://integrate.api.nvidia.com/v1`, ignored when `app_id` is set) |
 | `max_tokens` | Maximum tokens to generate (LLM/VLM) |
 | `temperature` | Sampling temperature (LLM/VLM) |
 | `stream` | Enable streaming responses (LLM/VLM) |
 | `system_prompt` | System prompt (LLM/VLM) |
 | `embeddings_size` | Embedding vector dimension (Embeddings) |
-
-### Downloadable Models
-
-Downloadable models are self-hosted: they run inside Dataloop-managed GPU services using official NVIDIA NIM container images from `nvcr.io`. Instead of calling NVIDIA's cloud API, the adapter talks to a local NIM server running on the same infrastructure.
-
-**How it works:**
-
-1. A Docker image is built from the official NVIDIA NIM container (`nvcr.io/nim/<model>:latest`), extended with Dataloop SDK and agent packages
-2. When installed, Dataloop deploys this image as a GPU-backed service that runs the NIM inference server (`start_server.sh`)
-3. The service exposes an OpenAI-compatible API (`/v1/chat/completions`, `/v1/embeddings`) accessible within the Dataloop network
-4. The model adapter connects to this service instead of NVIDIA's cloud — the adapter resolves the service URL from the app installation and authenticates
-
-**Connecting a model to a downloadable service:**
-
-When you install a downloadable NIM app, it creates a running service with its own app ID. To use it with a model adapter:
-
-1. Install the downloadable app from the marketplace (this provisions the GPU service and starts the NIM server)
-2. Copy the app's installation ID (`app_id`)
-3. Set `app_id` in the model's configuration — this tells the adapter to route inference to the downloadable service instead of NVIDIA's cloud API
-
-```json
-{
-  "nim_model_name": "meta/llama-3.1-8b-instruct",
-  "app_id": "<your-downloadable-app-installation-id>"
-}
-```
-
-When `app_id` is present, the adapter resolves the service endpoint via Dataloop's app routing, obtains a JWT session cookie, and creates an OpenAI client pointed at the local service. JWT sessions are automatically refreshed before expiration.
 
 ## Model Types
 

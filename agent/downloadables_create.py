@@ -164,6 +164,13 @@ def create_manifest(
     if runner_image_override:
         manifest['components']['services'][0]['runtime']['runnerImage'] = runner_image_override
     
+    # Add dependency on the corresponding API model
+    api_model_name = _get_api_model_name(manifest_path)
+    if api_model_name:
+        manifest['dependencies'] = [{"name": api_model_name}]
+    else:
+        print(f"Warning: No corresponding API model found at models/api/{manifest_path}/dataloop.json — skipping dependency")
+
     # Save to models/downloadable/<manifest_path>/dataloop.json
     output_dir = _get_repo_root() / 'models' / 'downloadable' / manifest_path
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -246,6 +253,19 @@ def build_docker_image(model_name: str, image_version: str = "1.0.0") -> str:
     print(f"  ✓ Removed {base_image}")
     
     return target_image
+
+
+def _get_api_model_name(manifest_path: str) -> str | None:
+    """Get the name of the corresponding API model from models/api/<manifest_path>/dataloop.json."""
+    api_manifest = _get_repo_root() / 'models' / 'api' / manifest_path / 'dataloop.json'
+    if not api_manifest.exists():
+        return None
+    try:
+        with open(api_manifest, 'r') as f:
+            data = json.load(f)
+        return data.get('name')
+    except (json.JSONDecodeError, OSError):
+        return None
 
 
 def _get_existing_runner_image(manifest_path: str) -> str | None:
@@ -356,6 +376,9 @@ def fix_existing_downloadable_manifests() -> int:
         manifest["components"]["services"][0]["name"] = names["service"]
         manifest["components"]["services"][0]["moduleName"] = names["module"]
         manifest["components"]["services"][0]["panelNames"] = [names["panel"]]
+        api_model_name = _get_api_model_name(manifest_path)
+        if api_model_name:
+            manifest["dependencies"] = [{"name": api_model_name}]
         with open(path, "w") as f:
             json.dump(manifest, f, indent=4)
         count += 1

@@ -59,7 +59,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-nemotron-nano-12b-v2-vl:0.3.42",
+                    "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/nvidia-nemotron-nano-12b-v2-vl:0.3.42",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",
