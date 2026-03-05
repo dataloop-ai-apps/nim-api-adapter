@@ -194,7 +194,7 @@ def build_docker_image(model_name: str, image_version: str = "1.0.0") -> str:
     # Normalize model name for Docker (replace / with -)
     docker_image_name = model_name.replace("/", "-")
     # target_image = f"gcr.io/viewo-g/piper/agent/runner/gpu/{docker_image_name}:{image_version}"
-    target_image = f"hub.dataloop.ai/dataloop/customerhub/nims/{docker_image_name}:{image_version}"
+    target_image = f"hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/{docker_image_name}:{image_version}"
     agent_dir = _get_agent_dir()
     
     # Get the entrypoint from the base NIM image
