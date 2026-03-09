@@ -25,8 +25,12 @@ from dpk_mcp_handler import DPKGeneratorClient
 # Test image: 1x1 red PNG for VLM testing
 TEST_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
 
-# Adapters directory (in models/api/ folder at repo root)
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from dpk_mcp_handler import (
+    get_adapter_path,
+    get_model_folder,
+    REPO_ROOT,
+)
+
 ADAPTERS_DIR = os.path.join(REPO_ROOT, "models", "api")
 
 # Test resources config
@@ -412,7 +416,7 @@ class Tester:
             print(f"  ⚠️ Error reading response: {e}")
             return ""
     
-    def _find_nim_dpk(self, category: list[str] = ["NIM", "Model"], nlp: str = "Conversational") -> str:
+    def _find_nim_dpk(self, nlp: str = None) -> tuple[list[dl.Dpk], str]:
         """
         Find an existing NIM DPK by filtering on attributes.
         
@@ -424,48 +428,68 @@ class Tester:
             nlp: NLP attribute to match (default: "Conversational")
         """
         try:
-            filters = dl.Filters(resource=dl.FiltersResource.DPK)
-            filters.add(field='attributes.Category', values=category)
+            filters = dl.Filters(resource=dl.
+                                 FiltersResource.DPK)
+            filters.add(
+                        field='codebase.gitUrl',
+                        values=[
+                            'https://github.com/dataloop-ai-apps/nim-api-adapter.git',
+                            'https://github.com/dataloop-ai-apps/nim-api-adapter',
+                        ],
+                        operator=dl.FiltersOperations.IN,
+                        )
             if nlp:
                 filters.add(field='attributes.NLP', values=nlp)
             
             dpks = list(dl.dpks.list(filters=filters).all())
             if dpks:
                 dpk_name = dpks[0].name
-                print(f"  Found NIM DPK: {dpk_name} (Category={category}, NLP={nlp})")
-                return dpk_name
+                print(f"  Found NIM DPK: {dpk_name} (NLP={nlp})")
+                return dpks, dpk_name
+        
         except Exception as e:
             print(f"  ⚠️ Error finding NIM DPK: {e}")
         
-        return None
+        return None, None
     
     def _create_test_models(self, project):
         """
         Create test model entities by cloning from existing DPKs.
-        
-        Uses:
-        - text-embeddings-3 DPK for embedding model
-        - chat-completion DPK for LLM/VLM model
+
+        Uses _find_nim_dpk to locate DPKs by NLP attribute, with hardcoded
+        fallback names if the dynamic search fails.
         """
         global _TEST_RESOURCES
-        
-        # Use known DPK names directly
+
         dpk_sources = {
             "embedding": {
-                "dpk_name": "nim-nv-embedqa-e5-v5",
-                "test_model_name": "nim-embedding-test-model"
+                "nlp": "Embeddings",
+                "fallback_dpk_name": "nim-nv-embedqa-e5-v5",
+                "test_model_name": "nim-embedding-test-model",
             },
             "llm": {
-                "dpk_name": "nim-llama-3-1-8b-instruct",
-                "test_model_name": "nim-llm-test-model"
-            }
+                "nlp": "Conversational",
+                "fallback_dpk_name": "nim-llama-3-1-8b-instruct",
+                "test_model_name": "nim-llm-test-model",
+            },
         }
-        
-        # Create embedding and LLM test models
+
         for model_type, config in dpk_sources.items():
-            model = self._get_or_create_model(project, config)
+            # Try dynamic lookup first
+            dpk_name = config["fallback_dpk_name"]
+            result = self._find_nim_dpk(nlp=config["nlp"])
+            if result:
+                _, dpk_name = result
+                print(f"  Using DPK from _find_nim_dpk (NLP={config['nlp']}): {dpk_name}")
+            else:
+                print(f"  _find_nim_dpk returned nothing for NLP={config['nlp']}, using fallback: {dpk_name}")
+
+            model = self._get_or_create_model(
+                project,
+                {"dpk_name": dpk_name, "test_model_name": config["test_model_name"]},
+            )
             _TEST_RESOURCES["models"][model_type] = model.id
-        
+
         # VLM uses the same model entity as LLM (chat-completion based)
         _TEST_RESOURCES["models"]["vlm"] = _TEST_RESOURCES["models"]["llm"]
     
@@ -676,17 +700,6 @@ class Tester:
     # =========================================================================
     # Test Model Adapter (Execute adapter file directly)
     # =========================================================================
-    def _get_adapter_path(self, model_type: str) -> str:
-        """Get the adapter file path for the given model type."""
-        # Adapters are in models/api/ folder at repo root
-        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        adapters_mapping = {
-            "embedding": "models/api/embeddings/base.py",
-            "vlm": "models/api/vlm/base.py",
-            "vlm_video": "models/api/vlm/base.py",
-            "llm": "models/api/llm/base.py"
-        }
-        return os.path.join(repo_root, adapters_mapping.get(model_type, "models/api/llm/base.py"))
     
     def get_test_item_id(self, model_type: str) -> str:
         """Get test item ID for the given model type."""
@@ -789,7 +802,7 @@ class Tester:
             print(f"Using test item: {item.name} ({test_item_id})")
             
             # Get adapter path
-            adapter_path = self._get_adapter_path(model_type)
+            adapter_path = get_adapter_path(model_type)
             print(f"Using adapter: {adapter_path}")
             
             # Read the adapter file
@@ -1147,76 +1160,6 @@ class Tester:
 # Manifest Storage
 # =============================================================================
 
-    def _get_model_folder_path(self, model_id: str, model_type: str) -> str:
-        """
-        Get the folder path for a model's manifest.
-        
-        Pattern: models/api/{type}/{provider}/{model_name}/
-        Example: models/api/llm/meta/llama_3_1_8b_instruct/
-        
-        Args:
-            model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
-            model_type: Model type (llm, vlm, embedding, object_detection, ocr)
-        
-        Returns:
-            Full path to the model folder
-        """
-        # Parse model_id: "provider/model-name" -> provider, model_name
-        parts = model_id.split("/")
-        if len(parts) == 2:
-            provider = parts[0].replace("-", "_").replace(".", "_")
-            model_name = parts[1].replace("-", "_").replace(".", "_")
-        else:
-            # Single part model name
-            provider = "nvidia"
-            model_name = model_id.replace("-", "_").replace(".", "_")
-        
-        # Map model_type to folder name
-        type_folder_map = {
-            "llm": "llm",
-            "vlm": "vlm",
-            "vlm_video": "vlm",
-            "embedding": "embeddings",
-            "object_detection": "object_detection",
-            "ocr": "ocr"
-        }
-        type_folder = type_folder_map.get(model_type, "llm")
-        
-        return os.path.join(REPO_ROOT, "models", "api", type_folder, provider, model_name)
-    
-    def _get_model_folder_path(self, model_id: str, model_type: str) -> str:
-        """
-        Get the folder path for a model in the models/api/ directory.
-        
-        Structure: models/api/{type}/{publisher}/{model_name}/
-        e.g., models/api/llm/meta/llama_3_1_8b_instruct/
-        
-        Args:
-            model_id: NVIDIA model ID (e.g., "meta/llama-3.1-8b-instruct")
-            model_type: Model type (llm, vlm, embedding)
-        
-        Returns:
-            Absolute path to the model folder
-        """
-        # Map type to folder name
-        type_folders = {
-            "embedding": "embeddings",
-            "llm": "llm",
-            "vlm": "vlm"
-        }
-        type_folder = type_folders.get(model_type, "llm")
-        
-        # Parse model_id into publisher and model name
-        if "/" in model_id:
-            parts = model_id.split("/", 1)
-            publisher = parts[0].lower().replace("-", "_")
-            model_name = parts[1].lower().replace(".", "_").replace("-", "_")
-        else:
-            publisher = "nvidia"
-            model_name = model_id.lower().replace(".", "_").replace("-", "_")
-        
-        return os.path.join(REPO_ROOT, "models", "api", type_folder, publisher, model_name)
-    
     def save_manifest_to_repo(self, model_id: str, model_type: str, manifest: dict) -> str:
         """
         Save a manifest to the correct folder in the models/ directory.
@@ -1232,7 +1175,7 @@ class Tester:
         Returns:
             Path to the saved manifest file
         """
-        folder_path = self._get_model_folder_path(model_id, model_type)
+        folder_path = os.path.join(REPO_ROOT, get_model_folder(model_id, model_type))
         manifest_path = os.path.join(folder_path, "dataloop.json")
         
         # Create directory if needed
@@ -1390,23 +1333,64 @@ class Tester:
 
 
 if __name__ == "__main__":
-    
+    """
+    Dry-run test of main Tester functions.
+    Tests detect_model_type and test_single_model (no platform, no save).
+    Run: python agent/tester.py
+    """
+    import pprint
+
     TEST_MODELS = [
-        "nvidia/cosmos-reason2-8b",
         "nvidia/nv-embed-v1",                          # Embedding
         "meta/llama-3.1-8b-instruct",                  # LLM
         "meta/llama-3.2-11b-vision-instruct",          # VLM (image)
-        "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",     # VLM (video)
-        # "nvidia/nv-rerankqa-mistral-4b-v3",          # Rerank - not supported yet
     ]
-    
+
+    print("=" * 60)
+    print("TESTER DRY-RUN")
+    print("=" * 60)
+
     tester = Tester()
-    for model in TEST_MODELS:
-        results = tester.test_single_model(
-            model,
+
+    # --- 1. detect_model_type ---
+    print("\n" + "-" * 60)
+    print("1. detect_model_type")
+    print("-" * 60)
+    for model_id in TEST_MODELS:
+        print(f"\n>> {model_id}")
+        result = tester.detect_model_type(model_id)
+        pprint.pprint(result)
+
+    # --- 2. _find_nim_dpk ---
+    print("\n" + "-" * 60)
+    print("2. _find_nim_dpk")
+    print("-" * 60)
+    for nlp in ("Conversational", "Embeddings"):
+        print(f"\n>> NLP={nlp}")
+        out = tester._find_nim_dpk(nlp=nlp)
+        if out:
+            dpks, dpk_name = out
+            print(f"   Found {len(dpks)} DPK(s), first: {dpk_name}")
+        else:
+            print("   None found")
+
+    # --- 3. test_single_model (dry-run: no platform, no save, no adapter test) ---
+    print("\n" + "-" * 60)
+    print("3. test_single_model (dry-run)")
+    print("-" * 60)
+    for model_id in TEST_MODELS:
+        print(f"\n>> {model_id}")
+        result = tester.test_single_model(
+            model_id,
             test_platform=False,
             cleanup=False,
             save_manifest=False,
+            skip_adapter_test=False,
         )
-        print(results)
-    
+        print(f"   status={result['status']}  type={result.get('type')}  dpk_name={result.get('dpk_name')}")
+        if result.get("error"):
+            print(f"   error={result['error'][:120]}")
+
+    print("\n" + "=" * 60)
+    print("TESTER DRY-RUN COMPLETE")
+    print("=" * 60)

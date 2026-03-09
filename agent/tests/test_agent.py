@@ -200,61 +200,54 @@ class TestOpenAINimModelsParsing(unittest.TestCase):
 # =========================================================================
 
 class TestParseModelId(unittest.TestCase):
-    """Test GitHubClient._parse_model_id path parsing."""
+    """Test parse_model_id (shared function in dpk_mcp_handler)."""
 
     def setUp(self):
-        with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
-            "__init__", lambda self, **kw: None
-        ):
-            from github_client import GitHubClient
-            self.client = GitHubClient()
+        from dpk_mcp_handler import parse_model_id
+        self.parse = parse_model_id
 
     def test_with_publisher(self):
-        pub, name = self.client._parse_model_id("nvidia/llama-3.1-70b-instruct")
+        pub, name = self.parse("nvidia/llama-3.1-70b-instruct")
         self.assertEqual(pub, "nvidia")
         self.assertEqual(name, "llama_3_1_70b_instruct")
 
     def test_without_publisher(self):
-        pub, name = self.client._parse_model_id("nv-embed-v1")
+        pub, name = self.parse("nv-embed-v1")
         self.assertEqual(pub, "nvidia")
         self.assertEqual(name, "nv_embed_v1")
 
     def test_dots_replaced(self):
-        pub, name = self.client._parse_model_id("meta/llama-3.2-11b-vision")
+        pub, name = self.parse("meta/llama-3.2-11b-vision")
         self.assertEqual(pub, "meta")
         self.assertEqual(name, "llama_3_2_11b_vision")
 
     def test_publisher_dashes_to_underscores(self):
-        pub, name = self.client._parse_model_id("baichuan-inc/model-a")
+        pub, name = self.parse("baichuan-inc/model-a")
         self.assertEqual(pub, "baichuan_inc")
 
 
 class TestGetModelFolder(unittest.TestCase):
-    """Test GitHubClient._get_model_folder and _get_manifest_path."""
+    """Test get_model_folder and get_manifest_path (shared functions)."""
 
     def setUp(self):
-        with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
-            "__init__", lambda self, **kw: None
-        ):
-            from github_client import GitHubClient
-            self.client = GitHubClient()
+        from dpk_mcp_handler import get_model_folder, get_manifest_path
+        self.get_folder = get_model_folder
+        self.get_path = get_manifest_path
 
     def test_llm_folder(self):
-        path = self.client._get_model_folder("meta/llama-3.1-8b", "llm")
+        path = self.get_folder("meta/llama-3.1-8b", "llm")
         self.assertEqual(path, "models/api/llm/meta/llama_3_1_8b")
 
     def test_embedding_folder(self):
-        path = self.client._get_model_folder("nvidia/nv-embed-v1", "embedding")
+        path = self.get_folder("nvidia/nv-embed-v1", "embedding")
         self.assertEqual(path, "models/api/embeddings/nvidia/nv_embed_v1")
 
     def test_vlm_folder(self):
-        path = self.client._get_model_folder("meta/llama-3.2-11b-vision", "vlm")
+        path = self.get_folder("meta/llama-3.2-11b-vision", "vlm")
         self.assertEqual(path, "models/api/vlm/meta/llama_3_2_11b_vision")
 
     def test_manifest_path(self):
-        path = self.client._get_manifest_path("meta/llama-3.1-8b", "llm")
+        path = self.get_path("meta/llama-3.1-8b", "llm")
         self.assertEqual(path, "models/api/llm/meta/llama_3_1_8b/dataloop.json")
 
 
@@ -395,7 +388,7 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}, {"model_id": "b"}],
             deprecated_models=[]
         )
-        self.assertIn("Add 2 models", title)
+        self.assertIn("Add 2 API models", title)
 
     def test_deprecated_only(self):
         title = self.client._generate_unified_pr_title(
@@ -409,7 +402,7 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}],
             deprecated_models=[{"model_id": "old"}]
         )
-        self.assertIn("Add 1 model", title)
+        self.assertIn("Add 1 API model", title)
         self.assertIn("Deprecate 1", title)
 
 
@@ -422,10 +415,10 @@ class TestDetectModelType(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("tester", fromlist=["Tester"]).Tester,
+            __import__("nim_tester", fromlist=["Tester"]).Tester,
             "__init__", lambda self, **kw: None
         ):
-            from tester import Tester
+            from nim_tester import Tester
             self.tester = Tester()
             # Mock the OpenAI client so no real API calls are made
             self.tester.client = MagicMock()
