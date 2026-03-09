@@ -54,6 +54,9 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
                 raise ValueError(f"App ID {self.app_id} not found")
             self.using_downloadable = True
             self.get_downloadable_client(self.app_id)
+            # Changing the base url on model configuration so it will be more understanable by the user
+            self.model_entity.configuration["base_url"] = self.base_url
+            self.model_entity.update()
         else:
             self.using_downloadable = False
             self.base_url = self.configuration.get(

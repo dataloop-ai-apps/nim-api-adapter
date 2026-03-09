@@ -1,0 +1,128 @@
+{
+  "displayName": "Audio Transcript (Parakeet CTC 0.6B ASR)",
+  "name": "parakeet-ctc-0-6b-asr",
+  "description": "Audio transcription pipeline node using NVIDIA Parakeet CTC 0.6B ASR. Transcribes audio items and uploads the resulting text files.",
+  "version": "0.3.59",
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.59"
+  },
+  "attributes": {
+    "Provider": "NVIDIA",
+    "Category": "Application",
+    "Media Type": [
+      "Audio"
+    ],
+    "Application Type": [
+      "Pipeline Node"
+    ]
+  },
+  "scope": "public",
+  "components": {
+    "pipelineNodes": [
+      {
+        "scope": "node",
+        "name": "audio-transcript",
+        "displayName": "Audio Transcript",
+        "description": "Transcribe audio files using NVIDIA Parakeet CTC 0.6B ASR and upload the text output.",
+        "invoke": {
+          "type": "function",
+          "namespace": "parakeet-ctc-0-6b-asr.parakeet-ctc-0-6b-asr-module.audio_transcript"
+        },
+        "categories": [
+          "audio-utils"
+        ],
+        "configuration": {
+          "fields": [
+            {
+              "name": "output_dir",
+              "title": "Output Directory",
+              "props": {
+                "title": true,
+                "type": "string",
+                "default": "/",
+                "required": false,
+                "placeholder": "Remote directory for transcript upload (leave empty to use the audio item's directory)"
+              },
+              "rules": [],
+              "widget": "dl-input"
+            }
+          ]
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "parakeet-ctc-0-6b-asr-module",
+        "entryPoint": "nodes/asr/base.py",
+        "className": "ServiceRunner",
+        "initInputs": [
+          {
+            "type": "Json",
+            "name": "model_config",
+            "default": {
+              "riva_server": "grpc.nvcf.nvidia.com:443",
+              "function_id": "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965",
+              "language_code": "en-US"
+            }
+          }
+        ],
+        "functions": [
+          {
+            "name": "audio_transcript",
+            "description": "Transcribe an audio item using NVIDIA Parakeet CTC 0.6B ASR",
+            "input": [
+              {
+                "type": "Item",
+                "name": "item"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item",
+                "name": "item"
+              }
+            ],
+            "displayIcon": "icon-dl-audio-transcription",
+            "displayName": "Audio Transcript"
+          }
+        ],
+        "integrations": [
+          "dl-ngc-api-key"
+        ]
+      }
+    ],
+    "services": [
+      {
+        "name": "parakeet-ctc-0-6b-asr",
+        "moduleName": "parakeet-ctc-0-6b-asr-module",
+        "initParams": {
+          "model_config": {
+            "riva_server": "grpc.nvcf.nvidia.com:443",
+            "function_id": "d8dd4e9b-fbf5-4fb0-9dba-8cf436c8d965",
+            "language_code": "en-US"
+          }
+        },
+        "runtime": {
+          "podType": "regular-xs",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/audio_transcript:0.0.1",
+          "numReplicas": 1,
+          "concurrency": 10,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 10
+          }
+        },
+        "maxAttempts": 3,
+        "executionTimeout": 172800,
+        "drainTime": 600,
+        "onReset": "failed",
+        "runExecutionAsProcess": false,
+        "operation": "none"
+      }
+    ]
+  }
+}

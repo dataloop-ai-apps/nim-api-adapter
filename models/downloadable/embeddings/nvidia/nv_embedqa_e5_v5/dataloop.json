@@ -1,5 +1,5 @@
 {
-    "version": "0.3.56",
+    "version": "0.3.59",
     "name": "nim-nvidia-nv-embedqa-e5-v5-downloadable",
     "displayName": "NIM Nv Embedqa E5 V5 Downloadable",
     "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs",
@@ -59,7 +59,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-nv-embedqa-e5-v5:0.3.42",
+                    "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/nvidia-nv-embedqa-e5-v5:0.3.42",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",
@@ -80,6 +80,11 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.56"
-    }
+        "gitTag": "0.3.59"
+    },
+    "dependencies": [
+        {
+            "name": "nim-nv-embedqa-e5-v5"
+        }
+    ]
 }
