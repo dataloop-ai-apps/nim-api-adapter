@@ -10,7 +10,8 @@
             "NIM"
         ],
         "Provider": "NVIDIA",
-        "Application Type": "Model"
+        "Application Type": "Model",
+        "License": "NVIDIA Open Model License"
     },
     "components": {
         "modules": [

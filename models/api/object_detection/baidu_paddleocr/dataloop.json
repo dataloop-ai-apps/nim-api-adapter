@@ -10,7 +10,8 @@
     "Deployed By": "NVIDIA",
     "Category": ["Model", "NIM"],
     "Computer Vision": "Object Detection",
-    "Media Type": ["Image"]
+    "Media Type": ["Image"],
+    "License": "Other"
   },
   "codebase": {
     "type": "git",
