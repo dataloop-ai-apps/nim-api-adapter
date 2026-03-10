@@ -10,11 +10,13 @@ Main orchestrator for:
 
 import os
 import json
+import re
 import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Literal
 from urllib.parse import quote
+
 from openai import OpenAI
 import dtlpy as dl
 
@@ -33,6 +35,275 @@ NIM_TYPE_API_ONLY = "nim_type_preview"
 # =================================================================================
 # FETCHING - Module-level functions for fetching models from NGC Catalog and OpenAI
 # =================================================================================
+
+# (regex_pattern, canonical_name)
+# Order matters — more specific patterns MUST come before generic ones.
+# To add a new license, add one entry here — everything else derives automatically.
+LICENSE_REGISTRY = [
+    # --- Standard open-source (Dataloop built-in) ---
+    (r"apache[\s\-]*(?:license[\s,\-]*)?(?:version[\s,\-]*)?2(?:\.0)?", "Apache 2.0"),
+    (r"\bmit\b", "MIT"),
+    (r"bsd[\s\-]*3[\s\-]*clause", "BSD-3-Clause"),
+    (r"cc[\s\-]*by[\s\-]*sa[\s\-]*3\.0", "CC BY-SA 3.0"),
+    (r"cc[\s\-]*by[\s\-]*(?:nc[\s\-]*)?4\.0", "CC BY 4.0"),
+    (r"agpl[\s\-]*3\.0", "AGPL-3.0"),
+    (r"gpl[\s\-]*3\.0", "GPL 3.0"),
+    (r"gpl[\s\-]*2\.0", "GPL 2.0"),
+    (r"llama[\s\-]*4[\s\-]*community", "Llama 4 Community Model License"),
+    (r"llama[\s\-]*3\.2", "Llama 3.2"),
+    (r"llama[\s\-]*3\.1", "Llama 3.1"),
+    (r"llama[\s\-]*3(?:\.\d+)?(?:[\s\-]*community)?", "Llama 3"),
+    (r"llama[\s\-]*2", "Llama 2"),
+
+    # --- NVIDIA licenses (specific → generic) ---
+    (r"nvidia[\s\-]*nemotron[\s\-]*open[\s\-]*(?:model[\s\-]*)?license", "NVIDIA Nemotron Open Model License"),
+    (r"nvidia[\s\-]*nemo[\s\-]*foundational[\s\-]*models?[\s\-]*evaluation[\s\-]*license", "NVIDIA Software and Model Evaluation License"),
+    (r"nvidia[\s\-]*software[\s\-]*(?:and[\s\-]*)?model[\s\-]*evaluation[\s\-]*license", "NVIDIA Software and Model Evaluation License"),
+    (r"(?:nvidia[\s\-]*)?ai[\s\-]*foundation[\s\-]*models?[\s\-]*community[\s\-]*license", "NVIDIA Community Model License"),
+    (r"nvidia[\s\-]*community[\s\-]*model[\s\-]*license", "NVIDIA Community Model License"),
+    (r"nvidia[\s\-]*open[\s\-]*model[\s\-]*license", "NVIDIA Open Model License"),
+    (r"\beula\b", "EULA"),
+
+    # --- Vendor-specific licenses ---
+    (r"gemma[\s\-]*terms[\s\-]*of[\s\-]*use", "Gemma Terms of Use"),
+    (r"hive[\s\-]*terms[\s\-]*(?:of[\s\-]*)?use", "Hive Terms of Use"),
+    (r"bigcode[\s\-]*openrail", "BigCode OpenRAIL-M v1 License Agreement"),
+    (r"jamba[\s\-]*open[\s\-]*license", "Jamba Open License Agreement"),
+    (r"falcon[\s\-]*3[\s\-]*tii", "Falcon 3 TII Falcon License"),
+    (r"license[\s\-]*(?:agreement[\s\-]*)?for[\s\-]*colosseum", "License agreement for Colosseum"),
+    (r"nvidia[\s\-]*technology[\s\-]*access[\s\-]*terms", "NVIDIA Technology Access Terms of Use"),
+    (r"deepseek[\s\-]+license", "DeepSeek License"),
+]
+
+# Derived from the registry — no manual duplication needed
+LICENSE_PATTERNS = [pat for pat, _ in LICENSE_REGISTRY]
+DATALOOP_LICENSES = list(dict.fromkeys(name for _, name in LICENSE_REGISTRY))
+
+
+def _normalize_space(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _clean_html(text: str) -> str:
+    """Replace <a> tags and markdown links with their display text, strip remaining HTML."""
+    out = re.sub(r"<a[^>]*>([^<]*)</a>", r"\1", text)
+    out = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", out)
+    out = re.sub(r"<[^>]+>", " ", out)
+    return _normalize_space(out)
+
+
+def _normalize_license_to_dataloop(raw_license: str) -> str:
+    """Normalize an extracted license string to a canonical Dataloop name."""
+    license_value = None
+    for pattern, canonical in LICENSE_REGISTRY:
+        if re.search(pattern, raw_license, re.IGNORECASE):
+            license_value = canonical
+            break
+
+    normalized = raw_license.strip().lower()
+    for dl_license in DATALOOP_LICENSES:
+        if dl_license.lower() in normalized or normalized in dl_license.lower():
+            license_value = dl_license
+            break
+
+    if license_value is None:
+        print(f"  [UNMATCHED] No license match for: {raw_license}")
+        license_value = "Other"
+    
+    return license_value
+
+
+def _extract_license_from_page_text(text: str) -> str | None:
+    """Extract license text from a model card page section."""
+
+    license_value = None
+    cleaned_text = _clean_html(text)
+
+    match = re.search(
+        r"Additional\s+Information\s*:\s*(.+?)(?:\.|$)",
+        cleaned_text,
+        re.IGNORECASE,
+    )
+    if match:
+        license_value = _normalize_space(match.group(1))
+
+    elif license_value is None:
+        match = re.search(
+            r"use\s+of\s+this\s+model\s+is\s+governed\s+by\s+(?:the\s+)?(.+?)(?:\.\s|\s*$)",
+            cleaned_text,
+            re.IGNORECASE,
+        )
+
+        if match:
+            candidate = _normalize_space(match.group(1)).strip(" .,;")
+            if candidate and len(candidate) > 2:
+                license_value = candidate
+
+    elif license_value is None:
+        match = re.search(
+            r"(?:^|\s)License\s*:?\s+([A-Z][\w\s.\-]+)",
+            cleaned_text,
+            re.IGNORECASE,
+        )
+        if match:
+            license_value = _normalize_space(match.group(1)).strip(" .")
+
+    if license_value is None:
+        for pattern in LICENSE_PATTERNS:
+            match = re.search(pattern, cleaned_text, flags=re.IGNORECASE)
+            if match:
+                license_value = _normalize_space(match.group(0))
+                break
+
+    return license_value
+
+
+def _extract_from_governing_terms(text: str) -> str | None:
+    """Extract the model license from a GOVERNING TERMS block in the RSC payload."""
+    
+    license_value = None
+
+    block_match = re.search(
+        r"GOVERNING\s+TERMS\s*:?\s*(.{20,800}?)(?:showUnavailable|playground|\"cta\")",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    if block_match:
+        cleaned = _clean_html(block_match.group(1))
+
+        match = re.search(
+            r"Additional\s+Information\s*:\s*(.+?)(?:\.|$)",
+            cleaned,
+            re.IGNORECASE,
+        )
+
+        if match:
+            candidate = _normalize_space(match.group(1)).strip(" .,;")
+            if candidate and len(candidate) > 2:
+                license_value = candidate
+
+        elif license_value is None:
+            match = re.search(
+                r"use\s+of\s+this\s+model\s+is\s+governed\s+by\s+(?:the\s+)?(.+?)(?:\.\s|\s*$)",
+                cleaned,
+                re.IGNORECASE,
+            )
+
+            if match:
+                candidate = _normalize_space(match.group(1)).strip(" .,;")
+                if candidate and len(candidate) > 2:
+                    license_value = candidate
+
+        if license_value is None:
+            for pattern in LICENSE_PATTERNS:
+                match = re.search(pattern, cleaned, re.IGNORECASE)
+                if match:
+                    license_value = _normalize_space(match.group(0))
+                    break
+
+    return license_value
+
+
+def _find_license_for_resource(resource: dict) -> str | None:
+    """
+    Main license discovery flow.
+
+    This function determines the license of a model listed in the
+    NVIDIA NGC catalog.
+
+    The NGC catalog API does not reliably expose license metadata,
+    so we must retrieve it from the model card page.
+
+    Steps:
+
+    1. Extract model name and publisher from the catalog resource.
+    2. Construct the model card URL on build.nvidia.com.
+    3. Fetch the model card HTML page.
+    4. Attempt to extract license information from structured
+       sections such as:
+           - "License"
+           - "Terms of Use"
+           - "Additional Information"
+    5. If structured parsing fails, scan the entire page text
+       for known license patterns.
+    6. Normalize the detected license to the Dataloop canonical
+       license list.
+
+    Returns:
+        Canonical Dataloop license name, or None if not found.
+    """
+    SESSION = requests.Session()
+    SESSION.headers.update({
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (compatible; nim-license-scraper/1.0)",
+        "Accept-Language": "en-US,en;q=0.9",
+    })
+    license_value = None
+    model_name = resource.get("name", "")
+    publisher = ""
+
+    # Step 1: ensure model name exists
+    if not model_name:
+        license_value = None
+
+    else:
+        # Step 2: extract publisher label
+        for label in resource.get("labels", []):
+            if label.get("key") == "publisher":
+                publisher = (label.get("values") or [""])[0]
+                break
+
+        if not publisher:
+            license_value = None
+
+        else:
+            # Step 3: construct model card URL
+            slug = model_name.split("/")[-1]
+            publisher_slug = publisher.lower().replace(" ", "-")
+            url = f"https://build.nvidia.com/{publisher_slug}/{slug}/modelcard"
+
+            try:
+                response = SESSION.get(url, timeout=15)
+                response.raise_for_status()
+                html = response.text
+
+                # Step 4: attempt structured section parsing
+                match = re.search(
+                    r"<h[23][^>]*>[^<]*(?:License|Terms\s*of\s*Use)[^<]*</h[23]>\s*(.*?)(?=<h[23]|</section|$)",
+                    html,
+                    re.IGNORECASE | re.DOTALL,
+                )
+
+                if match:
+                    raw_license = _extract_license_from_page_text(match.group(1))
+
+                else:
+                    raw_license = None
+
+                # Step 5: extract from GOVERNING TERMS block in RSC payload
+                if not raw_license:
+                    decoded_html = html.encode().decode("unicode_escape", errors="ignore")
+                    decoded_html = decoded_html.replace("\\n", " ").replace("\\t", " ")
+                    raw_license = _extract_from_governing_terms(decoded_html)
+
+                # Step 5b: fallback scanning entire decoded page
+                if not raw_license:
+                    raw_license = _extract_license_from_page_text(decoded_html)
+
+                # Step 6: normalize license
+                if raw_license:
+                    license_value = _normalize_license_to_dataloop(raw_license)
+                    if license_value not in DATALOOP_LICENSES:
+                        print(f"  [OTHER] {model_name}: raw='{raw_license}' -> '{license_value}'")
+                else:
+                    license_value = None
+
+            except Exception:
+                license_value = None
+
+    return license_value
+
 
 def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     """Fetch all models for a given NIM type filter (handles pagination)."""
@@ -62,19 +333,22 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
                 if name not in seen:
                     seen.add(name)
                     publisher = ""
+                    model_tasks = []
                     for label in resource.get("labels", []):
                         if label.get("key") == "publisher":
                             publisher = label.get("values", [""])[0]
                         if label.get("key") == "general":
-                            model_tasks = label.get("values", [""])
-                        
+                            model_tasks = label.get("values", [])
+                    license_name = _find_license_for_resource(resource)
+
                     models.append({
                         "name": name,
                         "display_name": resource.get("displayName", ""),
                         "description": resource.get("description", ""),
                         "publisher": publisher,
                         "model_tasks": model_tasks,
-                        "nim_type": nim_type_filter
+                        "nim_type": nim_type_filter,
+                        "license": license_name
                     })
         
         page += 1
@@ -418,6 +692,9 @@ class NIMAgent:
         self.downloadable_to_add = []       # Downloadable models not yet in Dataloop
         self.downloadable_deprecated = []   # Dataloop downloadable DPKs no longer downloadable
         
+        # State - License lookup (model_name → canonical license)
+        self.license_map = {}
+
         # State - Results
         self.results = []
         self.successful_manifests = []
@@ -455,16 +732,24 @@ class NIMAgent:
         openai_names = {m["name"] for m in self.api_models}
         print(f"  OpenAI models: {len(self.api_models)}")
         
-        # 2. Downloadable = OpenAI ∩ NGC "run anywhere"
-        print("📡 Fetching NGC Catalog downloadable models...")
+        # 2. NGC Catalog models (API-only + downloadable) — includes license info
+        print("📡 Fetching NGC Catalog models (API + downloadable)...")
+        catalog_api = get_api_models()
         catalog_downloadable = get_downloadable_models()
         catalog_dl_names = {m["name"] for m in catalog_downloadable}
+        print(f"  NGC API-only (catalog): {len(catalog_api)}")
         print(f"  NGC downloadable (catalog): {len(catalog_downloadable)}")
-        
+
+        # Build license lookup from all catalog models
+        for m in catalog_api + catalog_downloadable:
+            if m.get("license"):
+                self.license_map[m["name"]] = m["license"]
+        print(f"  Licenses resolved: {len(self.license_map)}")
+
         # Intersection: only models that are both on OpenAI AND downloadable in catalog
         downloadable_names = openai_names & catalog_dl_names
         self.downloadable_models = [m for m in self.api_models if m["name"] in downloadable_names]
-        
+
         print(f"  Downloadable (OpenAI ∩ catalog): {len(self.downloadable_models)}")
         print(f"  API-only (OpenAI, not downloadable): {len(self.api_models) - len(self.downloadable_models)}")
     
@@ -694,13 +979,17 @@ class NIMAgent:
         print(f"🚀 Onboarding: {model_id}")
         print("=" * 60)
         
-        # Tests the model adapter
+        # Resolve license for this model
+        model_name = model_id.split("/")[-1] if "/" in model_id else model_id
+        license_name = self.license_map.get(model_name)
+
         result = self.tester.test_single_model(
             model_id=model_id,
             test_platform=False,
             cleanup=True,
             save_manifest=True,
             skip_adapter_test=skip_adapter_test,
+            license=license_name,
         )
         
         if result.get("type") and not result.get("model_type"):
@@ -708,7 +997,6 @@ class NIMAgent:
         
         if result["status"] == "success":
             print(f"\n✅ Onboarding complete for {model_id}")
-            # If passed, creates a DPK manifest and saves it to the repo
             self.tester.save_manifest_to_repo(model_id, result["model_type"], result["manifest"])
             print(f"  ✅ Manifest saved to {result['manifest_path']}")
         
@@ -1008,8 +1296,8 @@ if __name__ == "__main__":
     load_dotenv()
     
     # report = featch_report()
-    openai_nim_models = get_openai_nim_models()
-    print(f"OpenAI NIM models: {len(openai_nim_models)}")
+    # openai_nim_models = get_openai_nim_models()
+    # print(f"OpenAI NIM models: {len(openai_nim_models)}")
     # ==========================================================================
     # DEBUG MODE - Test full flow with subset of models
     # ==========================================================================
@@ -1034,7 +1322,6 @@ if __name__ == "__main__":
     # report = agent.run(
     #     limit=DEBUG_LIMIT,
     #     open_pr=OPEN_PR,
-    #     include_deprecated=True,
     #     max_workers=MAX_WORKERS,
     # )
     

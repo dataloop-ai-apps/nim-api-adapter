@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "Llama 4 Community Model License"
   },
   "components": {
     "computeConfigs": [

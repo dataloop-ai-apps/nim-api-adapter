@@ -164,12 +164,15 @@ def create_manifest(
     if runner_image_override:
         manifest['components']['services'][0]['runtime']['runnerImage'] = runner_image_override
     
-    # Add dependency on the corresponding API model
+    # Add dependency and license from the corresponding API model
     api_model_name = _get_api_model_name(manifest_path)
     if api_model_name:
         manifest['dependencies'] = [{"name": api_model_name}]
     else:
         print(f"Warning: No corresponding API model found at models/api/{manifest_path}/dataloop.json — skipping dependency")
+
+    api_license = _get_api_model_license(manifest_path)
+    manifest.setdefault("attributes", {})["License"] = api_license or "Other"
 
     # Save to models/downloadable/<manifest_path>/dataloop.json
     output_dir = _get_repo_root() / 'models' / 'downloadable' / manifest_path
@@ -255,17 +258,30 @@ def build_docker_image(model_name: str, image_version: str = "1.0.0") -> str:
     return target_image
 
 
-def _get_api_model_name(manifest_path: str) -> str | None:
-    """Get the name of the corresponding API model from models/api/<manifest_path>/dataloop.json."""
+def _get_api_manifest_data(manifest_path: str) -> dict | None:
+    """Load the corresponding API model manifest from models/api/<manifest_path>/dataloop.json."""
     api_manifest = _get_repo_root() / 'models' / 'api' / manifest_path / 'dataloop.json'
     if not api_manifest.exists():
         return None
     try:
         with open(api_manifest, 'r') as f:
-            data = json.load(f)
-        return data.get('name')
+            return json.load(f)
     except (json.JSONDecodeError, OSError):
         return None
+
+
+def _get_api_model_name(manifest_path: str) -> str | None:
+    """Get the name of the corresponding API model from models/api/<manifest_path>/dataloop.json."""
+    data = _get_api_manifest_data(manifest_path)
+    return data.get('name') if data else None
+
+
+def _get_api_model_license(manifest_path: str) -> str | None:
+    """Get the license of the corresponding API model."""
+    data = _get_api_manifest_data(manifest_path)
+    if data:
+        return data.get('attributes', {}).get('License')
+    return None
 
 
 def _get_existing_runner_image(manifest_path: str) -> str | None:
@@ -379,6 +395,9 @@ def fix_existing_downloadable_manifests() -> int:
         api_model_name = _get_api_model_name(manifest_path)
         if api_model_name:
             manifest["dependencies"] = [{"name": api_model_name}]
+        api_license = _get_api_model_license(manifest_path)
+        if api_license:
+            manifest.setdefault("attributes", {})["License"] = api_license
         with open(path, "w") as f:
             json.dump(manifest, f, indent=4)
         count += 1

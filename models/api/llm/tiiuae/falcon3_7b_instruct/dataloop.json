@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "Falcon 3 TII Falcon License"
   },
   "components": {
     "computeConfigs": [

@@ -101,13 +101,14 @@ class DPKGeneratorClient:
                 result = await session.call_tool(tool_name, arguments=arguments)
                 return json.loads(result.content[0].text)
     
-    def create_nim_dpk_manifest(self, model_id: str, model_type: str) -> dict:
+    def create_nim_dpk_manifest(self, model_id: str, model_type: str, license: str = None) -> dict:
         """
         Create a DPK manifest for a NVIDIA NIM model.
         
         Args:
             model_id: NVIDIA model ID (e.g., "nvidia/llama-3.1-70b-instruct")
             model_type: Type of model ("llm", "vlm", "embedding")
+            license: Canonical Dataloop license name (e.g., "Apache 2.0"); defaults to "Other"
             
         Returns:
             dict with status, dpk_name, manifest, adapter_path, error
@@ -180,7 +181,8 @@ class DPKGeneratorClient:
                     "nim_model_name": model_id,
                     "base_url": "https://integrate.api.nvidia.com/v1"
                 },
-                "attributes": attributes
+                "attributes": attributes,
+                "license": license or "Other",
             }))
             
             result.update({
@@ -255,10 +257,10 @@ class DPKGeneratorClient:
 # Module-level convenience functions
 # =========================================================================
 
-def create_nim_manifest(model_id: str, model_type: str) -> dict:
+def create_nim_manifest(model_id: str, model_type: str, license: str = None) -> dict:
     """Create NIM DPK manifest (module-level convenience function)."""
     client = DPKGeneratorClient()
-    return client.create_nim_dpk_manifest(model_id, model_type)
+    return client.create_nim_dpk_manifest(model_id, model_type, license=license)
 
 
 # Usage examples

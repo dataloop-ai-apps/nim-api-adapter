@@ -10,7 +10,8 @@
             "NIM"
         ],
         "Provider": "NVIDIA",
-        "Application Type": "Model"
+        "Application Type": "Model",
+        "License": "Llama 4 Community Model License"
     },
     "components": {
         "modules": [
