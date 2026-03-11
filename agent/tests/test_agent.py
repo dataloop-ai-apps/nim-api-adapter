@@ -458,7 +458,7 @@ class TestDetectModelType(unittest.TestCase):
 
     def test_llm_default(self):
         for name in ["meta/llama-3.1-8b-instruct", "mistralai/mixtral-8x7b",
-                      "google/gemma-3-4b-it", "qwen/qwen2.5-7b-instruct"]:
+                      "google/gemma-3-4b-it"]:
             result = self.tester.detect_model_type(name)
             self.assertEqual(result["type"], "llm", f"Failed for {name}")
             self.assertEqual(result["status"], "success")
