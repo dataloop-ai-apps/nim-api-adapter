@@ -4,23 +4,6 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
-  "attributes": {
-    "Category": [
-      "Model",
-      "NIM"
-    ],
-    "Gen AI": "LLM",
-    "Provider": "Other",
-    "Media Type": [
-      "Text"
-    ],
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
-    "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
-  },
   "components": {
     "computeConfigs": [
       {

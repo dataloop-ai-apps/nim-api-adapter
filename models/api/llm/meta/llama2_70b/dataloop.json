@@ -4,23 +4,6 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama2-70b",
-  "attributes": {
-    "Category": [
-      "Model",
-      "NIM"
-    ],
-    "Gen AI": "LLM",
-    "Provider": "Meta",
-    "Media Type": [
-      "Text"
-    ],
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
-    "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
-  },
   "components": {
     "computeConfigs": [
       {

@@ -4,23 +4,6 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-4-scout-17b-16e-instruct",
-  "attributes": {
-    "Category": [
-      "Model",
-      "NIM"
-    ],
-    "Gen AI": "LLM",
-    "Provider": "Meta",
-    "Media Type": [
-      "Text"
-    ],
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
-    "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
-  },
   "components": {
     "computeConfigs": [
       {
