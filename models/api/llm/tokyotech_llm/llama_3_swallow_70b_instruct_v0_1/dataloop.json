@@ -4,6 +4,7 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
+  "attributes": {},
   "components": {
     "computeConfigs": [
       {

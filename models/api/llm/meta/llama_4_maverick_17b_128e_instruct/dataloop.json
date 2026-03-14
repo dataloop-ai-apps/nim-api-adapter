@@ -4,6 +4,7 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-4-maverick-17b-128e-instruct",
+  "attributes": {},
   "components": {
     "computeConfigs": [
       {

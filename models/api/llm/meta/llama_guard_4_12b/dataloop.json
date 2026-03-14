@@ -4,6 +4,7 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
+  "attributes": {},
   "components": {
     "computeConfigs": [
       {

@@ -4,6 +4,7 @@
   "displayName": "NIM Llama 4 Scout 17B 16E Instruct Downloadable",
   "description": "NVIDIA NIM Llama 4 Scout 17B 16E Instruct adapter - runs start_server.sh and streams logs",
   "scope": "project",
+  "attributes": {},
   "components": {
     "modules": [
       {

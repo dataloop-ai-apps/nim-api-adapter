@@ -4,7 +4,8 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama3-8b-instruct",
-  "components": {
+  "attributes": {},
+  "components"  : {
     "computeConfigs": [
       {
         "name": "nim-llama3-8b-instruct-deploy",

@@ -4,6 +4,7 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama2-70b",
+  "attributes": {},
   "components": {
     "computeConfigs": [
       {
