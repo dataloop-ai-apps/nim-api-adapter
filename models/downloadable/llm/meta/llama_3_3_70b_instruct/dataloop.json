@@ -4,7 +4,7 @@
     "displayName": "NIM Llama 3.3 70B Instruct Downloadable",
     "description": "NVIDIA NIM Llama 3.3 70B Instruct adapter - runs start_server.sh and streams logs",
     "scope": "project",
-    "attributes": {
+    "attributes": { 
         "Category": [
             "Application",
             "NIM"

@@ -4,23 +4,7 @@
   "version": "0.3.59",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-content-safety",
-  "attributes": {
-    "Category": [
-      "Model",
-      "NIM"
-    ],
-    "Gen AI": "LLM",
-    "Provider": "NVIDIA",
-    "Media Type": [
-      "Text"
-    ],
-    "Hub": [
-      "Nvidia",
-      "Dataloop"
-    ],
-    "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
-  },
+  "attributes": {},
   "components": {
     "computeConfigs": [
       {
