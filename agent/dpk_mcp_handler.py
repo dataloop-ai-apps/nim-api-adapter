@@ -294,7 +294,7 @@ class DPKGeneratorClient:
                 result = await session.call_tool(tool_name, arguments=arguments)
                 return json.loads(result.content[0].text)
     
-    def create_nim_dpk_manifest(self, model_id: str, model_type: str, embeddings_size: int = None) -> dict:
+    def create_nim_dpk_manifest(self, model_id: str, model_type: str, embeddings_size: int = None, license: str = None) -> dict:
         """
         Create a DPK manifest for a NVIDIA NIM model.
         
@@ -302,6 +302,7 @@ class DPKGeneratorClient:
             model_id: NVIDIA model ID (e.g., "nvidia/llama-3.1-70b-instruct")
             model_type: Type of model ("llm", "vlm", "embedding")
             embeddings_size: Embedding dimension (only for embedding type, default 1024)
+            license: Canonical Dataloop license name (e.g., "MIT", "Apache 2.0")
             
         Returns:
             dict with status, dpk_name, manifest, adapter_path, error
@@ -349,6 +350,9 @@ class DPKGeneratorClient:
             # Add "Gen AI" only for LLM/VLM (not for embeddings)
             if "gen_ai" in type_config:
                 attributes["Gen AI"] = type_config["gen_ai"]
+            
+            if license:
+                attributes["License"] = license
             
             # Build model configuration based on type
             if model_type == "embedding":

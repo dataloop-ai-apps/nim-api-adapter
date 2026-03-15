@@ -22,6 +22,7 @@ from nim_tester import Tester
 from dpk_mcp_handler import DPKGeneratorClient, infer_model_type, model_to_dpk_name
 from github_client import GitHubClient
 from downloadables_create import model_name_from_downloadable_dpk_name
+from license_scraper import find_license_for_resource, find_license, DATALOOP_LICENSES as SCRAPER_LICENSES
 
 
 NGC_CATALOG_URL = "https://api.ngc.nvidia.com/v2/search/catalog"
@@ -115,8 +116,25 @@ def is_model_downloadable(model_name: str) -> bool:
     return normalized in run_anywhere_normalized
 
 
+def _find_license_for_resource(resource: dict) -> str | None:
+    """Find the license for an NGC catalog resource using the LLM-backed scraper.
+
+    Delegates to license_scraper.find_license_for_resource which:
+      1. Fetches the model card page
+      2. Extracts termsOfUse + GOVERNING TERMS sections
+      3. Uses an LLM to pick the correct license (with regex fallback)
+
+    Returns:
+        Canonical Dataloop license name, or None if not found.
+    """
+    try:
+        return find_license_for_resource(resource, use_llm=True)
+    except ValueError:
+        return None
+
+
 def get_all_catalog_models() -> list[dict]:
-    """Get all NIM models with their availability type."""
+    """Get all NIM models with their availability type and license."""
     api_models = get_api_models()
     downloadable_models = get_downloadable_models()
     # Deduplicate by name, preferring API models
@@ -127,6 +145,16 @@ def get_all_catalog_models() -> list[dict]:
             all_models.append(m)
             seen.add(m["name"])
     all_models.sort(key=lambda x: x["name"])
+
+    # Scrape license for each catalog model
+    for m in all_models:
+        lic = _find_license_for_resource(m)
+        m["license"] = lic
+        if lic:
+            print(f"  {m['name']}: {lic}")
+        else:
+            print(f"  {m['name']}: license not found")
+
     return all_models
 
 
@@ -484,26 +512,45 @@ class NIMAgent:
         openai_ids = {m["id"] for m in self.potential_api_models}
         print(f"  OpenAI models: {len(self.potential_api_models)}")
 
-        # 2. Fetch downloadable from NGC catalog
-        print("📡 Fetching NGC Catalog downloadable models...")
-        catalog_downloadable = get_downloadable_models()
+        # 2. Fetch ALL catalog models once (API + downloadable in one pass)
+        #    Each model gets its license scraped via _find_license_for_resource.
+        print("📡 Fetching NGC Catalog (all types, single pass)...")
+        all_catalog = get_all_catalog_models()
 
-        # Build catalog IDs in same format: publisher/name
-        catalog_ids = {
+        # Build catalog IDs for downloadable intersection
+        catalog_dl_ids = {
             f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}"
-            for m in catalog_downloadable
+            for m in all_catalog if m.get("nim_type") == NIM_TYPE_DOWNLOADABLE
         }
-        print(f"  NGC downloadable (catalog): {len(catalog_downloadable)}")
+        print(f"  Catalog total: {len(all_catalog)} (downloadable: {len(catalog_dl_ids)})")
 
         # 3. Intersection: OpenAI ∩ Downloadable
-        downloadable_ids = openai_ids & catalog_ids
+        downloadable_ids = openai_ids & catalog_dl_ids
 
         self.potential_downloadable_models = [
             m for m in self.potential_api_models
             if m["id"] in downloadable_ids
         ]
 
-        print(f"  Downloadable (OpenAI ∩ catalog): {len(self.potential_downloadable_models)}")
+        print(f"  Downloadable (OpenAI & catalog): {len(self.potential_downloadable_models)}")
+
+        # 4. Build license map from all catalog models (already scraped)
+        self.license_map = {}
+        for m in all_catalog:
+            if m.get("license"):
+                self.license_map[m["name"]] = m["license"]
+                self.license_map[m["name"].replace("_", "-")] = m["license"]
+
+        # Attach license to each OpenAI model
+        for m in self.potential_api_models:
+            name = m["id"].split("/")[-1] if "/" in m["id"] else m["id"]
+            lic = self.license_map.get(name) or self.license_map.get(name.replace("_", "-"))
+            m["license"] = lic
+            if lic:
+                print(f"  {m['id']}: {lic}")
+
+        licensed = sum(1 for m in self.potential_api_models if m.get("license"))
+        print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
 
         # # 3. Also include existing repo models (e.g. object_detection) that are run-anywhere,
         # #    so we compare them with Dataloop and know which downloadables to add.
@@ -749,6 +796,15 @@ class NIMAgent:
         print(f"🚀 Onboarding: {model_id}")
         print("=" * 60)
         
+        # Resolve license from pre-built lookup
+        model_name = model_id.split("/")[-1] if "/" in model_id else model_id
+        license_name = getattr(self, "license_map", {}).get(model_name) or \
+                       getattr(self, "license_map", {}).get(model_name.replace("-", "_"))
+        if license_name:
+            print(f"  License: {license_name}")
+        else:
+            print(f"  License: not found in catalog")
+        
         # Tests the model adapter
         result = self.tester.test_single_model(
             model_id=model_id,
@@ -756,6 +812,7 @@ class NIMAgent:
             cleanup=True,
             save_manifest=True,
             skip_adapter_test=skip_adapter_test,
+            license=license_name,
         )
         
         if result.get("type") and not result.get("model_type"):

@@ -496,5 +496,100 @@ class TestDetectModelType(unittest.TestCase):
         self.assertEqual(result["dimension"], 4096)
 
 
+# =========================================================================
+# license_scraper tests
+# =========================================================================
+
+class TestNormalizeLicense(unittest.TestCase):
+    """Test _normalize_license maps raw strings to canonical names."""
+
+    def setUp(self):
+        from license_scraper import _normalize_license
+        self.normalize = _normalize_license
+
+    def test_apache_variants(self):
+        self.assertEqual(self.normalize("Apache License 2.0"), "Apache 2.0")
+        self.assertEqual(self.normalize("Apache 2"), "Apache 2.0")
+        self.assertEqual(self.normalize("apache-2.0"), "Apache 2.0")
+
+    def test_nvidia_community(self):
+        self.assertEqual(self.normalize("NVIDIA Community Model License"), "NVIDIA Community Model License")
+        self.assertEqual(self.normalize("NVIDIA Community License"), "NVIDIA Community Model License")
+
+    def test_nvidia_open(self):
+        self.assertEqual(self.normalize("NVIDIA Open Model License"), "NVIDIA Open Model License")
+
+    def test_unknown_returns_other(self):
+        self.assertEqual(self.normalize("some totally unknown license"), "Other")
+
+    def test_fuzzy_substring_match(self):
+        self.assertEqual(self.normalize("Gemma Terms of Use"), "Gemma Terms of Use")
+
+
+class TestFindLicenseValidation(unittest.TestCase):
+    """Test find_license input validation."""
+
+    def setUp(self):
+        from license_scraper import find_license
+        self.find_license = find_license
+
+    def test_raises_on_empty_publisher(self):
+        with self.assertRaises(ValueError):
+            self.find_license("some-model", "")
+
+    @patch("license_scraper._fetch_modelcard_sections", return_value=("", "http://example.com"))
+    def test_returns_none_on_empty_page(self, mock_fetch):
+        result = self.find_license("some-model", "SomePublisher", use_llm=False)
+        self.assertIsNone(result)
+
+
+class TestFindLicenseRegexFallback(unittest.TestCase):
+    """Test find_license regex fallback (no LLM)."""
+
+    def setUp(self):
+        from license_scraper import find_license
+        self.find_license = find_license
+
+    @patch("license_scraper._fetch_modelcard_sections")
+    def test_extracts_governed_by(self, mock_fetch):
+        mock_fetch.return_value = (
+            "Use of this model is governed by the NVIDIA Open Model License.",
+            "http://example.com",
+        )
+        result = self.find_license("test-model", "NVIDIA", use_llm=False)
+        self.assertEqual(result, "NVIDIA Open Model License")
+
+    @patch("license_scraper._fetch_modelcard_sections")
+    def test_extracts_mit(self, mock_fetch):
+        mock_fetch.return_value = (
+            "License: MIT",
+            "http://example.com",
+        )
+        result = self.find_license("test-model", "NVIDIA", use_llm=False)
+        self.assertEqual(result, "MIT")
+
+
+class TestFindLicenseForResource(unittest.TestCase):
+    """Test find_license_for_resource extracts publisher from labels."""
+
+    def setUp(self):
+        from license_scraper import find_license_for_resource
+        self.find_for_resource = find_license_for_resource
+
+    def test_raises_on_missing_name(self):
+        with self.assertRaises(ValueError):
+            self.find_for_resource({})
+
+    @patch("license_scraper.find_license", return_value="Apache 2.0")
+    def test_extracts_publisher_from_labels(self, mock_find):
+        resource = {
+            "name": "test-model",
+            "labels": [{"key": "publisher", "values": ["TestPublisher"]}],
+        }
+        result = self.find_for_resource(resource, use_llm=False)
+        self.assertEqual(result, "Apache 2.0")
+        mock_find.assert_called_once_with("test-model", "TestPublisher", use_llm=False, api_key=None)
+
+
 if __name__ == "__main__":
     unittest.main()

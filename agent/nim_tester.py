@@ -1199,6 +1199,7 @@ class Tester:
         cleanup: bool = True,
         save_manifest: bool = True,
         skip_adapter_test: bool = False,
+        license: str = None,
     ):
         """
         Test a single model: detect + API call -> adapter -> manifest -> platform.
@@ -1286,7 +1287,7 @@ class Tester:
         # Step 3: Create DPK manifest (always when API call passed)
         print(f"\n📋 Step 3: Creating DPK manifest...")
         dpk_generator = DPKGeneratorClient()
-        dpk_result = dpk_generator.create_nim_dpk_manifest(model_id, model_type)
+        dpk_result = dpk_generator.create_nim_dpk_manifest(model_id, model_type, license=license)
         result["steps"]["dpk_generate"] = dpk_result
         
         if dpk_result["status"] != "success":
