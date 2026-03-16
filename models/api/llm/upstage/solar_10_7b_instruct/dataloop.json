@@ -3,7 +3,7 @@
   "displayName": "Solar 10.7B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for upstage/solar-10.7b-instruct",
+  "description": "NVIDIA NIM adapter for upstage/solar-10.7b-instruct. License: NVIDIA AI Foundation Models Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA AI Foundation Models Community License"
   },
   "components": {
     "computeConfigs": [

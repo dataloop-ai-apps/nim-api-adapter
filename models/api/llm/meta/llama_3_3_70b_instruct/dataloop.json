@@ -3,7 +3,7 @@
   "displayName": "Llama 3.3 70B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for meta/llama-3.3-70b-instruct",
+  "description": "NVIDIA NIM adapter for meta/llama-3.3-70b-instruct. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

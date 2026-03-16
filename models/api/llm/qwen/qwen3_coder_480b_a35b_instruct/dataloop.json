@@ -3,7 +3,7 @@
   "displayName": "Qwen3 Coder 480B A35B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for qwen/qwen3-coder-480b-a35b-instruct",
+  "description": "NVIDIA NIM adapter for qwen/qwen3-coder-480b-a35b-instruct. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

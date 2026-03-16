@@ -3,7 +3,7 @@
   "displayName": "Seed Oss 36B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct",
+  "description": "NVIDIA NIM adapter for bytedance/seed-oss-36b-instruct. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

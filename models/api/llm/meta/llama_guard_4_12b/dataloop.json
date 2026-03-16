@@ -3,7 +3,7 @@
   "displayName": "Llama Guard 4 12B",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b",
+  "description": "NVIDIA NIM adapter for meta/llama-guard-4-12b. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

@@ -3,7 +3,7 @@
   "displayName": "Qwen3 Next 80B A3B Thinking",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for qwen/qwen3-next-80b-a3b-thinking",
+  "description": "NVIDIA NIM adapter for qwen/qwen3-next-80b-a3b-thinking. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

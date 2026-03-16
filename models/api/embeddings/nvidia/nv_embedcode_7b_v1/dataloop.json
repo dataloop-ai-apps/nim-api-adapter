@@ -3,7 +3,7 @@
   "displayName": "Nv Embedcode 7B V1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1",
+  "description": "NVIDIA NIM adapter for nvidia/nv-embedcode-7b-v1. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [
