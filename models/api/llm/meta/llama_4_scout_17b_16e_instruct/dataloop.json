@@ -3,7 +3,7 @@
   "displayName": "Llama 4 Scout 17B 16E Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for meta/llama-4-scout-17b-16e-instruct. License: Llama 4 Community Model License",
+  "description": "NVIDIA NIM adapter for meta/llama-4-scout-17b-16e-instruct. License:  NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Llama 4 Community Model License"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

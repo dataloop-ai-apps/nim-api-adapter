@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-meta-llama-4-scout-17b-16e-instruct-downloadable",
   "displayName": "NIM Llama 4 Scout 17B 16E Instruct Downloadable",
-  "description": "NVIDIA NIM Llama 4 Scout 17B 16E Instruct adapter - runs start_server.sh and streams logs. License: Llama 4 Community Model License",
+  "description": "NVIDIA NIM Llama 4 Scout 17B 16E Instruct adapter - runs start_server.sh and streams logs. License: NVIDIA Community Model License",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "Llama 4 Community Model License"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "modules": [

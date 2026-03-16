@@ -3,7 +3,7 @@
   "displayName": "Gemma 2 9B Cpt Sahabatai Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct. License: NVIDIA AI Foundation Models Community License",
+  "description": "NVIDIA NIM adapter for gotocompany/gemma-2-9b-cpt-sahabatai-instruct. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

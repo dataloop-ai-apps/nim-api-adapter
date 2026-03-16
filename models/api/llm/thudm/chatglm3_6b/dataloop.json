@@ -3,7 +3,7 @@
   "displayName": "Chatglm3 6B",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for thudm/chatglm3-6b",
+  "description": "NVIDIA NIM adapter for thudm/chatglm3-6b. License: ChatGLM3-6B License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Other"
+    "License": "ChatGLM3-6B License"
   },
   "components": {
     "computeConfigs": [

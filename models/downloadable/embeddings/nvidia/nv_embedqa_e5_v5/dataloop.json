@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-nvidia-nv-embedqa-e5-v5-downloadable",
   "displayName": "NIM Nv Embedqa E5 V5 Downloadable",
-  "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs. License: MIT",
+  "description": "NVIDIA NIM Nv Embedqa E5 V5 adapter - runs start_server.sh and streams logs. License: NVIDIA AI Foundation Models Community License",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "MIT"
+    "License": "NVIDIA AI Foundation Models Community License"
   },
   "components": {
     "modules": [

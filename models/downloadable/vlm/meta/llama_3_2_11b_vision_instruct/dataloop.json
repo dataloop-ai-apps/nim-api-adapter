@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-meta-llama-3.2-11b-vision-instruct-downloadable",
   "displayName": "NIM Llama 3.2 11B Vision Instruct Downloadable",
-  "description": "NVIDIA NIM Llama 3.2 11B Vision Instruct adapter - runs start_server.sh and streams logs. License: NVIDIA AI Foundation Models Community License",
+  "description": "NVIDIA NIM Llama 3.2 11B Vision Instruct adapter - runs start_server.sh and streams logs. License: Llama 3.2",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": "Llama 3.2"
   },
   "components": {
     "modules": [

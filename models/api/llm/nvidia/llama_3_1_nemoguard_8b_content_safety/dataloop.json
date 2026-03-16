@@ -3,7 +3,7 @@
   "displayName": "Llama 3.1 Nemoguard 8B Content Safety",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-content-safety. License: NVIDIA Open Model License",
+  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemoguard-8b-content-safety. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA Open Model License"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

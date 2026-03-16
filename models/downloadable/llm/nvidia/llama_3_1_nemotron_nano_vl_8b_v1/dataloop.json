@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-nvidia-llama-3.1-nemotron-nano-vl-8b-v1-downloadable",
   "displayName": "NIM Llama 3.1 Nemotron Nano Vl 8B V1 Downloadable",
-  "description": "NVIDIA NIM Llama 3.1 Nemotron Nano Vl 8B V1 adapter - runs start_server.sh and streams logs. License: Llama 3.1",
+  "description": "NVIDIA NIM Llama 3.1 Nemotron Nano Vl 8B V1 adapter - runs start_server.sh and streams logs. License: NVIDIA Open License Agreement",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "Llama 3.1"
+    "License": "NVIDIA Open License Agreement"
   },
   "components": {
     "modules": [

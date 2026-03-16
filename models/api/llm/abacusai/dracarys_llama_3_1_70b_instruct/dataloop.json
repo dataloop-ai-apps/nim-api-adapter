@@ -3,7 +3,7 @@
   "displayName": "Dracarys Llama 3.1 70B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for abacusai/dracarys-llama-3.1-70b-instruct. License: NVIDIA AI Foundation Models Community License",
+  "description": "NVIDIA NIM adapter for abacusai/dracarys-llama-3.1-70b-instruct. License: Llama 3 Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": "Llama 3"
   },
   "components": {
     "computeConfigs": [

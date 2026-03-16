@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-nvidia-llama-3.1-nemoguard-8b-content-safety-downloadable",
   "displayName": "NIM Llama 3.1 Nemoguard 8B Content Safety Downloadable",
-  "description": "NVIDIA NIM Llama 3.1 Nemoguard 8B Content Safety adapter - runs start_server.sh and streams logs. License: NVIDIA Open Model License",
+  "description": "NVIDIA NIM Llama 3.1 Nemoguard 8B Content Safety adapter - runs start_server.sh and streams logs. License: NVIDIA Community Model License",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "NVIDIA Open Model License"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "modules": [

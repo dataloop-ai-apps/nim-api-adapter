@@ -3,7 +3,7 @@
   "displayName": "baidu-paddleocr",
   "version": "0.3.59",
   "scope": "public",
-  "description": "PaddleOCR is an ultra-lightweight OCR system by Baidu, supporting advanced OCR algorithms, served by NIM API.. License: NVIDIA Evaluation License Agreement",
+  "description": "PaddleOCR is an ultra-lightweight OCR system by Baidu, supporting advanced OCR algorithms, served by NIM API. License: Apache 2.0",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -19,7 +19,7 @@
     "Media Type": [
       "Image"
     ],
-    "License": "NVIDIA Evaluation License Agreement"
+    "License": "Apache 2.0"
   },
   "codebase": {
     "type": "git",

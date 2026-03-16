@@ -3,7 +3,7 @@
   "displayName": "Gemma 3 4B It",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for google/gemma-3-4b-it",
+  "description": "NVIDIA NIM adapter for google/gemma-3-4b-it. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Other"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

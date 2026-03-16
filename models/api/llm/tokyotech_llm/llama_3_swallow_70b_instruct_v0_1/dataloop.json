@@ -3,7 +3,7 @@
   "displayName": "Llama 3 Swallow 70B Instruct V0.1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
+  "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1. License: Llama 3 Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Other"
+    "License": "Llama 3"
   },
   "components": {
     "computeConfigs": [

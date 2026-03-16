@@ -3,7 +3,7 @@
   "displayName": "Mixtral 8X7B Instruct V0.1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for mistralai/mixtral-8x7b-instruct-v0.1",
+  "description": "NVIDIA NIM adapter for mistralai/mixtral-8x7b-instruct-v0.1. License: Apache 2.0",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Other"
+    "License": "Apache 2.0"
   },
   "components": {
     "computeConfigs": [

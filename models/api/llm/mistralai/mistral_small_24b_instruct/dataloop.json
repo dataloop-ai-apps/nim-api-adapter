@@ -3,7 +3,7 @@
   "displayName": "Mistral Small 24B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for mistralai/mistral-small-24b-instruct. License: NVIDIA AI Foundation Models Community License",
+  "description": "NVIDIA NIM adapter for mistralai/mistral-small-24b-instruct. License:  NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": " NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

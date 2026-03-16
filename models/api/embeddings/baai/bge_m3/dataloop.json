@@ -3,7 +3,7 @@
   "displayName": "Bge M3",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for baai/bge-m3. License: NVIDIA AI Foundation Models Community License",
+  "description": "NVIDIA NIM adapter for baai/bge-m3. License: MIT",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,7 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": "MIT"
   },
   "components": {
     "computeConfigs": [

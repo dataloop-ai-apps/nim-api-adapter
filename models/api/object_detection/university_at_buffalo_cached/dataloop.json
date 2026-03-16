@@ -3,7 +3,7 @@
   "displayName": "university-at-buffalo-cached",
   "version": "0.3.59",
   "scope": "public",
-  "description": "CACHED, a chart element detection model from University at Buffalo, served by NIM API.. License: NVIDIA Evaluation License Agreement",
+  "description": "CACHED, a chart element detection model from University at Buffalo, served by NIM API. License: MIT",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -19,7 +19,7 @@
     "Media Type": [
       "Image"
     ],
-    "License": "NVIDIA Evaluation License Agreement"
+    "License": "MIT"
   },
   "codebase": {
     "type": "git",

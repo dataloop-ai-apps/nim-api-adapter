@@ -3,7 +3,7 @@
   "displayName": "Riva Translate 4B Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct",
+  "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "Other"
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

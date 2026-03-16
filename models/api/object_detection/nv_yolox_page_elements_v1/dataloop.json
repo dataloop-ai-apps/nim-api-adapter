@@ -3,7 +3,7 @@
   "displayName": "nv-yolox-page-elements-v1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "YOLOX-L model fine-tuned for detecting tables, charts, and titles in documents, served by NIM API.. License: NVIDIA Evaluation License Agreement",
+  "description": "YOLOX-L model fine-tuned for detecting tables, charts, and titles in documents, served by NIM API. License: NVIDIA Evaluation License Agreement",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -19,7 +19,7 @@
     "Media Type": [
       "Image"
     ],
-    "License": "NVIDIA Evaluation License Agreement"
+    "License": " NVIDIA AI Foundation Models Community License Agreement"
   },
   "codebase": {
     "type": "git",

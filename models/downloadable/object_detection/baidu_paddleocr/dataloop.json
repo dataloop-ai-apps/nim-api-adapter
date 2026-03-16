@@ -2,7 +2,7 @@
   "version": "0.3.59",
   "name": "nim-baidu-paddleocr-downloadable",
   "displayName": "NIM Paddleocr Downloadable",
-  "description": "NVIDIA NIM Paddleocr adapter - runs start_server.sh and streams logs",
+  "description": "NVIDIA NIM Paddleocr adapter - runs start_server.sh and streams logs. License: Apache 2.0",
   "scope": "project",
   "attributes": {
     "Category": [
@@ -11,7 +11,7 @@
     ],
     "Provider": "NVIDIA",
     "Application Type": "Model",
-    "License": "Other"
+    "License": "Apache 2.0"
   },
   "components": {
     "modules": [
