@@ -1,5 +1,5 @@
 {
-  "version": "0.3.59",
+  "version": "0.3.60",
   "name": "nim-nvidia-nemotron-nano-12b-v2-vl-downloadable",
   "displayName": "NIM Nemotron Nano 12B V2 Vl Downloadable",
   "description": "NVIDIA NIM Nemotron Nano 12B V2 Vl adapter - runs start_server.sh and streams logs. License: NVIDIA Open Model License",
@@ -81,7 +81,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.59"
+    "gitTag": "0.3.60"
   },
   "dependencies": [
     {
