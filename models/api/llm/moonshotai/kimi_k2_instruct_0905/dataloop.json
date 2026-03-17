@@ -3,7 +3,7 @@
   "displayName": "Kimi K2 Instruct 0905",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for moonshotai/kimi-k2-instruct-0905",
+  "description": "NVIDIA NIM adapter for moonshotai/kimi-k2-instruct-0905. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
   },
   "components": {
     "computeConfigs": [

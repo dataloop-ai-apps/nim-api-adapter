@@ -3,7 +3,7 @@
   "displayName": "Nemotron 3 Nano 30B A3B",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-30b-a3b",
+  "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-30b-a3b. License: NVIDIA Nemotron Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Nemotron Open Model License"
   },
   "components": {
     "computeConfigs": [

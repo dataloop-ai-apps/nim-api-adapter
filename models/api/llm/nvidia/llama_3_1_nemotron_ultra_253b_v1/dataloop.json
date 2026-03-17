@@ -3,7 +3,7 @@
   "displayName": "Llama 3.1 Nemotron Ultra 253B V1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-ultra-253b-v1",
+  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-ultra-253b-v1. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
   },
   "components": {
     "computeConfigs": [

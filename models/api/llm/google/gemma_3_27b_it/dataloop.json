@@ -3,7 +3,7 @@
   "displayName": "Gemma 3 27B It",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for google/gemma-3-27b-it",
+  "description": "NVIDIA NIM adapter for google/gemma-3-27b-it. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [

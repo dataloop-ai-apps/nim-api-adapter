@@ -3,7 +3,7 @@
   "displayName": "Mistral 7B Instruct V0.2",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for mistralai/mistral-7b-instruct-v0.2",
+  "description": "NVIDIA NIM adapter for mistralai/mistral-7b-instruct-v0.2. License: Apache 2.0",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "Apache 2.0"
   },
   "components": {
     "computeConfigs": [

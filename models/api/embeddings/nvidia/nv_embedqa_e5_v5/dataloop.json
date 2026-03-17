@@ -3,7 +3,7 @@
   "displayName": "Nv Embedqa E5 V5",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5",
+  "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5. License: NVIDIA AI Foundation Models Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "NVIDIA AI Foundation Models Community License"
   },
   "components": {
     "computeConfigs": [

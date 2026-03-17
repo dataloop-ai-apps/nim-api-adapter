@@ -3,7 +3,7 @@
   "displayName": "Glm4.7",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for z-ai/glm4.7",
+  "description": "NVIDIA NIM adapter for z-ai/glm4.7. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
   },
   "components": {
     "computeConfigs": [

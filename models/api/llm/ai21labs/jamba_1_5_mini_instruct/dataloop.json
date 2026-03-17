@@ -3,7 +3,7 @@
   "displayName": "Jamba 1.5 Mini Instruct",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for ai21labs/jamba-1.5-mini-instruct",
+  "description": "NVIDIA NIM adapter for ai21labs/jamba-1.5-mini-instruct. License: Jamba Open License Agreement",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "Jamba Open License Agreement"
   },
   "components": {
     "computeConfigs": [

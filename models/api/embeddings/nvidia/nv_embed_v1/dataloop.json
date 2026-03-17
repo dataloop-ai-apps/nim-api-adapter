@@ -3,7 +3,7 @@
   "displayName": "Nv Embed V1",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nv-embed-v1",
+  "description": "NVIDIA NIM adapter for nvidia/nv-embed-v1. License: CC BY-NC 4.0",
   "attributes": {
     "Category": [
       "Model",
@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "CC BY-NC 4.0"
   },
   "components": {
     "computeConfigs": [

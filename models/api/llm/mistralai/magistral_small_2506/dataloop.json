@@ -3,7 +3,7 @@
   "displayName": "Magistral Small 2506",
   "version": "0.3.59",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for mistralai/magistral-small-2506",
+  "description": "NVIDIA NIM adapter for mistralai/magistral-small-2506. License: NVIDIA Community Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Community Model License"
   },
   "components": {
     "computeConfigs": [
