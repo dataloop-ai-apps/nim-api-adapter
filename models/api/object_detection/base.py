@@ -52,7 +52,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 ]
                 }
         
-        response = requests.post(url=url, headers=headers, json=payload, verify=False)
+        response = requests.post(url=url, headers=headers, json=payload)
         
         if response.status_code != 200:
             raise Exception(f"Failed to call model: {response.status_code} {response.text}")
