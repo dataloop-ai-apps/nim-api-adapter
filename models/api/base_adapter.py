@@ -25,6 +25,27 @@ else:
     logger = logging.getLogger("NIM Adapter")
 
 
+def get_downloadable_endpoint_and_cookie(app_id: str):
+    """
+    Resolve Dataloop app route and obtain JWT-APP cookie via redirect.
+    Use when the model adapter should talk to a downloadable NIM app (.apps.dataloop.ai).
+
+    Returns:
+        (base_url, cookies, session): base_url is the redirected API root;
+        cookies is the session cookie jar; session is the requests.Session.
+    """
+    app = dl.apps.get(app_id=app_id)
+    route = list(app.routes.values())[0].rstrip("/")
+    base_before = "/".join(route.split("/")[:-1])
+    session = requests.Session()
+    resp = session.get(base_before, headers=dl.client_api.auth, verify=False)
+    base_url = resp.url.rstrip("/")
+    # OpenAI client appends /embeddings or /chat/completions; server expects /v1 prefix
+    if not base_url.endswith("/v1"):
+        base_url = f"{base_url}/v1"
+    return base_url, session.cookies, session
+
+
 class NIMBaseAdapter(dl.BaseModelAdapter):
     """
     Base adapter for all NVIDIA NIM model types.
@@ -44,14 +65,8 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             )
 
         self.app_id = self.configuration.get("app_id")
-
         if self.app_id:
-            try:
-                app = dl.apps.get(app_id=self.app_id)
-            except Exception as e:
-                raise ValueError(f"Can't get app, Please validate app id: {self.app_id} - {e}")
-            if not app:
-                raise ValueError(f"App ID {self.app_id} not found")
+            self.use_nvidia_extra_body = False  # downloadable app rejects input_type/truncate
             self.using_downloadable = True
             self.get_downloadable_client(self.app_id)
             # Changing the base url on model configuration so it will be more understanable by the user
@@ -59,6 +74,7 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             self.model_entity.update()
         else:
             self.using_downloadable = False
+            self.use_nvidia_extra_body = True
             self.base_url = self.configuration.get(
                 "base_url", "https://integrate.api.nvidia.com/v1"
             )
@@ -66,22 +82,20 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             self.api_key = os.environ.get("NGC_API_KEY")
             if not self.api_key:
                 raise ValueError("Missing NGC_API_KEY environment variable")
-            
             self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
-        self.health_check()
+            try:
+                self.client.models.list()
+                logger.info(
+                    f"API key validated for {self.nim_model_name}, base URL: {self.base_url}"
+                )
+            except Exception as e:
+                raise ValueError(f"API key validation failed: {e}")
 
     def get_downloadable_client(self, app_id: str):
-        """Resolve Dataloop app route, follow redirect for JWT cookie, and create OpenAI client."""
-        app = dl.apps.get(app_id=app_id)
-        route = list(app.routes.values())[0].rstrip("/")
-        base_before = "/".join(route.split("/")[:-1])
-        self.current_session = requests.Session()
-        resp = self.current_session.get(base_before, headers=dl.client_api.auth, verify=False)
-        self.base_url = resp.url.rstrip("/")
-        if not self.base_url.endswith("/v1"):
-            self.base_url = f"{self.base_url}/v1"
-        cookie_header = "; ".join(f"{c.name}={c.value}" for c in self.current_session.cookies)
+        """Create OpenAI client authenticated via JWT cookie for downloadable NIM apps."""
+        self.base_url, cookies, self.current_session = get_downloadable_endpoint_and_cookie(app_id)
+        cookie_header = "; ".join(f"{c.name}={c.value}" for c in cookies)
 
         logger.info(
             f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}"
@@ -94,34 +108,18 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             default_headers={"Cookie": cookie_header},
             http_client=http_client,
         )
-        
-    def health_check(self):
-        """Verify the NIM endpoint is reachable and authenticated."""
         try:
-            if self.using_downloadable:
-                cookie_header = "; ".join(
-                    f"{c.name}={c.value}" for c in self.current_session.cookies
-                )
-                health_url = self.base_url.rstrip("/") + "/manifest"
-                r = requests.get(
-                    health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False
-                )
-                r.raise_for_status()
-                logger.info(
-                    f"Downloadable endpoint healthy for {self.nim_model_name}, "
-                    f"base URL: {self.base_url}"
-                )
-            else:
-                self._api_health_check()
-                logger.info(
-                    f"API key validated for {self.nim_model_name}, base URL: {self.base_url}"
-                )
+            health_url = self.base_url.rstrip("/") + "/manifest"
+            r = requests.get(
+                health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False
+            )
+            r.raise_for_status()
+            logger.info(
+                f"Downloadable endpoint healthy for {self.nim_model_name}, "
+                f"base URL: {self.base_url}"
+            )
         except Exception as e:
-            raise ValueError(f"Health check failed for {self.nim_model_name}: {e}")
-
-    def _api_health_check(self):
-        """Verify API key with a real inference call. Subclasses must implement."""
-        raise NotImplementedError("Subclasses must implement _api_health_check")
+            print(f"Health check failed: {e}")
 
     def check_jwt_expiration(self, margin_seconds: int = 60):
         """Check JWT expiration and refresh session if expired or about to expire."""
@@ -139,10 +137,10 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             return
 
         exp_dt = datetime.datetime.fromtimestamp(exp_timestamp)
-        now = datetime.datetime.now() 
+        now = datetime.datetime.now()
         remaining = exp_dt - now
 
-        if now >= exp_dt - datetime.timedelta(seconds=margin_seconds): 
+        if now >= exp_dt - datetime.timedelta(seconds=margin_seconds):
             logger.info(
                 f"JWT expired or expiring soon (remaining: {remaining}). Refreshing session."
             )

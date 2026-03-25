@@ -1,90 +1,91 @@
 {
-    "version": "0.3.59",
-    "name": "nim-meta-llama-3.2-90b-vision-instruct-downloadable",
-    "displayName": "NIM Llama 3.2 90B Vision Instruct Downloadable",
-    "description": "NVIDIA NIM Llama 3.2 90B Vision Instruct adapter - runs start_server.sh and streams logs",
-    "scope": "project",
-    "attributes": {
-        "Category": [
-            "Application",
-            "NIM"
+  "version": "0.3.60",
+  "name": "nim-meta-llama-3.2-90b-vision-instruct-downloadable",
+  "displayName": "NIM Llama 3.2 90B Vision Instruct Downloadable",
+  "description": "NVIDIA NIM Llama 3.2 90B Vision Instruct adapter - runs start_server.sh and streams logs. License: Llama 3.2",
+  "scope": "project",
+  "attributes": {
+    "Category": [
+      "Application",
+      "NIM"
+    ],
+    "Provider": "NVIDIA",
+    "Application Type": "Model",
+    "License": "Llama 3.2"
+  },
+  "components": {
+    "modules": [
+      {
+        "name": "m-meta-llama-3-2-90b-vision-in-cv1v",
+        "entryPoint": "models/downloadable/main.py",
+        "className": "Runner",
+        "initInputs": [],
+        "integrations": [
+          "dl-ngc-api-key"
         ],
-        "Provider": "NVIDIA",
-        "Application Type": "Model"
-    },
-    "components": {
-        "modules": [
-            {
-                "name": "m-meta-llama-3-2-90b-vision-in-cv1v",
-                "entryPoint": "models/downloadable/main.py",
-                "className": "Runner",
-                "initInputs": [],
-                "integrations": [
-                    "dl-ngc-api-key"
-                ],
-                "config": {
-                    "isCustomServer": true
-                },
-                "functions": [
-                    {
-                        "name": "dummy",
-                        "output": [],
-                        "input": []
-                    }
-                ]
-            }
-        ],
-        "panels": [
-            {
-                "name": "p-meta-llama-3-2-90b-vision-in-cv1v",
-                "supportedSlots": [
-                    {
-                        "type": "datasetBrowser",
-                        "configuration": {}
-                    }
-                ],
-                "conditions": {}
-            }
-        ],
-        "services": [
-            {
-                "name": "s-meta-llama-3-2-90b-vision-in-cv1v",
-                "displayName": "meta-llama-3.2-90b-vision-instruct-downloadable-runner",
-                "moduleName": "m-meta-llama-3-2-90b-vision-in-cv1v",
-                "panelNames": [
-                    "p-meta-llama-3-2-90b-vision-in-cv1v"
-                ],
-                "initParams": {},
-                "runtime": {
-                    "podType": "gpu-t4-m",
-                    "numReplicas": 1,
-                    "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/meta-llama-3.2-90b-vision-instruct:0.3.42",
-                    "singleAgent": false,
-                    "autoscaler": {
-                        "type": "rabbitmq",
-                        "minReplicas": 1,
-                        "maxReplicas": 1,
-                        "queueLength": 1
-                    },
-                    "preemptible": false
-                },
-                "drainTime": 600,
-                "onReset": "failed",
-                "runExecutionAsProcess": false,
-                "executionTimeout": 3600,
-                "maxAttempts": 3
-            }
+        "config": {
+          "isCustomServer": true
+        },
+        "functions": [
+          {
+            "name": "dummy",
+            "output": [],
+            "input": []
+          }
         ]
-    },
-    "codebase": {
-        "type": "git",
-        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.59"
-    },
-    "dependencies": [
-        {
-            "name": "nim-llama-3-2-90b-vision-instruct"
-        }
+      }
+    ],
+    "panels": [
+      {
+        "name": "p-meta-llama-3-2-90b-vision-in-cv1v",
+        "supportedSlots": [
+          {
+            "type": "datasetBrowser",
+            "configuration": {}
+          }
+        ],
+        "conditions": {}
+      }
+    ],
+    "services": [
+      {
+        "name": "s-meta-llama-3-2-90b-vision-in-cv1v",
+        "displayName": "meta-llama-3.2-90b-vision-instruct-downloadable-runner",
+        "moduleName": "m-meta-llama-3-2-90b-vision-in-cv1v",
+        "panelNames": [
+          "p-meta-llama-3-2-90b-vision-in-cv1v"
+        ],
+        "initParams": {},
+        "runtime": {
+          "podType": "gpu-t4-m",
+          "numReplicas": 1,
+          "concurrency": 10,
+          "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/meta-llama-3.2-90b-vision-instruct:0.3.42",
+          "singleAgent": false,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 1,
+            "maxReplicas": 1,
+            "queueLength": 1
+          },
+          "preemptible": false
+        },
+        "drainTime": 600,
+        "onReset": "failed",
+        "runExecutionAsProcess": false,
+        "executionTimeout": 3600,
+        "maxAttempts": 3
+      }
     ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.60"
+  },
+  "dependencies": [
+    {
+      "name": "nim-llama-3-2-90b-vision-instruct"
+    }
+  ]
 }

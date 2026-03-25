@@ -11,17 +11,10 @@ from base_adapter import NIMBaseAdapter, logger
 
 class ModelAdapter(NIMBaseAdapter):
 
-    def _api_health_check(self):
-        self.client.chat.completions.create(
-            model=self.nim_model_name,
-            messages=[{"role": "user", "content": "hi"}],
-            max_tokens=1,
-        )
-
     def prepare_item_func(self, item: dl.Item):
         return dl.PromptItem.from_item(item=item)
 
-    def _prepare_messages(self, messages: list[dict], context: str = None) -> list[dict]:
+    def _flatten_messages(self, messages: list[dict], context: str = None) -> list[dict]:
         """
         Flatten message content from array format to plain string.
         
@@ -30,8 +23,6 @@ class ModelAdapter(NIMBaseAdapter):
         
         If context is provided, it will be inserted as an assistant message
         before the last user message with the format "Context: {context}".
-        
-        Subclasses (e.g. VLM) can override this to handle different content formats.
         """
         flattened = []
         for msg in messages:
@@ -71,7 +62,9 @@ class ModelAdapter(NIMBaseAdapter):
 
     def call_model(self, messages: list[dict], context: str = None):
         """Call NVIDIA NIM chat completions API."""
-        messages = self._prepare_messages(messages, context=context)
+        # Flatten messages - LLMs expect plain string content, not multimodal arrays
+        # Context is injected as assistant message before the last user message
+        messages = self._flatten_messages(messages, context=context)
         
         stream = self.configuration.get("stream")
         max_tokens = self.configuration.get("max_tokens", 512)
@@ -88,7 +81,7 @@ class ModelAdapter(NIMBaseAdapter):
                     
         # NVIDIA API requires guided_json inside "nvext", not at root
         extra_body = {}
-        if guided_json and not self.using_downloadable:
+        if guided_json and self.use_nvidia_extra_body:
             extra_body["nvext"] = {"guided_json": guided_json}
             logger.info(f"Using guided_json in nvext: {guided_json}")
 

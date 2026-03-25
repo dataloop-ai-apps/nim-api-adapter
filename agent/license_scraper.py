@@ -64,7 +64,7 @@ LICENSE_REGISTRY: list[tuple[str, str]] = [
     (r"nvidia[\s\-]*evaluation[\s\-]*license", "NVIDIA Evaluation License Agreement"),
     (r"(?:nvidia[\s\-]*)?ai[\s\-]*foundation[\s\-]*models?[\s\-]*community[\s\-]*license(?:[\s\-]*agreement)?", "NVIDIA AI Foundation Models Community License"),
     (r"nvidia[\s\-]*community[\s\-]*(?:model[\s\-]*)?license", "NVIDIA Community Model License"),
-    (r"nvidia[\s\-]*open[\s\-]*model[\s\-]*license", "NVIDIA Open Model License"),
+    (r"nvidia[\s\-]*open[\s\-]*(?:model[\s\-]*)?license(?:[\s\-]*agreement)?", "NVIDIA Open Model License"),
     (r"\beula\b", "EULA"),
     (r"gemma[\s\-]*terms[\s\-]*of[\s\-]*use", "Gemma Terms of Use"),
     (r"hive[\s\-]*terms[\s\-]*of[\s\-]*use", "Hive Terms of Use"),
@@ -124,31 +124,37 @@ def _extract_license_from_text(text: str) -> Optional[str]:
     """Regex-based license extraction from page text."""
     result = None
 
-    # Pattern 1: "Additional Information: <license>"
-    m = re.search(r"Additional\s+Information\s*:?\s*(.+?)(?:\.(?:\s|$)|$)", text, re.IGNORECASE)
+    # Pattern 1 (highest priority): "model is governed by <license>"
+    # Covers: "use of this model is governed by", "The model is governed by",
+    #         "Your use of the model is governed by", etc.
+    m = re.search(
+        r"(?:use\s+of\s+(?:this|the)\s+)?model\s+is\s+governed\s+by\s+(?:the\s+)?(.+?)"
+        r"(?:[;.](?:\s|$)|Additional|\s*$)",
+        text, re.IGNORECASE,
+    )
     if m:
-        result = _normalize_space(m.group(1))
+        candidate = _normalize_space(m.group(1)).strip(" .,;")
+        candidate = re.split(r"\s+and\s+(?:the\s+)?", candidate, maxsplit=1)[0].strip(" .,;")
+        if candidate:
+            result = candidate
 
-    # Pattern 2: "use of this model is governed by <license>"
+    # Pattern 3: "released under the <license>"
     if result is None:
         m = re.search(
-            r"use\s+of\s+(?:this|the)\s+model\s+is\s+governed\s+by\s+(?:the\s+)?(.+?)"
-            r"(?:[;.](?:\s|$)|Additional|\s*$)",
+            r"released\s+under\s+(?:the\s+)?(.+?)(?:\s+license)?(?:[;.](?:\s|$)|\s*$)",
             text, re.IGNORECASE,
         )
         if m:
-            candidate = _normalize_space(m.group(1)).strip(" .,;")
-            candidate = re.split(r"\s+and\s+(?:the\s+)?", candidate, maxsplit=1)[0].strip(" .,;")
-            if candidate:
-                result = candidate
+            candidate = _normalize_space(m.group(0)).strip(" .,;")
+            result = candidate
 
-    # Pattern 3: "License: <name>"
+    # Pattern 4: "License: <name>"
     if result is None:
         m = re.search(r"(?:^|\s)License\s*:?\s+([A-Z][\w\s.\-]+)", text, re.IGNORECASE)
         if m:
             result = _normalize_space(m.group(1)).strip(" .")
 
-    # Pattern 4: scan for known license patterns
+    # Pattern 5: scan for known license patterns
     if result is None:
         for pattern in LICENSE_PATTERNS:
             m = re.search(pattern, text, re.IGNORECASE)
@@ -166,19 +172,49 @@ def _fetch_modelcard_sections(model_name: str, publisher: str) -> tuple[str, str
     """
     Fetch build.nvidia.com modelcard page and extract license sections.
 
+    Tries both dot and underscore URL variants since build.nvidia.com is
+    inconsistent (some models use dots, others underscores in the slug).
+
     Returns (sections_text, url).
     """
     slug = model_name.split("/")[-1]
     publisher_slug = publisher.lower().replace(" ", "-")
-    url = f"https://build.nvidia.com/{publisher_slug}/{slug}/modelcard"
-    result = ""
 
-    try:
-        resp = SESSION.get(url, timeout=15)
-        resp.raise_for_status()
-        html = resp.text
-    except Exception as e:
-        print(f"  [license] fetch error {url}: {e}")
+    base = [slug]
+    if "." in slug:
+        base.append(slug.replace(".", "_"))
+        base.append(slug.replace(".", ""))
+    elif "_" in slug:
+        base.append(slug.replace("_", "."))
+    v_stripped = re.sub(r"v0[._](\d)", r"v\1", slug)
+    if v_stripped != slug:
+        base.append(v_stripped)
+
+    candidates = list(base)
+    for v in base:
+        no_version = re.sub(r"-v\d+[._]?\d*$", "", v)
+        if no_version != v:
+            candidates.append(no_version)
+        if v.endswith("-instruct"):
+            candidates.append(v[:-len("-instruct")])
+    candidates = list(dict.fromkeys(candidates))
+
+    html = ""
+    url = ""
+    for s in candidates:
+        url = f"https://build.nvidia.com/{publisher_slug}/{s}/modelcard"
+        try:
+            resp = SESSION.get(url, timeout=15)
+            resp.raise_for_status()
+            html = resp.text
+            if "termsOfUse" in html or len(html) > 100_000:
+                break
+        except Exception:
+            continue
+
+    result = ""
+    if not html:
+        print(f"  [license] fetch error: no valid page for {model_name}")
         return result, url
 
     import warnings
@@ -186,6 +222,7 @@ def _fetch_modelcard_sections(model_name: str, publisher: str) -> tuple[str, str
         warnings.simplefilter("ignore")
         decoded = html.encode().decode("unicode_escape", errors="ignore")
     decoded = decoded.replace("\\n", "\n").replace("\\t", " ")
+    decoded = re.sub(r'"\]\)\s*self\.__next_f\.push\(\[\d+,"', " ", decoded)
     cleaned = _clean_html(decoded)
 
     sections: list[str] = []

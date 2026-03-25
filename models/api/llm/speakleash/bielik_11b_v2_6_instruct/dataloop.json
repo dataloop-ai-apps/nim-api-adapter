@@ -1,9 +1,9 @@
 {
   "name": "nim-bielik-11b-v2-6-instruct",
   "displayName": "Bielik 11B V2.6 Instruct",
-  "version": "0.3.59",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for speakleash/bielik-11b-v2.6-instruct",
+  "description": "NVIDIA NIM adapter for speakleash/bielik-11b-v2.6-instruct. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
   },
   "components": {
     "computeConfigs": [
@@ -162,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.59"
+    "gitTag": "0.3.60"
   }
 }
