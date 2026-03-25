@@ -1,6 +1,6 @@
 # ordered list of dpks to publish and install
 dpks:
-    - name: nim-phi-4-multimodal-instruct
+    - name: nim-nemotron-nano-12b-v2-vl
       install_app: True
       integrations:
         - key: "dl-ngc-api-key"  # integration key
@@ -8,22 +8,22 @@ dpks:
 
 # ordered list of datasets to create from local assets or to get from installed apps
 datasets:
-    - name: text_prompt_text_answer
+    - name: text_image_prompt_text_answer
       type: local
 
 # ordered list of models to get from apps
 models:
-    - name: nim-phi-4-multimodal-instruct
+    - name: nim-nemotron-nano-12b-v2-vl
       deploy_model: False
-      source_app: nim-phi-4-multimodal-instruct
+      source_app: nim-nemotron-nano-12b-v2-vl
 
 # list of pipeline variables to update with reference
 variables:
     - name: dataset
       resource_type: datasets
       resource_value:
-          resource_name: text_prompt_text_answer
+          resource_name: text_image_prompt_text_answer
     - name: model
       resource_type: models
       resource_value:
-          resource_name: nim-phi-4-multimodal-instruct
+          resource_name: nim-nemotron-nano-12b-v2-vl

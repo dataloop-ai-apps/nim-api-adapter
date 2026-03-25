@@ -2,16 +2,20 @@
 
 ## Directory Convention
 
-Tests mirror the model directory layout exactly:
+Tests mirror the model directory layout:
 ```
 tests/e2e_tests/api/<category>/<vendor>/<model_folder>/test_<action>/
 ├── config.yaml      # Test resources and pipeline variables
 └── template.json    # Pipeline template (shared per category+action)
 ```
 
+Downloadable tests follow the same pattern under `tests/e2e_tests/downloadable/`.
+
 - **Folder name** = model folder name from `models/api/` (underscores, e.g., `llama_3_1_8b_instruct`)
 - **test_predict/** for LLM, VLM, and Object Detection models
 - **test_embed/** for Embedding models
+
+**Note**: Object detection tests sit directly under `tests/e2e_tests/api/object_detection/<model_folder>/` (no vendor subdirectory) because the models don't follow the vendor/model nesting.
 
 ## config.yaml Pattern
 
