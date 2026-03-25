@@ -1,9 +1,9 @@
 {
   "name": "nim-llama-3-1-nemotron-nano-vl-8b-v1",
   "displayName": "Llama 3.1 Nemotron Nano Vl 8B V1",
-  "version": "0.3.56",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+  "description": "NVIDIA NIM adapter for nvidia/llama-3.1-nemotron-nano-vl-8b-v1. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open License Agreement"
   },
   "components": {
     "computeConfigs": [
@@ -162,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }

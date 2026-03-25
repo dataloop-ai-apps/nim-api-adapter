@@ -1,9 +1,9 @@
 {
   "name": "nim-llama-3-swallow-70b-instruct-v0-1",
   "displayName": "Llama 3 Swallow 70B Instruct V0.1",
-  "version": "0.3.56",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
+  "description": "NVIDIA NIM adapter for tokyotech-llm/llama-3-swallow-70b-instruct-v0.1. License: Llama 3 Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "Llama 3"
   },
   "components": {
     "computeConfigs": [
@@ -162,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }

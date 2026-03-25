@@ -69,6 +69,9 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             self.use_nvidia_extra_body = False  # downloadable app rejects input_type/truncate
             self.using_downloadable = True
             self.get_downloadable_client(self.app_id)
+            # Changing the base url on model configuration so it will be more understanable by the user
+            self.model_entity.configuration["base_url"] = self.base_url
+            self.model_entity.update()
         else:
             self.using_downloadable = False
             self.use_nvidia_extra_body = True
