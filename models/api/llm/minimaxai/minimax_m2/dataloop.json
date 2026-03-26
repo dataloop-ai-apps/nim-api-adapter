@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA Open Model License"
+    "License": "Other"
   },
   "components": {
     "computeConfigs": [

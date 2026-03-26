@@ -12,6 +12,8 @@ This agent automates the entire workflow of:
 5. **Publishing** and validating as Dataloop apps
 6. **Opening PRs** to add successful models to the repository
 
+**See the [Support Matrix](../support_matrix.md) for a complete list of supported models and their availability.**
+
 ## Flow Diagram
 
 ```

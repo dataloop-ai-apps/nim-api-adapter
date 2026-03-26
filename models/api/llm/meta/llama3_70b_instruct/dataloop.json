@@ -20,7 +20,7 @@
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational",
-    "License": "NVIDIA AI Foundation Models Community License"
+    "License": "Llama 3"
   },
   "components": {
     "computeConfigs": [
