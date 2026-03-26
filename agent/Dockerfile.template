@@ -31,7 +31,10 @@ USER root
 # Strategy: apt-get install curl + pip dependencies first, then get-pip.py
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl ca-certificates gcc git python3-dev && \
-    PYTHON_PATH=$(which python3 || which python) && \
+    PYTHON_PATH=$(which python3 || which python || find / -name python3 -type f -not -path '*/lib/*' 2>/dev/null | head -1) && \
+    # Symlink into /usr/local/bin so python3 is always on PATH at runtime
+    # (some NIM base images only have Python inside a venv that's activated by their entrypoint)
+    ln -sf ${PYTHON_PATH} /usr/local/bin/python3 && \
     # Ensure pip is available
     ${PYTHON_PATH} -m pip --version || \
     ${PYTHON_PATH} -m ensurepip --upgrade || \
