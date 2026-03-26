@@ -1,79 +1,96 @@
 # NVIDIA NIM Adapter for Dataloop
 
-Dataloop adapters for NVIDIA NIM models, enabling seamless integration of NVIDIA's AI models into the Dataloop platform.
+Dataloop model adapters for [NVIDIA NIM](https://build.nvidia.com/) — providing access to NVIDIA's inference models through the Dataloop platform.
 
-## Supported Models
+Models are available in two deployment modes: **API** (hosted by NVIDIA) and **Downloadable** (self-hosted on Dataloop infrastructure). Both modes expose an OpenAI-compatible interface and share the same adapter codebase.
 
-This adapter supports **96 NVIDIA NIM models** across multiple categories:
+## Architecture
 
-| Category | Models | Run Anywhere |
-|----------|--------|--------------|
-| LLM | 80 | 20 |
-| Embeddings | 8 | 3 |
-| VLM | 5 | 3 |
-| Object Detection | 3 | 1 |
+```mermaid
+graph TB
+    subgraph "Dataloop Platform"
+        MODEL_A["Model A<br/><i>project scope</i>"]
+        MODEL_B["Model B<br/><i>project scope</i>"]
+        MODEL_C["Model C<br/><i>project scope</i>"]
 
-**[View Full Support Matrix](support_matrix.md)**
+        subgraph "Self-Hosted Service (project / org scope)"
+            DL_SVC["Downloadable NIM Service<br/><i>GPU pod running NIM container</i>"]
+        end
+    end
 
-## Quick Start
+    NVIDIA["NVIDIA Cloud<br/><i>integrate.api.nvidia.com</i>"]
 
-### Prerequisites
-
-- NVIDIA NGC API Key ([Get one here](https://org.ngc.nvidia.com/setup))
-- Dataloop account and SDK
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/dataloop-ai-apps/nim-api-adapter.git
-cd nim-api-adapter
+    MODEL_A -- "app_id →<br/>self-hosted" --> DL_SVC
+    MODEL_B -- "app_id →<br/>self-hosted" --> DL_SVC
+    MODEL_C -- "no app_id →<br/>NVIDIA API" --> NVIDIA
 ```
 
-2. Set your NGC API key:
-```bash
-export NGC_API_KEY=your_api_key_here
-```
+Each **API model app** (e.g. `nim-llama-3-1-8b-instruct`) provides a model entity and adapter code. It can talk to **either** backend:
 
-### Using Models via Dataloop Marketplace
+| Backend | When | GPU on Dataloop |
+|---------|------|:---------------:|
+| **NVIDIA Cloud** | No `app_id` in model config — requests go to `integrate.api.nvidia.com` via NGC API key | No |
+| **Self-Hosted (Downloadable)** | `app_id` is set — requests route to a local NIM service running on Dataloop | Yes |
 
-The easiest way to use these models is through the Dataloop Marketplace:
+The **Downloadable app** (e.g. `nim-meta-llama-3.1-8b-instruct-downloadable`) provisions the GPU service and declares the API model app as a dependency (auto-installed). The service can be installed at **project or org scope**, and **multiple models can point to the same service** by sharing the same `app_id`.
 
-1. Go to **Marketplace** in Dataloop
-2. Search for "NIM" 
-3. Install the desired model adapter
-4. Deploy and start using
+**Configuration:**
+
+| Field | Description |
+|-------|-------------|
+| `nim_model_name` | NVIDIA model identifier (e.g. `meta/llama-3.1-8b-instruct`) |
+| `app_id` | Downloadable service installation ID — when set, routes to self-hosted instead of NVIDIA cloud |
+| `base_url` | NVIDIA API endpoint (default: `https://integrate.api.nvidia.com/v1`, ignored when `app_id` is set) |
+| `max_tokens` | Maximum tokens to generate (LLM/VLM) |
+| `temperature` | Sampling temperature (LLM/VLM) |
+| `stream` | Enable streaming responses (LLM/VLM) |
+| `system_prompt` | System prompt (LLM/VLM) |
+| `embeddings_size` | Embedding vector dimension (Embeddings) |
+
+## Model Types
+
+| Type | Adapter | Description |
+|------|---------|-------------|
+| LLM | `models/api/llm/base.py` | Chat completion models (Llama, Mistral, etc.) |
+| VLM | `models/api/vlm/base.py` | Vision-language models with image understanding |
+| Embeddings | `models/api/embeddings/base.py` | Text embedding models |
+| Object Detection | `models/api/object_detection/base.py` | Vision models with bounding box output |
+
+All adapters inherit from `NIMBaseAdapter` (`models/api/base_adapter.py`), which handles client setup, downloadable endpoint resolution, and JWT session management.
 
 ## Repository Structure
 
 ```
-nim-adapter/
-├── models/
-│   ├── api/                    # API-based model adapters
-│   │   ├── llm/               # Large Language Models
-│   │   ├── vlm/               # Vision-Language Models
-│   │   ├── embeddings/        # Embedding Models
-│   │   └── object_detection/  # Object Detection Models
-│   └── downloadable/          # Self-hosted model adapters
-├── agent/                      # Automated onboarding agent
-├── support_matrix.md          # Full list of supported models
-└── .dataloop.cfg              # Model manifest registry
+models/
+  api/                          # API model adapters and manifests
+    base_adapter.py             # Shared base class (client setup, JWT, health check)
+    llm/
+      base.py                   # LLM adapter
+      {publisher}/{model}/dataloop.json
+    vlm/
+      base.py                   # VLM adapter (inherits from LLM)
+      {publisher}/{model}/dataloop.json
+    embeddings/
+      base.py                   # Embeddings adapter
+      {publisher}/{model}/dataloop.json
+    object_detection/
+      base.py                   # Object detection adapter
+      {publisher}/{model}/dataloop.json
+  downloadable/                 # Downloadable NIM services
+    main.py                     # Shared service runner (starts NIM server, streams logs)
+    {type}/{publisher}/{model}/dataloop.json
+agent/                          # Automated model onboarding agent
 ```
 
-## Model Types
+## Environment Variables
 
-### API Models
-Models that run on NVIDIA's cloud infrastructure. Requires NGC API key.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NGC_API_KEY` | Yes | NVIDIA NGC API key for model access |
 
-### Downloadable (Run Anywhere)
-Models that can be deployed on your own infrastructure. These are marked with a checkmark in the [Support Matrix](support_matrix.md).
+## Requirements
 
-## Documentation
-
-- [Support Matrix](support_matrix.md) - Complete list of supported models
-- [Agent Documentation](agent/README.md) - Automated model onboarding
-- [Downloadable Models](models/downloadable/README.md) - Self-hosted deployment
-
-## License
-
-See [LICENSE](LICENSE) for details.
+- Python 3.10+
+- `dtlpy` (Dataloop SDK)
+- `openai` (OpenAI Python client)
+- `httpx`, `PyJWT` (for downloadable auth)

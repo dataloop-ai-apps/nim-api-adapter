@@ -1,9 +1,9 @@
 {
   "name": "nim-nv-embedqa-e5-v5",
   "displayName": "Nv Embedqa E5 V5",
-  "version": "0.3.56",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5",
+  "description": "NVIDIA NIM adapter for nvidia/nv-embedqa-e5-v5. License: NVIDIA AI Foundation Models Community License",
   "attributes": {
     "Category": [
       "Model",
@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "NVIDIA AI Foundation Models Community License"
   },
   "components": {
     "computeConfigs": [
@@ -121,6 +122,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }

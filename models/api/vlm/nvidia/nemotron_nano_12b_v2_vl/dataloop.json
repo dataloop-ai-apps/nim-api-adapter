@@ -3,7 +3,7 @@
   "displayName": "Nemotron Nano 12B V2 VL",
   "version": "0.3.51",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for nvidia/nemotron-nano-12b-v2-vl",
+  "description": "NVIDIA NIM adapter for nvidia/nemotron-nano-12b-v2-vl. License: NVIDIA Open Model License",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
   },
   "components": {
     "computeConfigs": [
@@ -159,6 +160,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }

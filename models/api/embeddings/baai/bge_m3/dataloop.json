@@ -1,9 +1,9 @@
 {
   "name": "nim-bge-m3",
   "displayName": "Bge M3",
-  "version": "0.3.56",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for baai/bge-m3",
+  "description": "NVIDIA NIM adapter for baai/bge-m3. License: MIT",
   "attributes": {
     "Category": [
       "Model",
@@ -18,7 +18,8 @@
       "Nvidia",
       "Dataloop"
     ],
-    "Deployed By": "NVIDIA"
+    "Deployed By": "NVIDIA",
+    "License": "MIT"
   },
   "components": {
     "computeConfigs": [
@@ -121,6 +122,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }

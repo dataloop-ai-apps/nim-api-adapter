@@ -1,9 +1,9 @@
 {
   "name": "nim-qwen2-5-coder-32b-instruct",
   "displayName": "Qwen2.5 Coder 32B Instruct",
-  "version": "0.3.56",
+  "version": "0.3.60",
   "scope": "public",
-  "description": "NVIDIA NIM adapter for qwen/qwen2.5-coder-32b-instruct",
+  "description": "NVIDIA NIM adapter for qwen/qwen2.5-coder-32b-instruct. License: Apache 2.0",
   "attributes": {
     "Category": [
       "Model",
@@ -19,7 +19,8 @@
       "Dataloop"
     ],
     "Deployed By": "NVIDIA",
-    "NLP": "Conversational"
+    "NLP": "Conversational",
+    "License": "Apache 2.0"
   },
   "components": {
     "computeConfigs": [
@@ -162,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.56"
+    "gitTag": "0.3.60"
   }
 }
