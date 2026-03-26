@@ -105,7 +105,7 @@ def is_model_downloadable(model_name: str) -> bool:
     run_anywhere_normalized = {_normalize_nim_name(m["name"]) for m in run_anywhere}
     return normalized in run_anywhere_normalized
 
-def get_all_catalog_models() -> list[dict]:
+def get_all_catalog_models(skip_licenses: bool = False) -> list[dict]:
     """Get all NIM models with their availability type and license."""
     api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
     downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
@@ -118,7 +118,12 @@ def get_all_catalog_models() -> list[dict]:
             seen.add(m["name"])
     all_models.sort(key=lambda x: x["name"])
 
-    # Scrape license for each catalog model
+    if skip_licenses:
+        for m in all_models:
+            m["license"] = None
+        print(f"  License scraping skipped ({len(all_models)} models)")
+        return all_models
+
     for m in all_models:
         lic = find_license_for_resource(resource=m, use_llm=False)
         m["license"] = lic
@@ -617,7 +622,7 @@ class NIMAgent:
     # Fetch models from NVIDIA (OpenAI endpoint + NGC Catalog for downloadables)
     # =========================================================================
     
-    def fetch_models(self):
+    def fetch_models(self, skip_licenses: bool = False):
         """
         Fetch all supported NIM models.
 
@@ -626,6 +631,9 @@ class NIMAgent:
         - potential_downloadable_models: (1) OpenAI ∩ NGC "run anywhere", plus (2) existing
           repo models (models/api, incl. object_detection) that are run-anywhere,
           so we compare downloadables for OD etc. with Dataloop.
+
+        Args:
+            skip_licenses: Skip per-model license scraping from NGC (faster for dry-runs).
 
         Populates: self.potential_api_models, self.potential_downloadable_models
         """
@@ -638,9 +646,8 @@ class NIMAgent:
         print(f"  OpenAI models: {len(self.potential_api_models)}")
 
         # 2. Fetch ALL catalog models once (API + downloadable in one pass)
-        #    Each model gets its license scraped via _find_license_for_resource.
         print("📡 Fetching NGC Catalog (all types, single pass)...")
-        all_catalog = get_all_catalog_models()
+        all_catalog = get_all_catalog_models(skip_licenses=skip_licenses)
 
         # Build catalog IDs for downloadable intersection
         catalog_dl_ids = {
@@ -661,21 +668,22 @@ class NIMAgent:
 
         # 4. Build license map from all catalog models (already scraped)
         self.license_map = {}
-        for m in all_catalog:
-            if m.get("license"):
-                self.license_map[m["name"]] = m["license"]
-                self.license_map[m["name"].replace("_", "-")] = m["license"]
+        # Skip license scraping for dry-run
+        if not skip_licenses:
+            for m in all_catalog:
+                if m.get("license"):
+                    self.license_map[m["name"]] = m["license"]
+                    self.license_map[m["name"].replace("_", "-")] = m["license"]
 
-        # Attach license to each OpenAI model
-        for m in self.potential_api_models:
-            name = m["id"].split("/")[-1] if "/" in m["id"] else m["id"]
-            lic = self.license_map.get(name) or self.license_map.get(name.replace("_", "-"))
-            m["license"] = lic
-            if lic:
-                print(f"  {m['id']}: {lic}")
+            for m in self.potential_api_models:
+                name = m["id"].split("/")[-1] if "/" in m["id"] else m["id"]
+                lic = self.license_map.get(name) or self.license_map.get(name.replace("_", "-"))
+                m["license"] = lic
+                if lic:
+                    print(f"  {m['id']}: {lic}")
 
-        licensed = sum(1 for m in self.potential_api_models if m.get("license"))
-        print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
+            licensed = sum(1 for m in self.potential_api_models if m.get("license"))
+            print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
 
     
     # =========================================================================
@@ -1709,9 +1717,9 @@ if __name__ == "__main__":
         agent = NIMAgent()
 
         print("\n" + "=" * 60)
-        print("STAGE 1: fetch_models()")
+        print(f"STAGE 1: fetch_models(limit={DRY_RUN_LIMIT}, skip_licenses=True)")
         print("=" * 60)
-        agent.fetch_models()
+        agent.fetch_models(skip_licenses=True)
         print(f"\n  [Result] API models (OpenAI):          {len(agent.potential_api_models)}")
         print(f"  [Result] Downloadable (OpenAI + NGC):  {len(agent.potential_downloadable_models)}")
         if agent.potential_api_models:
