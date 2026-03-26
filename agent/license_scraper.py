@@ -138,7 +138,7 @@ def _extract_license_from_text(text: str) -> Optional[str]:
         if candidate:
             result = candidate
 
-    # Pattern 3: "released under the <license>"
+    # Pattern 2: "released under the <license>"
     if result is None:
         m = re.search(
             r"released\s+under\s+(?:the\s+)?(.+?)(?:\s+license)?(?:[;.](?:\s|$)|\s*$)",
@@ -148,13 +148,13 @@ def _extract_license_from_text(text: str) -> Optional[str]:
             candidate = _normalize_space(m.group(0)).strip(" .,;")
             result = candidate
 
-    # Pattern 4: "License: <name>"
+    # Pattern 3: "License: <name>"
     if result is None:
         m = re.search(r"(?:^|\s)License\s*:?\s+([A-Z][\w\s.\-]+)", text, re.IGNORECASE)
         if m:
             result = _normalize_space(m.group(1)).strip(" .")
 
-    # Pattern 5: scan for known license patterns
+    # Pattern 4: scan for known license patterns
     if result is None:
         for pattern in LICENSE_PATTERNS:
             m = re.search(pattern, text, re.IGNORECASE)
@@ -213,68 +213,62 @@ def _fetch_modelcard_sections(model_name: str, publisher: str) -> tuple[str, str
             continue
 
     result = ""
-    if not html:
-        print(f"  [license] fetch error: no valid page for {model_name}")
-        return result, url
+    if html:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            decoded = html.encode().decode("unicode_escape", errors="ignore")
+        decoded = decoded.replace("\\n", "\n").replace("\\t", " ")
+        decoded = re.sub(r'"\]\)\s*self\.__next_f\.push\(\[\d+,"', " ", decoded)
+        cleaned = _clean_html(decoded)
 
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        decoded = html.encode().decode("unicode_escape", errors="ignore")
-    decoded = decoded.replace("\\n", "\n").replace("\\t", " ")
-    decoded = re.sub(r'"\]\)\s*self\.__next_f\.push\(\[\d+,"', " ", decoded)
-    cleaned = _clean_html(decoded)
+        sections: list[str] = []
+        slug_lower = slug.lower()
 
-    sections: list[str] = []
-    slug_lower = slug.lower()
+        # Strategy 1: termsOfUse JSON fields
+        seen_terms: set[str] = set()
+        for m in re.finditer(r'"termsOfUse"\s*:\s*"(.*?)(?<!\\)"\s*[,}]', decoded, re.DOTALL):
+            val_clean = _clean_html(m.group(1)).strip()
+            if not val_clean or len(val_clean) < 20:
+                continue
+            context = decoded[max(0, m.start() - 100): m.end() + 500]
+            artifact_m = re.search(r'"artifactName"\s*:\s*"([^"]+)"', context)
+            if artifact_m and artifact_m.group(1).lower() != slug_lower:
+                continue
+            if val_clean not in seen_terms:
+                seen_terms.add(val_clean)
+                sections.append(f"[termsOfUse field]\n{val_clean}")
 
-    # Strategy 1: termsOfUse JSON fields
-    seen_terms: set[str] = set()
-    for m in re.finditer(r'"termsOfUse"\s*:\s*"(.*?)(?<!\\)"\s*[,}]', decoded, re.DOTALL):
-        val_clean = _clean_html(m.group(1)).strip()
-        if not val_clean or len(val_clean) < 20:
-            continue
-        context = decoded[max(0, m.start() - 100): m.end() + 500]
-        artifact_m = re.search(r'"artifactName"\s*:\s*"([^"]+)"', context)
-        if artifact_m and artifact_m.group(1).lower() != slug_lower:
-            continue
-        if val_clean in seen_terms:
-            continue
-        seen_terms.add(val_clean)
-        sections.append(f"[termsOfUse field]\n{val_clean}")
+        # Strategy 2: GOVERNING TERMS blocks
+        for m in re.finditer(r'GOVERNING\s+TERMS.*?(?=GOVERNING\s+TERMS|#{1,3}\s+\w|$)',
+                             cleaned, re.IGNORECASE | re.DOTALL):
+            block = m.group(0).strip()
+            if len(block) < 30:
+                continue
+            foreign = re.findall(r'"artifactName"\s*:\s*"([^"]+)"', block)
+            if not foreign or any(f.lower() == slug_lower for f in foreign):
+                sections.append(f"[governing block]\n{block[:600]}")
 
-    # Strategy 2: GOVERNING TERMS blocks
-    for m in re.finditer(r'GOVERNING\s+TERMS.*?(?=GOVERNING\s+TERMS|#{1,3}\s+\w|$)',
-                         cleaned, re.IGNORECASE | re.DOTALL):
-        block = m.group(0).strip()
-        if len(block) < 30:
-            continue
-        foreign = re.findall(r'"artifactName"\s*:\s*"([^"]+)"', block)
-        if foreign and not any(f.lower() == slug_lower for f in foreign):
-            continue
-        sections.append(f"[governing block]\n{block[:600]}")
+        # Strategy 3: markdown ### License section
+        md_match = re.search(
+            r'#{1,4}\s+(?:License|Terms)[^\n]*\n(.*?)(?=#{1,4}\s|\Z)',
+            cleaned, re.DOTALL | re.IGNORECASE,
+        )
+        if md_match:
+            sections.append(f"[license section]\n{md_match.group(1)[:800].strip()}")
 
-    # Strategy 3: markdown ### License section
-    md_match = re.search(
-        r'#{1,4}\s+(?:License|Terms)[^\n]*\n(.*?)(?=#{1,4}\s|\Z)',
-        cleaned, re.DOTALL | re.IGNORECASE,
-    )
-    if md_match:
-        sections.append(f"[license section]\n{md_match.group(1)[:800].strip()}")
-
-    if sections:
-        result = "\n\n---\n\n".join(sections)
+        if sections:
+            result = "\n\n---\n\n".join(sections)
+        else:
+            for kw in ("governed by", "License/Terms", "Terms of Use", "License"):
+                idx = cleaned.lower().find(kw.lower())
+                if idx != -1:
+                    result = cleaned[max(0, idx - 100): idx + 1000].strip()
+                    break
+            if not result:
+                result = cleaned[-2000:].strip()
     else:
-        # Fallback: window around first license keyword
-        for kw in ("governed by", "License/Terms", "Terms of Use", "License"):
-            idx = cleaned.lower().find(kw.lower())
-            if idx != -1:
-                result = cleaned[max(0, idx - 100): idx + 1000].strip()
-                break
-
-        # Last resort: tail of cleaned page
-        if not result:
-            result = cleaned[-2000:].strip()
+        print(f"  [license] fetch error: no valid page for {model_name}")
 
     return result, url
 
@@ -385,7 +379,8 @@ def find_license(
     result = None
 
     if not publisher:
-        raise ValueError(f"publisher required for model {model_name!r}")
+        print(f"  [license] skipping {model_name!r} — no publisher")
+        return result
 
     page_section, url = _fetch_modelcard_sections(model_name, publisher)
 
@@ -431,10 +426,11 @@ def find_license_for_resource(resource: dict, use_llm: bool = True, api_key: str
     if not model_name:
         raise ValueError("resource dict missing 'name' key")
 
-    publisher = ""
-    for label in resource.get("labels", []):
-        if label.get("key") == "publisher":
-            publisher = (label.get("values") or [""])[0]
-            break
+    publisher = resource.get("publisher", "")
+    if not publisher:
+        for label in resource.get("labels", []):
+            if label.get("key") == "publisher":
+                publisher = (label.get("values") or [""])[0]
+                break
 
     return find_license(model_name, publisher, use_llm=use_llm, api_key=api_key)

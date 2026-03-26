@@ -202,24 +202,6 @@ def get_manifest_path(model_id: str, model_type: str) -> str:
     return f"{get_model_folder(model_id, model_type)}/dataloop.json"
 
 
-def infer_model_type(name: str) -> str:
-    """
-    Infer model type from any name (DPK name, model ID, etc.).
-
-    Returns: "llm", "vlm", "embedding", "object_detection", or "ocr"
-    """
-    name_lower = name.lower()
-    if any(x in name_lower for x in ["yolox", "yolo", "detection", "cached"]):
-        return "object_detection"
-    if any(x in name_lower for x in ["ocr", "paddleocr"]):
-        return "ocr"
-    if any(x in name_lower for x in ["embed", "arctic", "bge-", "e5-", "retriever-embedding"]):
-        return "embedding"
-    if any(x in name_lower for x in ["vision", "vila", "neva", "kosmos", "deplot", "multimodal"]):
-        return "vlm"
-    return "llm"
-
-
 # =========================================================================
 # DPK manifest configuration
 # =========================================================================

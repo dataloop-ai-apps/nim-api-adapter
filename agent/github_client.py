@@ -31,13 +31,11 @@ Requires:
 
 import os
 import json
-import re
 from datetime import datetime
 from typing import Optional, List, Dict
 
 from dpk_mcp_handler import (
     parse_model_id,
-    get_model_folder,
     get_manifest_path,
     MODEL_TYPE_FOLDERS,
 )
@@ -68,7 +66,7 @@ class GitHubClient:
         if not self.token:
             raise ValueError("GitHub token required (set GITHUB_TOKEN or pass token)")
         
-        self.repo = repo or os.environ.get("GITHUB_REPO", "dataloop-ai/dtlpy-models")
+        self.repo = repo or os.environ.get("GITHUB_REPO", "dataloop-ai/nim-api-adapter")
         self.base_branch = base_branch
         
         # Import PyGithub
@@ -183,12 +181,14 @@ class GitHubClient:
     
     def _get_file_content(self, path: str, branch: str = None) -> Optional[str]:
         """Get content of a file from the repo."""
+        result = None
         try:
             branch = branch or self.base_branch
             content = self.repository.get_contents(path, ref=branch)
-            return content.decoded_content.decode('utf-8')
+            result = content.decoded_content.decode('utf-8')
         except self.GithubException:
-            return None
+            pass
+        return result
     
     def _update_dataloop_cfg(self, existing_content: str, new_manifest_paths: List[str], deprecated_manifest_paths: List[str] = None) -> str:
         """

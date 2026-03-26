@@ -13,16 +13,15 @@ import json
 import requests
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Literal
 from urllib.parse import quote
 from openai import OpenAI
 import dtlpy as dl
 
 from nim_tester import Tester
-from dpk_mcp_handler import DPKGeneratorClient, infer_model_type, model_to_dpk_name
+from dpk_mcp_handler import DPKGeneratorClient, MODEL_TYPE_FOLDERS
 from github_client import GitHubClient
 from downloadables_create import model_name_from_downloadable_dpk_name
-from license_scraper import find_license_for_resource, find_license, DATALOOP_LICENSES as SCRAPER_LICENSES
+from license_scraper import find_license_for_resource
 
 
 NGC_CATALOG_URL = "https://api.ngc.nvidia.com/v2/search/catalog"
@@ -31,6 +30,8 @@ NGC_CATALOG_URL = "https://api.ngc.nvidia.com/v2/search/catalog"
 NIM_TYPE_DOWNLOADABLE = "nim_type_run_anywhere"
 NIM_TYPE_API_ONLY = "nim_type_preview"
 
+# Reverse lookup: folder name -> model_type (e.g. "embeddings" -> "embedding")
+_FOLDER_TO_TYPE = {v: k for k, v in MODEL_TYPE_FOLDERS.items()}
 
 # =================================================================================
 # FETCHING - Module-level functions for fetching models from NGC Catalog and OpenAI
@@ -88,17 +89,6 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     models.sort(key=lambda x: x["name"])
     return models
 
-
-def get_api_models() -> list[dict]:
-    """Get all API-only NIM models."""
-    return _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
-
-
-def get_downloadable_models() -> list[dict]:
-    """Get all downloadable (run-anywhere) NIM models."""
-    return _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
-
-
 def is_model_downloadable(model_name: str) -> bool:
     """
     Check if a NIM model is in the NGC run-anywhere (downloadable) catalog.
@@ -111,32 +101,14 @@ def is_model_downloadable(model_name: str) -> bool:
     Returns True if the model is downloadable (run-anywhere).
     """
     normalized = _normalize_nim_name(model_name)
-    run_anywhere = get_downloadable_models()
+    run_anywhere = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     run_anywhere_normalized = {_normalize_nim_name(m["name"]) for m in run_anywhere}
     return normalized in run_anywhere_normalized
 
-
-def _find_license_for_resource(resource: dict) -> str | None:
-    """Find the license for an NGC catalog resource using the LLM-backed scraper.
-
-    Delegates to license_scraper.find_license_for_resource which:
-      1. Fetches the model card page
-      2. Extracts termsOfUse + GOVERNING TERMS sections
-      3. Uses an LLM to pick the correct license (with regex fallback)
-
-    Returns:
-        Canonical Dataloop license name, or None if not found.
-    """
-    try:
-        return find_license_for_resource(resource, use_llm=True)
-    except ValueError:
-        return None
-
-
 def get_all_catalog_models() -> list[dict]:
     """Get all NIM models with their availability type and license."""
-    api_models = get_api_models()
-    downloadable_models = get_downloadable_models()
+    api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
+    downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     # Deduplicate by name, preferring API models
     seen = {m["name"] for m in api_models}
     all_models = list(api_models)
@@ -148,7 +120,7 @@ def get_all_catalog_models() -> list[dict]:
 
     # Scrape license for each catalog model
     for m in all_models:
-        lic = _find_license_for_resource(m)
+        lic = find_license_for_resource(resource=m, use_llm=False)
         m["license"] = lic
         if lic:
             print(f"  {m['name']}: {lic}")
@@ -163,7 +135,7 @@ def get_model_ids(models: list[dict]) -> list[str]:
     Extract model IDs from model list in NVIDIA format (publisher/name).
     
     Args:
-        models: List of model dicts from get_api_models() or get_downloadable_models()
+        models: List of model dicts api/downloadable_models()
     
     Returns:
         List of model IDs like "meta/llama-3.1-8b-instruct"
@@ -285,7 +257,7 @@ def get_repository_downloadable_models() -> list[dict]:
         model_name_without_provider: last segment of nim_model_name (e.g. baai/bge-m3 -> bge-m3).
     """
     run_anywhere_normalized = {
-        _normalize_nim_name(m["name"]) for m in get_downloadable_models()
+        _normalize_nim_name(m["name"]) for m in _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     }
     all_existing = get_all_repository_models()
     return [
@@ -320,11 +292,11 @@ def featch_report() -> dict:
 
     # 2. Fetch from NGC Catalog (both types)
     print("Fetching NGC Catalog API models...")
-    api_models = get_api_models()
+    api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
     api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in api_models}
 
     print("Fetching NGC Catalog Downloadable models...")
-    downloadable_models = get_downloadable_models()
+    downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in downloadable_models}
 
     # 3. Cross-reference
@@ -552,27 +524,6 @@ class NIMAgent:
         licensed = sum(1 for m in self.potential_api_models if m.get("license"))
         print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
 
-        # # 3. Also include existing repo models (e.g. object_detection) that are run-anywhere,
-        # #    so we compare them with Dataloop and know which downloadables to add.
-        # repo_downloadables = get_repository_potential_api_models()
-        # existing_normalized = {self._normalize(m["id"]) for m in self.potential_api_models}
-        # added = 0
-        # for r in repo_downloadables:
-        #     nim = r["nim_model_name"]
-        #     if self._normalize(nim) in existing_normalized:
-        #         continue
-        #     self.potential_api_models.append({
-        #         "id": nim,
-        #         "name": nim,
-        #         "publisher": nim.split("/")[0] if "/" in nim else "nvidia",
-        #         "relative_path": r["relative_path"],
-        #     })
-        #     existing_normalized.add(self._normalize(nim))
-        #     added += 1
-        # if added:
-        #     print(f"  Downloadable (+ existing repo run-anywhere, e.g. OD): +{added} -> {len(self.potential_api_models)} total")
-
-        # print(f"  API-only (OpenAI, not downloadable): {len(self.potential_api_models) - (len(self.potential_api_models) - added)}")
     
     # =========================================================================
     # Compare with Dataloop
@@ -702,16 +653,21 @@ class NIMAgent:
                     "nim_model_name": nim_model_name,
                 })
             else:
-                if d.get("components", {}).get("models", []):
-                    nim_model_name = d.get("components", {}).get("models", [])[0].get("configuration", {}).get("nim_model_name","unknown")
+                models_list = d.get("components", {}).get("models", [])
+                if models_list:
+                    nim_model_name = models_list[0].get("configuration", {}).get("nim_model_name", "unknown")
                 else:
                     nim_model_name = "unknown"
+                entry_point = d.get("codebase", {}).get("entry_point", "")
+                parts = entry_point.replace("\\", "/").split("/")
+                model_type = next((_FOLDER_TO_TYPE[p] for p in parts if p in _FOLDER_TO_TYPE), "llm")
                 entry = {
                     "name": d.get("name", str(d)),
                     "display_name": d.get("display_name", d.get("name", str(d))),
                     "version": d.get("version", None),
                     "id": d.get("id", None),
                     "nim_model_name": nim_model_name,
+                    "model_type": model_type,
                 }
                 if nim_model_name.startswith("cv/"):
                     self.dataloop_cv_dpks.append(entry)
@@ -939,15 +895,6 @@ class NIMAgent:
                 return repo_model["relative_path"]
         return None
 
-    @staticmethod
-    def _nim_model_name_from_id(model_id: str) -> str:
-        """
-        Convert model id (e.g. 'meta/llama-3.1-8b-instruct') to the NIM model name
-        used by ``build_downloadable_nim`` (same format as the --model arg).
-        """
-        # model_id may already be the right format (publisher/model-name)
-        return model_id
-
     def onboard_downloadable_models(
         self,
         models: list = None,
@@ -1001,14 +948,13 @@ class NIMAgent:
                 })
                 continue
 
-            model_name = self._nim_model_name_from_id(model_id)
             print(f"\n{'='*60}")
-            print(f"Building downloadable: {model_name} -> {relative_path}")
+            print(f"Building downloadable: {model_id} -> {relative_path}")
             print(f"{'='*60}")
 
             try:
                 manifest = build_downloadable_nim(
-                    model_name=model_name,
+                    model_name=model_id,
                     manifest_path=relative_path,
                     skip_docker=skip_docker,
                 )
@@ -1116,14 +1062,16 @@ class NIMAgent:
             if isinstance(d, dict):
                 dpk_name = d.get("name")
                 display_name = d.get("display_name", dpk_name)
+                model_type = d.get("model_type", "llm")
             else:
                 dpk_name = d
                 display_name = d
+                model_type = "llm"
             if dpk_name:
                 deprecated_models.append({
                     "model_id": dpk_name,
                     "display_name": display_name,
-                    "model_type": infer_model_type(dpk_name)
+                    "model_type": model_type,
                 })
         
         # Collect failed models for PR body info
@@ -1608,12 +1556,12 @@ if __name__ == "__main__":
         print("STAGE 1: fetch_models()")
         print("=" * 60)
         agent.fetch_models()
-        print(f"\n  [Result] API models (OpenAI):          {len(agent.api_models)}")
-        print(f"  [Result] Downloadable (OpenAI + NGC):  {len(agent.downloadable_models)}")
-        if agent.api_models:
-            print(f"  [Sample API]          {agent.api_models[0].get('id') or agent.api_models[0].get('name')}")
-        if agent.downloadable_models:
-            print(f"  [Sample Downloadable] {agent.downloadable_models[0].get('id') or agent.downloadable_models[0].get('name')}")
+        print(f"\n  [Result] API models (OpenAI):          {len(agent.potential_api_models)}")
+        print(f"  [Result] Downloadable (OpenAI + NGC):  {len(agent.potential_downloadable_models)}")
+        if agent.potential_api_models:
+            print(f"  [Sample API]          {agent.potential_api_models[0].get('id') or agent.potential_api_models[0].get('name')}")
+        if agent.potential_downloadable_models:
+            print(f"  [Sample Downloadable] {agent.potential_downloadable_models[0].get('id') or agent.potential_downloadable_models[0].get('name')}")
 
         print("\n" + "=" * 60)
         print("STAGE 2: fetch_dataloop_dpks() + compare()")
@@ -1665,11 +1613,9 @@ if __name__ == "__main__":
         else:
             for model in dl_preview:
                 model_id = model.get("id") or model.get("name", "?")
-                model_name = agent._nim_model_name_from_id(model_id)
                 relative_path = agent._resolve_downloadable_relative_path(model)
                 manifest_path = f"models/downloadable/{relative_path}/dataloop.json" if relative_path else None
                 print(f"\n  Model:          {model_id}")
-                print(f"    nim_name:     {model_name}")
                 print(f"    rel_path:     {relative_path or '(not resolved)'}")
                 print(f"    manifest_path:{manifest_path or '(none)'}")
                 if not relative_path:
