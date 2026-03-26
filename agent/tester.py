@@ -605,7 +605,7 @@ class Tester:
         ]
         rerank_patterns = ["rerank", "retriev", "nv-rerankqa"]
         vlm_patterns = [
-            "vision", "vlm", "llava", "vila", "kosmos",
+            "vision", "vlm", "-vl-", "llava", "vila", "kosmos",
             "deplot", "neva", "paligemma", "fuyu", "cogvlm",
             "11b-vision", "90b-vision", "multimodal", "cosmos"
         ]
