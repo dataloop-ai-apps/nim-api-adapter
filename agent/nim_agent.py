@@ -954,23 +954,20 @@ class NIMAgent:
         models: list = None, 
         limit: int = None,
         max_workers: int = 10,
-        skip_adapter_test: bool = True,
+        skip_adapter_test: bool = False,
     ) -> list:
         """
         Run onboarding pipeline for multiple models in parallel.
-        
         Uses ThreadPoolExecutor to call onboard_model() for each model concurrently.
-        
         Note: Call open_new_and_deprecated_pr() separately after to create PRs.
-        
         Args:
             models: List of model dicts or IDs (default: self.api_to_add from compare)
             limit: Max number of models to process
             max_workers: Max parallel workers (default: 10)
-            skip_adapter_test: If True (default), skip the adapter exec test in each thread.
-                The adapter test mutates shared platform model entities and is not thread-safe.
-                The API smoke test (Step 1) is still run to validate each model.
-                Set to False to run adapter tests serially (via lock, slower).
+            skip_adapter_test: If False (default), run adapter tests for all models.
+                Adapter tests are serialized via _ADAPTER_TEST_LOCK so they are thread-safe.
+                API smoke tests (Step 1) still run in parallel across all workers.
+                Set to True to skip adapter tests entirely (faster, less thorough).
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
         
@@ -1676,6 +1673,18 @@ if __name__ == "__main__":
     p_cq = sub.add_parser("clear-quarantine", help="Un-quarantine a model (or 'all')")
     p_cq.add_argument("model_id", type=str, help="Model ID to un-quarantine, or 'all'")
 
+    # --- validate-release ---
+    p_vr = sub.add_parser(
+        "validate-release",
+        help="Post-release: sample public NIM DPKs and test them on the platform",
+    )
+    p_vr.add_argument(
+        "--percentage",
+        type=float,
+        default=0.10,
+        help="Fraction of each model type to test (default: 0.10 = 10%%)",
+    )
+
     # --- report ---
     sub.add_parser("report", help="Fetch and print NIM availability report")
 
@@ -1847,6 +1856,11 @@ if __name__ == "__main__":
 
     elif args.command == "report":
         featch_report()
+
+    elif args.command == "validate-release":
+        from nim_tester import Tester
+        tester = Tester()
+        tester.post_release_platform_test(percentage=args.percentage)
 
     else:
         parser.print_help()

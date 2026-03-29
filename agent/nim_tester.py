@@ -1189,6 +1189,212 @@ class Tester:
         return manifest_path
 
 # =============================================================================
+# Post-Release Validation
+# =============================================================================
+
+    def post_release_platform_test(self, percentage: float = 0.10) -> dict:
+        """
+        Validate a random sample of public NIM DPKs on the Dataloop platform.
+
+        Lists all public NIM DPKs, groups them by model type (llm/vlm/embedding)
+        using DPK attributes, samples `percentage` of each group, installs each
+        as an app using the existing public DPK (no re-publish), deploys the
+        model, runs a test prediction/embedding, and reports results.
+
+        No cleanup is performed — apps and models are left running after the test.
+
+        Args:
+            percentage: Fraction of each type group to test (default 0.10 = 10%).
+
+        Returns:
+            dict with keys "llm", "vlm", "embedding", and "summary".
+            Also writes results to run_data/validate_release_{timestamp}.json.
+        """
+        import math
+        import random
+        import datetime
+
+        print(f"\n{'='*60}")
+        print(f"POST-RELEASE PLATFORM VALIDATION")
+        print(f"  Percentage per type: {percentage*100:.0f}%")
+        print(f"{'='*60}\n")
+
+        results = {"llm": [], "vlm": [], "embedding": []}
+
+        # Step 1: List all public NIM DPKs
+        print("Step 1: Listing public NIM DPKs...")
+        try:
+            filters = dl.Filters(resource=dl.FiltersResource.DPK)
+            filters.add(
+                field='codebase.gitUrl',
+                values=[
+                    'https://github.com/dataloop-ai-apps/nim-api-adapter.git',
+                    'https://github.com/dataloop-ai-apps/nim-api-adapter',
+                ],
+                operator=dl.FiltersOperations.IN,
+            )
+            all_dpks = list(dl.dpks.list(filters=filters).all())
+        except Exception as e:
+            print(f"  Error listing DPKs: {e}")
+            return results
+        print(f"  Found {len(all_dpks)} NIM DPKs")
+
+        # Step 2: Group by type using DPK attributes
+        grouped = {"llm": [], "vlm": [], "embedding": []}
+        for dpk in all_dpks:
+            attrs = dpk.attributes or {}
+            nlp = attrs.get("NLP", "")
+            gen_ai = attrs.get("Gen AI", "")
+            if nlp == "Embeddings":
+                grouped["embedding"].append(dpk)
+            elif gen_ai == "LMM":
+                grouped["vlm"].append(dpk)
+            elif gen_ai == "LLM":
+                grouped["llm"].append(dpk)
+            # else: skip unrecognized type (rerank, etc.)
+
+        for t, dpks in grouped.items():
+            print(f"  {t}: {len(dpks)} DPKs")
+
+        # Step 3: Sample per type
+        sampled = {}
+        for model_type, dpks in grouped.items():
+            if not dpks:
+                sampled[model_type] = []
+                continue
+            n = max(1, math.ceil(len(dpks) * percentage))
+            sampled[model_type] = random.sample(dpks, min(n, len(dpks)))
+            print(f"  Sampling {len(sampled[model_type])}/{len(dpks)} {model_type} DPKs")
+
+        # Step 4: Install, deploy, and test each sampled DPK
+        project = dl.projects.get(project_id=self.get_project_id())
+        ngc_integration_id = os.environ.get("DATALOOP_NGC_INTEGRATION_ID", "").strip()
+        integrations = [{"key": "dl-ngc-api-key", "value": ngc_integration_id}] if ngc_integration_id else []
+
+        for model_type, dpks in sampled.items():
+            for dpk in dpks:
+                entry = {
+                    "dpk_name": dpk.name,
+                    "dpk_id": dpk.id,
+                    "model_type": model_type,
+                    "app_id": None,
+                    "model_id": None,
+                    "status": "pending",
+                    "response": None,
+                    "error": None,
+                }
+                print(f"\n  [{model_type.upper()}] {dpk.name}")
+                try:
+                    # Install the existing public DPK as an app (no re-publish)
+                    app_name = f"{dpk.name}-validate"
+                    print(f"    Installing as app '{app_name}'...")
+                    app = project.apps.install(dpk=dpk, app_name=app_name, integrations=integrations or None)
+                    entry["app_id"] = app.id
+                    print(f"    App installed: {app.id}")
+
+                    # Find model in app
+                    model_filters = dl.Filters(resource=dl.FiltersResource.MODEL)
+                    model_filters.add(field='app.id', values=app.id)
+                    app_models = list(project.models.list(filters=model_filters).all())
+                    if not app_models:
+                        raise ValueError(f"No models found in app {app.name}")
+                    model = app_models[0]
+                    entry["model_id"] = model.id
+                    print(f"    Model: {model.name} ({model.id})")
+
+                    # Deploy and wait
+                    model.deploy()
+                    print("    Waiting for deployment...")
+                    while model.status not in [dl.ModelStatus.DEPLOYED, dl.ModelStatus.FAILED]:
+                        time.sleep(60)
+                        model = project.models.get(model_id=model.id)
+
+                    if model.status == dl.ModelStatus.FAILED:
+                        raise ValueError("Model deployment failed")
+                    print("    Deployed.")
+
+                    # Run prediction or embedding
+                    test_item_id = self.get_test_item_id(model_type)
+                    item = dl.items.get(item_id=test_item_id)
+                    if model_type == "embedding":
+                        execution = model.embed(item_ids=[item.id])
+                    else:
+                        execution = model.predict(item_ids=[item.id])
+
+                    max_wait_time = 600
+                    poll_interval = 10
+                    waited = 0
+                    exec_status = "unknown"
+                    while waited < max_wait_time:
+                        execution = dl.executions.get(execution_id=execution.id)
+                        exec_status = execution.status[-1]['status'] if execution.status else 'unknown'
+                        if exec_status in ['success', 'failed']:
+                            break
+                        time.sleep(poll_interval)
+                        waited += poll_interval
+
+                    if exec_status != 'success':
+                        raise ValueError(f"Execution ended with status: {exec_status}")
+
+                    if model_type == "embedding":
+                        entry["response"] = f"Embedding completed for item {item.id}"
+                    else:
+                        response_text = self._get_response_from_item(
+                            dl.items.get(item_id=test_item_id), model.name
+                        )
+                        entry["response"] = response_text or "Prediction completed"
+
+                    entry["status"] = "success"
+                    print(f"    PASSED")
+
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    entry["status"] = "failed"
+                    entry["error"] = str(e)
+                    print(f"    FAILED: {e}")
+
+                results[model_type].append(entry)
+
+        # Step 5: Build summary and save report
+        total = sum(len(v) for v in results.values())
+        passed = sum(1 for v in results.values() for e in v if e["status"] == "success")
+        failed = total - passed
+
+        summary = {
+            "total": total,
+            "passed": passed,
+            "failed": failed,
+            "percentage_tested": percentage,
+            "by_type": {
+                t: {
+                    "total_available": len(grouped[t]),
+                    "tested": len(results[t]),
+                    "passed": sum(1 for e in results[t] if e["status"] == "success"),
+                    "failed": sum(1 for e in results[t] if e["status"] == "failed"),
+                }
+                for t in ("llm", "vlm", "embedding")
+            },
+        }
+        results["summary"] = summary
+
+        print(f"\n{'='*60}")
+        print(f"VALIDATION SUMMARY")
+        print(f"  Total tested: {total}  Passed: {passed}  Failed: {failed}")
+        for t, s in summary["by_type"].items():
+            print(f"  {t}: {s['passed']}/{s['tested']} passed  (of {s['total_available']} available)")
+        print(f"{'='*60}")
+
+        os.makedirs("run_data", exist_ok=True)
+        timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        report_path = os.path.join("run_data", f"validate_release_{timestamp}.json")
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+        print(f"  Report saved: {report_path}")
+
+        return results
+
+# =============================================================================
 # Standalone Testing
 # =============================================================================
 
