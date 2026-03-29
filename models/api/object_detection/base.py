@@ -6,6 +6,8 @@ import base64
 import cv2
 import os
 
+SSL_VERIFY = os.environ.get("NIM_SSL_VERIFY", "true").lower() not in ("0", "false", "no")
+
 logger = logging.getLogger("Vision NIM Adapter")
 
 
@@ -52,7 +54,7 @@ class ModelAdapter(dl.BaseModelAdapter):
                 ]
                 }
         
-        response = requests.post(url=url, headers=headers, json=payload)
+        response = requests.post(url=url, headers=headers, json=payload, verify=SSL_VERIFY)
         
         if response.status_code != 200:
             raise Exception(f"Failed to call model: {response.status_code} {response.text}")
