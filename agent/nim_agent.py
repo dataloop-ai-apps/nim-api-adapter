@@ -62,6 +62,7 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
                 if name not in seen:
                     seen.add(name)
                     publisher = ""
+                    model_tasks = []
                     for label in resource.get("labels", []):
                         if label.get("key") == "publisher":
                             publisher = label.get("values", [""])[0]

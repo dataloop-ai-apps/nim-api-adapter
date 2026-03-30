@@ -15,6 +15,9 @@ from unittest.mock import patch, MagicMock, PropertyMock
 # Add agent/ to path so imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "agent"))
 
+from github_client import GitHubClient
+from tester import Tester
+
 
 # =========================================================================
 # nim_agent tests
@@ -204,10 +207,9 @@ class TestParseModelId(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
+            GitHubClient,
             "__init__", lambda self, **kw: None
         ):
-            from github_client import GitHubClient
             self.client = GitHubClient()
 
     def test_with_publisher(self):
@@ -235,10 +237,9 @@ class TestGetModelFolder(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
+            GitHubClient,
             "__init__", lambda self, **kw: None
         ):
-            from github_client import GitHubClient
             self.client = GitHubClient()
 
     def test_llm_folder(self):
@@ -263,10 +264,9 @@ class TestUpdateBumpversionCfg(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
+            GitHubClient,
             "__init__", lambda self, **kw: None
         ):
-            from github_client import GitHubClient
             self.client = GitHubClient()
 
     def test_adds_new_entries(self):
@@ -328,10 +328,9 @@ class TestUpdateDataloopCfg(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
+            GitHubClient,
             "__init__", lambda self, **kw: None
         ):
-            from github_client import GitHubClient
             self.client = GitHubClient()
 
     def test_adds_and_removes(self):
@@ -384,10 +383,9 @@ class TestUnifiedPrTitle(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("github_client", fromlist=["GitHubClient"]).GitHubClient,
+            GitHubClient,
             "__init__", lambda self, **kw: None
         ):
-            from github_client import GitHubClient
             self.client = GitHubClient()
 
     def test_new_only(self):
@@ -422,10 +420,9 @@ class TestDetectModelType(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            __import__("tester", fromlist=["Tester"]).Tester,
+            Tester,
             "__init__", lambda self, **kw: None
         ):
-            from tester import Tester
             self.tester = Tester()
             # Mock the OpenAI client so no real API calls are made
             self.tester.client = MagicMock()

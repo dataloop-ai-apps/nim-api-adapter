@@ -16,6 +16,8 @@ import requests
 import jwt
 import datetime
 
+SSL_VERIFY = os.environ.get("NIM_SSL_VERIFY", "true").lower() not in ("0", "false", "no")
+
 # Toggleable logger - set NIM_DISABLE_LOGGING=1 to disable
 if os.environ.get("NIM_DISABLE_LOGGING", "").lower() in ("1", "true", "yes"):
     logger = logging.getLogger("NIM Adapter")
@@ -38,7 +40,7 @@ def get_downloadable_endpoint_and_cookie(app_id: str):
     route = list(app.routes.values())[0].rstrip("/")
     base_before = "/".join(route.split("/")[:-1])
     session = requests.Session()
-    resp = session.get(base_before, headers=dl.client_api.auth, verify=False)
+    resp = session.get(base_before, headers=dl.client_api.auth, verify=SSL_VERIFY)
     base_url = resp.url.rstrip("/")
     # OpenAI client appends /embeddings or /chat/completions; server expects /v1 prefix
     if not base_url.endswith("/v1"):
@@ -101,7 +103,7 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
             f"Using downloadable endpoint for {self.nim_model_name}, base URL: {self.base_url}"
         )
         # Cookie-only auth: do not send Authorization or server returns "Multiple tokens provided"
-        http_client = httpx.Client(verify=False)
+        http_client = httpx.Client(verify=SSL_VERIFY)
         self.client = OpenAI(
             base_url=self.base_url,
             api_key="",  # omit Bearer token so only Cookie header is sent
@@ -111,7 +113,7 @@ class NIMBaseAdapter(dl.BaseModelAdapter):
         try:
             health_url = self.base_url.rstrip("/") + "/manifest"
             r = requests.get(
-                health_url, headers={"Cookie": cookie_header}, timeout=10, verify=False
+                health_url, headers={"Cookie": cookie_header}, timeout=10, verify=SSL_VERIFY
             )
             r.raise_for_status()
             logger.info(

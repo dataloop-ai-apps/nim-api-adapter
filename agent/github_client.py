@@ -287,8 +287,9 @@ class GitHubClient:
                 skip_next -= 1
                 continue
                 
-            if line.startswith('[bumpversion:file:'):
-                path = line.replace('[bumpversion:file:', '').replace(']', '')
+            stripped = line.strip()
+            if stripped.startswith('[bumpversion:file:'):
+                path = stripped.replace('[bumpversion:file:', '').replace(']', '').strip()
                 existing_paths.add(path)
                 
                 # Check if this is a deprecated path
