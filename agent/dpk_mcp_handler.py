@@ -7,16 +7,18 @@ Calls MCP tools directly with explicit parameters (no LLM interpretation).
 import asyncio
 import json
 import os
+import requests
+import httpx
 from dotenv import load_dotenv
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
 
 # Load environment variables
 load_dotenv()
 
-# MCP server config - set via environment variables
-# PYTHON_PATH: Path to Python executable for MCP server
-# MCP_SERVER_PATH: Path to MCP server script
+# MCP transport mode (auto-selected):
+#   DPK_MCP_NAME set → HTTP (platform-hosted DPK service)
+#   MCP_SERVER_PATH set → stdio (local subprocess)
+DPK_MCP_NAME = os.environ.get("DPK_MCP_NAME")
+ENV = "rc"
 PYTHON_PATH = os.environ.get("PYTHON_PATH", "python")
 MCP_SERVER_PATH = os.environ.get("MCP_SERVER_PATH")
 
@@ -244,37 +246,94 @@ MODEL_TYPE_CONFIG = {
 class DPKGeneratorClient:
     """
     MCP Client for generating DPK manifests for NVIDIA NIM models.
-    
-    Calls create_model_manifest MCP tool directly with explicit parameters.
-    
-    Requires environment variables:
-    - DPK_MCP_PYTHON: Path to Python executable (default: "python")
-    - DPK_MCP_SERVER: Path to MCP server script (required)
+
+    Supports two transport modes (auto-selected by env vars):
+      - HTTP: DPK_MCP_NAME is set → resolves the service URL from the Dataloop platform
+      - stdio: MCP_SERVER_PATH is set → spawns a local MCP server subprocess
+
+    Raises ValueError if neither is configured.
     """
-    
+
     def __init__(self):
-        if not MCP_SERVER_PATH:
+        if DPK_MCP_NAME:
+            self._mode = "http"
+            self._server_url = self._resolve_dpk_url(DPK_MCP_NAME)
+        elif MCP_SERVER_PATH:
+            self._mode = "stdio"
+        else:
             raise ValueError(
-                "DPK_MCP_SERVER environment variable required. "
-                "Set it to the path of the MCP server script."
+                "Set DPK_MCP_NAME (platform-hosted) or MCP_SERVER_PATH (local stdio)."
             )
-        
-        self.server_params = StdioServerParameters(
+
+    @staticmethod
+    def _resolve_dpk_url(dpk_name: str) -> str:
+        """Resolve the MCP service URL from a deployed Dataloop DPK app."""
+        import dtlpy as dl
+        dl.setenv(ENV)
+        dpk = dl.dpks.get(dpk_name=dpk_name)
+        filters = dl.Filters(field='dpkName', values=dpk.name, resource='apps')
+        for app in dl.apps.list(filters=filters).all():
+            app_url = app.routes['mcp']
+            # Follow redirect to get the final URL
+            resp = requests.get(app_url, headers=dl.client_api.auth, allow_redirects=True)
+            return resp.url
+        raise ValueError(f"No running app found for DPK: {dpk_name}")
+
+    def _http_call_tool(self, tool_name: str, arguments: dict) -> dict:
+        """Call an MCP tool via HTTP JSON-RPC (platform-hosted mode)."""
+        import dtlpy as dl
+        token = dl.token()
+        with httpx.Client(
+            headers={"authorization": f"Bearer {token}", "x-dl-info": token},
+            timeout=300,
+        ) as client:
+            def _jsonrpc(method, params=None):
+                resp = client.post(
+                    self._server_url,
+                    json={"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1},
+                    headers={"Accept": "text/event-stream, application/json"},
+                )
+                if resp.status_code != 200:
+                    raise RuntimeError(f"MCP HTTP error {resp.status_code}: {resp.text}")
+                if 'text/event-stream' in resp.headers.get('content-type', ''):
+                    for line in resp.text.split('\n'):
+                        if line.startswith('data: '):
+                            data = json.loads(line[6:])
+                            if 'result' in data:
+                                return data['result']
+                    return None
+                return resp.json().get('result')
+
+            _jsonrpc("initialize", {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": {"name": "nim-agent", "version": "1.0.0"},
+            })
+            result = _jsonrpc("tools/call", {"name": tool_name, "arguments": arguments})
+            if result is None:
+                raise RuntimeError("MCP tool returned no result")
+            return json.loads(result['content'][0]['text'])
+
+    async def _stdio_call_tool(self, tool_name: str, arguments: dict) -> dict:
+        """Call an MCP tool via stdio subprocess (local mode)."""
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
+        server_params = StdioServerParameters(
             command=PYTHON_PATH,
             args=[MCP_SERVER_PATH],
-            env={
-                **os.environ,
-                "NGC_API_KEY": os.environ.get("NGC_API_KEY", ""),
-            }
+            env={**os.environ, "NGC_API_KEY": os.environ.get("NGC_API_KEY", ""), "MCP_TRANSPORT": "stdio"},
         )
-    
-    async def _call_tool(self, tool_name: str, arguments: dict) -> dict:
-        """Call an MCP tool and return the result."""
-        async with stdio_client(self.server_params) as (read, write):
+        async with stdio_client(server_params) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool(tool_name, arguments=arguments)
                 return json.loads(result.content[0].text)
+
+    def _call_tool(self, tool_name: str, arguments: dict) -> dict:
+        """Dispatch to HTTP or stdio based on configured mode."""
+        if self._mode == "http":
+            return self._http_call_tool(tool_name, arguments)
+        return asyncio.run(self._stdio_call_tool(tool_name, arguments))
     
     def create_nim_dpk_manifest(self, model_id: str, model_type: str, embeddings_size: int = None, license: str = None) -> dict:
         """
@@ -387,11 +446,16 @@ class DPKGeneratorClient:
                 mcp_args["input_type"] = "text"
 
             # Call MCP tool directly with explicit parameters (no LLM)
-            manifest = asyncio.run(self._call_tool("create_model_manifest", mcp_args))
-            
+            # Note: MCP tool name is "create_model_adapter" (wrapper around create_model_manifest)
+            tool_response = self._call_tool("create_model_adapter", mcp_args)
+
+            # The MCP wrapper returns {"success": bool, "manifest": {...}}
+            if not tool_response.get("success"):
+                raise RuntimeError(tool_response.get("error", "MCP tool returned failure"))
+
             result.update({
                 "status": "success",
-                "manifest": manifest
+                "manifest": tool_response["manifest"]
             })
             
         except Exception as e:
@@ -527,17 +591,20 @@ if __name__ == "__main__":
             print(f"      {k}: {v}")
 
     # ------------------------------------------------------------------
-    # 5. Full MCP call (only if MCP_SERVER_PATH is set)
+    # 5. Full MCP call (HTTP via DPK_MCP_NAME, or stdio via MCP_SERVER_PATH)
     # ------------------------------------------------------------------
     print("\n" + "-" * 60)
     print("5. Full MCP manifest creation")
     print("-" * 60)
 
-    if not MCP_SERVER_PATH:
-        print("  MCP_SERVER_PATH not set - skipping real MCP calls")
-        print("  Set MCP_SERVER_PATH env var to test end-to-end")
+    if DPK_MCP_NAME:
+        print(f"  Mode: HTTP (DPK_MCP_NAME={DPK_MCP_NAME})")
+    elif MCP_SERVER_PATH:
+        print(f"  Mode: stdio (MCP_SERVER_PATH={MCP_SERVER_PATH})")
     else:
-        print(f"  MCP server: {MCP_SERVER_PATH}")
+        print("  Skipping: set DPK_MCP_NAME (HTTP) or MCP_SERVER_PATH (stdio)")
+
+    if DPK_MCP_NAME or MCP_SERVER_PATH:
         for model_id, mtype, emb_size in TEST_MODELS:
             print(f"\n  >> {model_id} ({mtype})")
             result = create_nim_manifest(model_id, mtype, embeddings_size=emb_size)
@@ -546,7 +613,6 @@ if __name__ == "__main__":
             if result["error"]:
                 print(f"     error:    {result['error'][:120]}")
             if result["manifest"]:
-                # Show just the models[0].configuration from the generated manifest
                 print(f"     manifest: {json.dumps(result['manifest'], indent=2)}")
 
     print("\n" + "=" * 60)
