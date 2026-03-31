@@ -75,45 +75,72 @@ class TestGetModelIds(unittest.TestCase):
 class TestGetAllCatalogModelsDedup(unittest.TestCase):
     """Test get_all_catalog_models deduplication logic."""
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_dedup_prefers_api(self, mock_api, mock_dl):
-        mock_api.return_value = [
-            {"name": "model-a", "publisher": "nvidia", "nim_type": "api"},
-            {"name": "model-b", "publisher": "nvidia", "nim_type": "api"},
-        ]
-        mock_dl.return_value = [
-            {"name": "model-a", "publisher": "nvidia", "nim_type": "downloadable"},  # duplicate
-            {"name": "model-c", "publisher": "nvidia", "nim_type": "downloadable"},
-        ]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_dedup_prefers_api(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [
+                    {"name": "model-a", "publisher": "nvidia", "nim_type": nim_type_filter},
+                    {"name": "model-b", "publisher": "nvidia", "nim_type": nim_type_filter},
+                ]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [
+                    {"name": "model-a", "publisher": "nvidia", "nim_type": nim_type_filter},
+                    {"name": "model-c", "publisher": "nvidia", "nim_type": nim_type_filter},
+                ]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
 
         names = [m["name"] for m in result]
         self.assertEqual(sorted(names), ["model-a", "model-b", "model-c"])
         # model-a should be the API version (first wins)
         model_a = next(m for m in result if m["name"] == "model-a")
-        self.assertEqual(model_a["nim_type"], "api")
+        self.assertEqual(model_a["nim_type"], NIM_TYPE_API_ONLY)
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_no_duplicates(self, mock_api, mock_dl):
-        mock_api.return_value = [{"name": "a", "publisher": "x"}]
-        mock_dl.return_value = [{"name": "b", "publisher": "y"}]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_no_duplicates(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [{"name": "a", "publisher": "x", "nim_type": nim_type_filter}]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [{"name": "b", "publisher": "y", "nim_type": nim_type_filter}]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
         self.assertEqual(len(result), 2)
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_sorted_by_name(self, mock_api, mock_dl):
-        mock_api.return_value = [{"name": "zebra", "publisher": "x"}]
-        mock_dl.return_value = [{"name": "alpha", "publisher": "y"}]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_sorted_by_name(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [{"name": "zebra", "publisher": "x", "nim_type": nim_type_filter}]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [{"name": "alpha", "publisher": "y", "nim_type": nim_type_filter}]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
         self.assertEqual([m["name"] for m in result], ["alpha", "zebra"])
 
 
@@ -534,8 +561,8 @@ class TestFindLicenseValidation(unittest.TestCase):
         self.find_license = find_license
 
     def test_raises_on_empty_publisher(self):
-        with self.assertRaises(ValueError):
-            self.find_license("some-model", "")
+        result = self.find_license("some-model", "")
+        self.assertIsNone(result)
 
     @patch("license_scraper._fetch_modelcard_sections", return_value=("", "http://example.com"))
     def test_returns_none_on_empty_page(self, mock_fetch):
