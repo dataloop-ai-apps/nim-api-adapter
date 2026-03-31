@@ -176,7 +176,7 @@ def get_openai_nim_models(api_key: str = None) -> list[dict]:
     models = []
     for model in response.data:
         model_id = model.id
-        if model_id in seen_ids: # to skip duplictions
+        if model_id in seen_ids: # to skip duplications
             continue
         seen_ids.add(model_id)
         publisher = model_id.split("/")[0] if "/" in model_id else "nvidia"
