@@ -629,7 +629,7 @@ class Tester:
         ]
         rerank_patterns = ["rerank", "retriev", "nv-rerankqa"]
         vlm_patterns = [
-            "vision", "vlm", "llava", "vila", "kosmos",
+            "vision", "vlm", "-vl-", "llava", "vila", "kosmos",
             "deplot", "neva", "paligemma", "fuyu", "cogvlm",
             "11b-vision", "90b-vision", "multimodal", "cosmos"
         ]
@@ -826,12 +826,17 @@ class Tester:
                 adapter_code
             )
             
-            # Execute the modified adapter code
+            repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            real_adapter = os.path.realpath(adapter_path)
+            if not real_adapter.startswith(os.path.realpath(repo_root)):
+                raise ValueError(f"Adapter path outside repository: {adapter_path}")
+
+            compiled = compile(adapter_code, adapter_path, "exec")
             exec_globals = {
                 '__name__': '__main__',
                 '__file__': adapter_path,
             }
-            exec(adapter_code, exec_globals)
+            exec(compiled, exec_globals)  # nosec B102 - adapter loaded from verified repo path
             
             if model_type == "embedding":
                 # For embedding, the adapter returns embeddings directly, not stored in item

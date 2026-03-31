@@ -89,7 +89,7 @@ def _model_name_from_manifest_path(manifest_path: str) -> str:
 
 def _alnum_suffix(manifest_path: str, length: int = _RANDOM_SUFFIX_LEN) -> str:
     """Deterministic alphanumeric suffix from path (same path -> same suffix)."""
-    h = hashlib.md5(manifest_path.encode()).hexdigest()
+    h = hashlib.sha256(manifest_path.encode()).hexdigest()
     return "".join(_ALNUM[int(h[i : i + 2], 16) % len(_ALNUM)] for i in range(0, length * 2, 2))
 
 

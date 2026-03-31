@@ -249,6 +249,7 @@ class GitHubClient:
                 skip_next -= 1
                 continue
 
+
             stripped = line.strip()
             if stripped.startswith('[bumpversion:file:'):
                 path = stripped.replace('[bumpversion:file:', '').replace(']', '').strip()
