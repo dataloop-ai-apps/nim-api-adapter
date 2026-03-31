@@ -1,0 +1,41 @@
+{
+  "project_type": "python",
+  "criteria": [
+    {
+      "id": "C1",
+      "description": "Python dependencies install without errors from repository root (requirements.txt present on target branch).",
+      "type": "build",
+      "verification": "From repo root: `python3 -m pip install -r requirements.txt` (or use project venv per repo rules). Exit code 0."
+    },
+    {
+      "id": "C2",
+      "description": "PR review deliverable includes a 2–3 line summary of what PR #97 changes.",
+      "type": "behavioral",
+      "verification": "Read the review output: confirm it states scope in 2–3 lines (e.g. agentic NIM agent, CI workflow, refactors, manifests)."
+    },
+    {
+      "id": "C3",
+      "description": "Review explicitly calls out critical issues: bugs, edge cases, breaking changes, security, performance.",
+      "type": "functional",
+      "verification": "Check review has a dedicated section or bullets for each category above; each item is concrete (file/area referenced)."
+    },
+    {
+      "id": "C4",
+      "description": "Review covers repo-specific aspects: dataloop.json impacts, hardcoded values, backward compatibility, and tests.",
+      "type": "functional",
+      "verification": "Confirm mentions of `dataloop.json` (or manifest) changes, env/defaults, compatibility with existing models, and `agent/tests/` or `test/` coverage."
+    },
+    {
+      "id": "C5",
+      "description": "Feedback is actionable with suggested fixes (not vague praise only).",
+      "type": "behavioral",
+      "verification": "Each major finding includes a suggested fix or next step."
+    },
+    {
+      "id": "C6",
+      "description": "Agent unit tests pass after dependency install.",
+      "type": "test",
+      "verification": "From repo root with deps installed: `python -m pytest agent/tests/test_agent.py -q` (adjust path if project uses different runner). Exit code 0."
+    }
+  ]
+}

@@ -367,3 +367,5 @@ scripts/
 .vscode/
 .dataloop/
 *.txt
+
+.npm-cache/
