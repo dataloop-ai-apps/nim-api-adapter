@@ -1,0 +1,31 @@
+---
+description: Project overview and rule index for nim-api-adapter
+alwaysApply: true
+---
+
+# NIM API Adapter - Project Rules
+
+This project provides Dataloop model adapters for NVIDIA NIM models. It contains **96 API models** across 4 categories (LLM, VLM, Embeddings, Object Detection) and a separate set of **downloadable** models that run on GPU infrastructure.
+
+All adapters inherit from `NIMBaseAdapter` (`models/api/base_adapter.py`) and use OpenAI-compatible clients to call NVIDIA NIM endpoints.
+
+## Priority Order
+
+1. **Model naming and DPK conventions** — All names must match `dataloop.json` exactly. Read `.cursor/rules/docs/model-structure.md` when working with models.
+2. **E2E test structure** — Tests must mirror the model directory layout and use the correct templates/datasets per category. Read `.cursor/rules/docs/e2e-tests.md` when working with tests.
+3. **Project layout** — Know where things live before making changes. Read `.cursor/rules/docs/project-structure.md` for the full layout.
+
+## Quick Reference
+
+| Category | Shared adapter | Test type | Dataset |
+|---|---|---|---|
+| LLM | `models/api/llm/base.py` | `test_predict` | `text_prompt_text_answer` |
+| VLM | `models/api/vlm/base.py` | `test_predict` | `text_image_prompt_text_answer` |
+| Embeddings | `models/api/embeddings/base.py` | `test_embed` | `text_prompt_text_answer` |
+| Object Detection | `models/api/object_detection/base.py` | `test_predict` | `chart_image` |
+
+All category adapters share `models/api/base_adapter.py` (`NIMBaseAdapter`) which handles API client setup, downloadable endpoint resolution, and JWT auth.
+
+## Critical: Never Guess Names
+
+Always read the model's `dataloop.json` to get the canonical DPK name and model component name. They use kebab-case with `nim-` prefix (e.g., `nim-llama-3-1-8b-instruct`). Folder names use underscores (e.g., `llama_3_1_8b_instruct`).
