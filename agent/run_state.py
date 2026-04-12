@@ -35,10 +35,14 @@ def classify_error(error: str) -> str:
     if not error:
         return "transient"
     err = error.lower()
+
+    # 422 validation errors are model/adapter issues, never environment
+    if "422" in err:
+        return "transient"
     if any(x in err for x in ["404", "not found", "no such model", "does not exist",
                                "not available", "model_not_found"]):
         return "permanent"
-    if any(x in err for x in ["api key", "auth", "unauthorized", "forbidden",
+    if any(x in err for x in ["api key", "auth", "unauthorized", "403 forbidden",
                                "401", "403", "ngc_api_key"]):
         return "environment"
     if any(x in err for x in ["timeout", "rate limit", "429", "too many requests",

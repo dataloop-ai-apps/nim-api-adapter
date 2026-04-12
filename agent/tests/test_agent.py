@@ -196,6 +196,80 @@ class TestFetchCatalogParsing(unittest.TestCase):
         self.assertEqual(len(models), 1)
 
 
+class TestCatalogDisplayNameFix(unittest.TestCase):
+    """Verify that NGC catalog underscore names match OpenAI dot names via display_name.
+
+    NGC catalog returns name="llama-3_1-8b-instruct" (underscores) while
+    OpenAI returns id="meta/llama-3.1-8b-instruct" (dots).  The fix uses
+    display_name (which has dots) when building catalog IDs for intersection.
+    """
+
+    NIM_TYPE_DL = "nim_type_run_anywhere"
+
+    @staticmethod
+    def _build_catalog_ids(catalog, nim_type):
+        """Same comprehension used in fetch_models() and featch_report() after fix."""
+        return {
+            f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
+            for m in catalog if m.get("nim_type") == nim_type
+        }
+
+    @staticmethod
+    def _build_catalog_ids_old(catalog, nim_type):
+        """Original (broken) comprehension that used m['name']."""
+        return {
+            f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}"
+            for m in catalog if m.get("nim_type") == nim_type
+        }
+
+    def test_fetch_models_intersection_uses_display_name(self):
+        """Models with underscored NGC names must still match OpenAI IDs."""
+        all_catalog = [
+            {"name": "llama-3_1-8b-instruct", "display_name": "llama-3.1-8b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+            {"name": "llama-3_3-70b-instruct", "display_name": "llama-3.3-70b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+            {"name": "nv-embed-v1", "display_name": "nv-embed-v1",
+             "publisher": "nvidia", "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids = self._build_catalog_ids(all_catalog, self.NIM_TYPE_DL)
+
+        openai_ids = {
+            "meta/llama-3.1-8b-instruct",
+            "meta/llama-3.3-70b-instruct",
+            "nvidia/nv-embed-v1",
+        }
+
+        matched = openai_ids & catalog_dl_ids
+        self.assertEqual(matched, openai_ids,
+                         f"These OpenAI IDs were NOT matched: {openai_ids - matched}")
+
+    def test_old_name_field_would_fail(self):
+        """Confirm the bug: using 'name' (underscores) misses the intersection."""
+        all_catalog = [
+            {"name": "llama-3_1-8b-instruct", "display_name": "llama-3.1-8b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids_old = self._build_catalog_ids_old(all_catalog, self.NIM_TYPE_DL)
+        openai_ids = {"meta/llama-3.1-8b-instruct"}
+
+        matched = openai_ids & catalog_dl_ids_old
+        self.assertEqual(matched, set(),
+                         "Bug repro: name-based IDs should NOT match OpenAI IDs")
+
+    def test_display_name_fallback_to_name(self):
+        """When display_name is missing, fall back to name gracefully."""
+        all_catalog = [
+            {"name": "nv-embed-v1", "publisher": "nvidia",
+             "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids = self._build_catalog_ids(all_catalog, self.NIM_TYPE_DL)
+        self.assertIn("nvidia/nv-embed-v1", catalog_dl_ids)
+
+
 class TestOpenAINimModelsParsing(unittest.TestCase):
     """Test get_openai_nim_models parsing."""
 

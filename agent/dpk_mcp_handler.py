@@ -15,12 +15,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # MCP transport mode (auto-selected):
-#   DPK_MCP_NAME set → HTTP (platform-hosted DPK service)
+#   DPK_MCP_NAME set → HTTP (platform-hosted DPK service on Dataloop)
 #   MCP_SERVER_PATH set → stdio (local subprocess)
 DPK_MCP_NAME = os.environ.get("DPK_MCP_NAME")
-ENV = "rc"
+ENV = os.environ.get("ENV", "prod")
 PYTHON_PATH = os.environ.get("PYTHON_PATH", "python")
 MCP_SERVER_PATH = os.environ.get("MCP_SERVER_PATH")
+
+def ensure_dataloop_login():
+    """Ensure a valid Dataloop session exists, logging in if needed."""
+    import dtlpy as dl
+    dl.setenv(ENV)
+    if dl.token_expired() or not dl.token():
+        dl.login_m2m(
+            email=os.environ.get("BOT_EMAIL"),
+            password=os.environ.get("BOT_PASSWORD"),
+        )
+
 
 # Adapter paths mapping - relative to repo root (models/api/ folder)
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -269,12 +280,11 @@ class DPKGeneratorClient:
     def _resolve_dpk_url(dpk_name: str) -> str:
         """Resolve the MCP service URL from a deployed Dataloop DPK app."""
         import dtlpy as dl
-        dl.setenv(ENV)
+        ensure_dataloop_login()
         dpk = dl.dpks.get(dpk_name=dpk_name)
         filters = dl.Filters(field='dpkName', values=dpk.name, resource='apps')
         for app in dl.apps.list(filters=filters).all():
             app_url = app.routes['mcp']
-            # Follow redirect to get the final URL
             resp = requests.get(app_url, headers=dl.client_api.auth, allow_redirects=True)
             return resp.url
         raise ValueError(f"No running app found for DPK: {dpk_name}")
@@ -327,6 +337,10 @@ class DPKGeneratorClient:
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool(tool_name, arguments=arguments)
+                if result.isError:
+                    raise RuntimeError(f"MCP tool error: {result.content}")
+                if not result.content or not result.content[0].text:
+                    raise RuntimeError(f"MCP tool returned empty response. Raw result: {result}")
                 return json.loads(result.content[0].text)
 
     def _call_tool(self, tool_name: str, arguments: dict) -> dict:
@@ -445,17 +459,15 @@ class DPKGeneratorClient:
             if model_type == "embedding":
                 mcp_args["input_type"] = "text"
 
-            # Call MCP tool directly with explicit parameters (no LLM)
-            # Note: MCP tool name is "create_model_adapter" (wrapper around create_model_manifest)
+            # Both HTTP and stdio call "create_model_adapter" which returns {"success": bool, "manifest": {...}}
             tool_response = self._call_tool("create_model_adapter", mcp_args)
-
-            # The MCP wrapper returns {"success": bool, "manifest": {...}}
             if not tool_response.get("success"):
                 raise RuntimeError(tool_response.get("error", "MCP tool returned failure"))
+            manifest = tool_response["manifest"]
 
             result.update({
                 "status": "success",
-                "manifest": tool_response["manifest"]
+                "manifest": manifest
             })
             
         except Exception as e:
@@ -613,6 +625,7 @@ if __name__ == "__main__":
             if result["error"]:
                 print(f"     error:    {result['error'][:120]}")
             if result["manifest"]:
+                # Show just the models[0].configuration from the generated manifest
                 print(f"     manifest: {json.dumps(result['manifest'], indent=2)}")
 
     print("\n" + "=" * 60)

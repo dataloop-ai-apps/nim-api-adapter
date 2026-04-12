@@ -20,21 +20,19 @@ import dtlpy as dl
 import dotenv
 
 dotenv.load_dotenv(override=True)  # override=True to always reload from .env
-from dpk_mcp_handler import DPKGeneratorClient
-
-# Test image: 1x1 red PNG for VLM testing
-TEST_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
-
 from dpk_mcp_handler import (
+    DPKGeneratorClient,
+    ensure_dataloop_login,
     get_adapter_path,
     get_model_folder,
     REPO_ROOT,
 )
 
+# Test image: 1x1 red PNG for VLM testing
+TEST_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
+
 ADAPTERS_DIR = os.path.join(REPO_ROOT, "models", "api")
 
-# Test resources config
-ENV = os.environ.get("ENV", "rc")
 TEST_FOLDERS = {
     "llm": "/adapter_tests/llm",
     "vlm": "/adapter_tests/vlm", 
@@ -104,8 +102,9 @@ class Tester:
         if not self.openrouter_api_key:
             raise ValueError("OPENROUTER_API_KEY is not set")
         
-        # Initialize test resources if needed
+        # Initialize test resources if needed (requires Dataloop session)
         if auto_init:
+            ensure_dataloop_login()
             self._init_test_resources()
             
     # =========================================================================        
@@ -119,10 +118,6 @@ class Tester:
         if _TEST_RESOURCES["initialized"]:
             print("Test resources already initialized")
             return
-        
-        dl.setenv(ENV)
-        if dl.token_expired() or not dl.token():
-            dl.login()
         
         project_name = os.environ.get("DATALOOP_TEST_PROJECT", "NVIDIA-AGENT-PROJECT") # default project name
         dataset_name = os.environ.get("DATALOOP_TEST_DATASET", "NVIDIA-AGENT-DATASET") # default dataset name
@@ -778,12 +773,6 @@ class Tester:
         }
         
         try:
-            # Ensure Dataloop session is valid
-            dl.setenv(ENV)
-            if dl.token_expired() or not dl.token():
-                print("  Refreshing Dataloop session...")
-                dl.login()
-            
             # Prepare model entity with NIM model config
             model = self._prepare_model_entity(model_type, nim_model_id, embeddings_size, nim_invoke_url)
             model_id = model.id

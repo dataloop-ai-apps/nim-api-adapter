@@ -446,15 +446,14 @@ class GitHubClient:
             print(f"  ✅ PR created: {pr.html_url}")
             
         except self.GithubException as e:
-            result.update({
-                "status": "error",
-                "error": f"GitHub API error: {e.data.get('message', str(e))}"
-            })
+            import traceback
+            traceback.print_exc()
+            msg = e.data.get('message', str(e)) if isinstance(e.data, dict) else str(e)
+            result.update({"status": "error", "error": f"GitHub API error: {msg}"})
         except Exception as e:
-            result.update({
-                "status": "error",
-                "error": str(e)
-            })
+            import traceback
+            traceback.print_exc()
+            result.update({"status": "error", "error": str(e)})
         
         return result
     

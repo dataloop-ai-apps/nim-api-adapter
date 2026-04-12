@@ -58,6 +58,9 @@ jobs:
           NGC_API_KEY: ${{ secrets.NGC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DATALOOP_TEST_PROJECT: ${{ secrets.DATALOOP_TEST_PROJECT }}
+          BOT_EMAIL: ${{ secrets.BOT_EMAIL }}
+          BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
+          ENV: ${{ secrets.ENV }}
         run: |
           cd agent
           LIMIT_ARG=""

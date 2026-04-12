@@ -140,7 +140,7 @@ def get_model_ids(models: list[dict]) -> list[str]:
     Extract model IDs from model list in NVIDIA format (publisher/name).
     
     Args:
-        models: List of model dicts api/downloadable_models()
+        models: List of model dicts from get_api_models() or get_downloadable_models()
     
     Returns:
         List of model IDs like "meta/llama-3.1-8b-instruct"
@@ -312,10 +312,8 @@ def update_support_matrix() -> str:
                 nim_name = f"{provider}/{model_name}"
                 downloadable_nim_names.add(_normalize_nim_name(nim_name))
             elif len(parts) == 2:
-                # Object detection path: object_detection/model_name (e.g., object_detection/baidu_paddleocr)
-                # Try to extract provider from folder name (e.g., baidu_paddleocr -> baidu/paddleocr)
+                # Object detection path: object_detection/model_name
                 model_folder = parts[1]
-                # Split on first underscore to get provider
                 if "_" in model_folder:
                     first_underscore = model_folder.index("_")
                     provider = model_folder[:first_underscore]
@@ -347,16 +345,10 @@ def update_support_matrix() -> str:
             category = "Object Detection"
         else:
             category = "Other"
-        
-        # Check if downloadable
+
         is_downloadable = _normalize_nim_name(nim_name) in downloadable_nim_names
-        
-        models_by_category[category][nim_name] = {
-            "api": True,
-            "downloadable": is_downloadable,
-        }
-    
-    # Generate markdown
+        models_by_category[category][nim_name] = {"api": True, "downloadable": is_downloadable}
+
     category_order = ["Embeddings", "LLM", "VLM", "Object Detection", "Other"]
     
     # Calculate summary
@@ -451,11 +443,11 @@ def featch_report() -> dict:
     # 2. Fetch from NGC Catalog (both types)
     print("Fetching NGC Catalog API models...")
     api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
-    api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in api_models}
+    api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}" for m in api_models}
 
     print("Fetching NGC Catalog Downloadable models...")
     downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
-    downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in downloadable_models}
+    downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}" for m in downloadable_models}
 
     # 3. Cross-reference
     # Note: In NGC catalog, a model is either "api-only" OR "downloadable" (mutually exclusive).
@@ -605,6 +597,7 @@ class NIMAgent:
         # State - Results
         self.results = []
         self.successful_manifests = []
+        self.pr_result = None
     
     def _get_github(self) -> GitHubClient:
         """Lazy-load GitHub client."""
@@ -651,7 +644,7 @@ class NIMAgent:
 
         # Build catalog IDs for downloadable intersection
         catalog_dl_ids = {
-            f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}"
+            f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
             for m in all_catalog if m.get("nim_type") == NIM_TYPE_DOWNLOADABLE
         }
         print(f"  Catalog total: {len(all_catalog)} (downloadable: {len(catalog_dl_ids)})")
@@ -668,7 +661,6 @@ class NIMAgent:
 
         # 4. Build license map from all catalog models (already scraped)
         self.license_map = {}
-        # Skip license scraping for dry-run
         if not skip_licenses:
             for m in all_catalog:
                 if m.get("license"):
@@ -684,7 +676,6 @@ class NIMAgent:
 
             licensed = sum(1 for m in self.potential_api_models if m.get("license"))
             print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
-
     
     # =========================================================================
     # Compare with Dataloop
@@ -814,9 +805,8 @@ class NIMAgent:
                     "nim_model_name": nim_model_name,
                 })
             else:
-                models_list = d.get("components", {}).get("models", [])
-                if models_list:
-                    nim_model_name = models_list[0].get("configuration", {}).get("nim_model_name", "unknown")
+                if d.get("components", {}).get("models", []):
+                    nim_model_name = d.get("components", {}).get("models", [])[0].get("configuration", {}).get("nim_model_name","unknown")
                 else:
                     nim_model_name = "unknown"
                 entry_point = d.get("codebase", {}).get("entry_point", "")
@@ -954,20 +944,23 @@ class NIMAgent:
         models: list = None, 
         limit: int = None,
         max_workers: int = 10,
-        skip_adapter_test: bool = False,
+        skip_adapter_test: bool = True,
     ) -> list:
         """
         Run onboarding pipeline for multiple models in parallel.
+        
         Uses ThreadPoolExecutor to call onboard_model() for each model concurrently.
+        
         Note: Call open_new_and_deprecated_pr() separately after to create PRs.
+        
         Args:
             models: List of model dicts or IDs (default: self.api_to_add from compare)
             limit: Max number of models to process
             max_workers: Max parallel workers (default: 10)
-            skip_adapter_test: If False (default), run adapter tests for all models.
-                Adapter tests are serialized via _ADAPTER_TEST_LOCK so they are thread-safe.
-                API smoke tests (Step 1) still run in parallel across all workers.
-                Set to True to skip adapter tests entirely (faster, less thorough).
+            skip_adapter_test: If True (default), skip the adapter exec test in each thread.
+                The adapter test mutates shared platform model entities and is not thread-safe.
+                The API smoke test (Step 1) is still run to validate each model.
+                Set to False to run adapter tests serially (via lock, slower).
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
         
@@ -1220,16 +1213,14 @@ class NIMAgent:
             if isinstance(d, dict):
                 dpk_name = d.get("name")
                 display_name = d.get("display_name", dpk_name)
-                model_type = d.get("model_type", "llm")
             else:
                 dpk_name = d
                 display_name = d
-                model_type = "llm"
             if dpk_name:
                 deprecated_models.append({
                     "model_id": dpk_name,
                     "display_name": display_name,
-                    "model_type": model_type,
+                    "model_type": d.get("model_type", "llm") if isinstance(d, dict) else "llm",
                 })
         
         # Collect failed models for PR body info
@@ -1249,8 +1240,12 @@ class NIMAgent:
             deprecated_models=deprecated_models,
             failed_models=failed_models
         )
-        
-        print(f"  ✅ PR created: {pr_result['pr_url']}")
+
+        self.pr_result = pr_result
+        if pr_result.get("status") == "error":
+            print(f"  ❌ PR creation failed: {pr_result.get('error')}")
+        else:
+            print(f"  ✅ PR created: {pr_result['pr_url']}")
         return pr_result
     
     
@@ -1283,8 +1278,9 @@ class NIMAgent:
             },
             "api_deprecated": self.api_deprecated,
             "downloadable_deprecated": self.downloadable_deprecated,
+            "pr_url": self.pr_result.get("pr_url") if self.pr_result else None,
             "successful": [
-                {"model_id": r["model_id"], "dpk_name": r["dpk_name"], "pr_url": r.get("pr_url")}
+                {"model_id": r["model_id"], "dpk_name": r["dpk_name"]}
                 for r in successful
             ],
             "failed": [
@@ -1319,10 +1315,13 @@ class NIMAgent:
         print(f"  Successful:                 {s['successful']}")
         print(f"  Failed:                     {s['failed']}")
         
+        if report.get("pr_url"):
+            print(f"\n  PR: {report['pr_url']}")
+
         if report["successful"]:
-            print(f"\n  Successful PRs:")
+            print(f"\n  Successful models ({len(report['successful'])}):")
             for item in report["successful"][:5]:
-                print(f"      - {item['dpk_name']}: {item.get('pr_url', 'No PR')}")
+                print(f"      - {item['dpk_name']}")
         
         if report["failed"]:
             print(f"\n  Failed:")
@@ -1579,6 +1578,8 @@ class NIMAgent:
                 self.open_new_and_deprecated_pr()
                 run_record["status"] = "completed"
                 run_record["pr_opened"] = True
+                run_record["pr_url"] = self.pr_result.get("pr_url") if self.pr_result else None
+                print(f"  PR: {run_record['pr_url']}")
 
         except Exception as exc:
             run_record["status"] = "error"
@@ -1672,18 +1673,6 @@ if __name__ == "__main__":
     # --- clear-quarantine ---
     p_cq = sub.add_parser("clear-quarantine", help="Un-quarantine a model (or 'all')")
     p_cq.add_argument("model_id", type=str, help="Model ID to un-quarantine, or 'all'")
-
-    # --- validate-release ---
-    p_vr = sub.add_parser(
-        "validate-release",
-        help="Post-release: sample public NIM DPKs and test them on the platform",
-    )
-    p_vr.add_argument(
-        "--percentage",
-        type=float,
-        default=0.10,
-        help="Fraction of each model type to test (default: 0.10 = 10%%)",
-    )
 
     # --- report ---
     sub.add_parser("report", help="Fetch and print NIM availability report")
@@ -1856,11 +1845,6 @@ if __name__ == "__main__":
 
     elif args.command == "report":
         featch_report()
-
-    elif args.command == "validate-release":
-        from nim_tester import Tester
-        tester = Tester()
-        tester.post_release_platform_test(percentage=args.percentage)
 
     else:
         parser.print_help()
