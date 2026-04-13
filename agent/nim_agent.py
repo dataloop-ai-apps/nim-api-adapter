@@ -1487,16 +1487,12 @@ class NIMAgent:
                 return {"status": "aborted", "reason": msg}
 
             # --- Check deprecated models against pipeline templates ---
-            dep_dpk_names = set()
-            dep_nim_names = set()
-            for d in self.api_deprecated + self.downloadable_deprecated:
-                if isinstance(d, dict):
-                    if d.get("name"):
-                        dep_dpk_names.add(d["name"])
-                    if d.get("nim_model_name"):
-                        dep_nim_names.add(d["nim_model_name"])
+            dep_dpk_names = {
+                d["name"] for d in self.api_deprecated + self.downloadable_deprecated
+                if isinstance(d, dict) and d.get("name")
+            }
             github = self._get_github()
-            template_warnings = github.check_deprecated_in_templates(dep_dpk_names, dep_nim_names)
+            template_warnings = github.check_deprecated_in_templates(dep_dpk_names)
             run_record["template_warnings"] = len(template_warnings)
 
             # --- Filter quarantined models from to_add ---
