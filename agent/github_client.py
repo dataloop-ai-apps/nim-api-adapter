@@ -536,6 +536,110 @@ class GitHubClient:
         """
 
     # =========================================================================
+    # Pipeline template dependency check
+    # =========================================================================
+
+    _TEMPLATE_REPOS = [
+        "dataloop-ai-apps/nvidia-nim-blueprints",
+        "dataloop-ai-apps/pipeline-templates",
+    ]
+
+    def check_deprecated_in_templates(
+        self,
+        deprecated_dpk_names: set,
+        deprecated_nim_names: set,
+        repos: List[str] = None,
+    ) -> List[Dict]:
+        """
+        Scan pipeline-template repos for dataloop.json files whose dependencies
+        reference deprecated NIM models.
+
+        Args:
+            deprecated_dpk_names: DPK names being deprecated (e.g. "nim-llama-3-3-70b-instruct")
+            deprecated_nim_names: NIM model IDs being deprecated (e.g. "meta/llama-3.3-70b-instruct")
+            repos: Repos to scan (default: _TEMPLATE_REPOS)
+
+        Returns:
+            List of warning dicts: {repo, file_path, dep_name, nim_model_name, match_type}
+        """
+        warnings: List[Dict] = []
+
+        if deprecated_dpk_names or deprecated_nim_names:
+            for repo_name in (repos or self._TEMPLATE_REPOS):
+                try:
+                    repo = self.client.get_repo(repo_name)
+                except Exception as e:
+                    print(f"  [WARN] Cannot access {repo_name}: {e}")
+                    continue
+
+                manifests = self._find_repo_dataloop_jsons(repo)
+                for fpath in manifests:
+                    deps = self._fetch_manifest_deps_pygithub(repo, fpath)
+                    for dep in deps:
+                        dep_name = dep.get("name", "")
+                        nim_names = self._extract_nim_names_from_dep(dep)
+
+                        match_type = None
+                        matched_nim = None
+                        if dep_name in deprecated_dpk_names:
+                            match_type = "dpk_name"
+                        for nn in nim_names:
+                            if nn in deprecated_nim_names:
+                                match_type = "nim_model_name"
+                                matched_nim = nn
+                                break
+
+                        if match_type:
+                            warnings.append({
+                                "repo": repo_name,
+                                "file_path": fpath,
+                                "dep_name": dep_name,
+                                "nim_model_name": matched_nim or dep_name,
+                                "match_type": match_type,
+                            })
+
+        if warnings:
+            print(f"\n{'='*60}")
+            print(f"WARNING: {len(warnings)} pipeline template(s) depend on deprecated NIM models")
+            print(f"{'='*60}")
+            for w in warnings:
+                print(f"  [{w['repo']}] {w['file_path']}")
+                print(f"    dependency: {w['dep_name']}  (matched via {w['match_type']})")
+            print(f"{'='*60}")
+
+        return warnings
+
+    def _find_repo_dataloop_jsons(self, repo) -> List[str]:
+        """Find all dataloop.json files in a repo via the GitHub search API."""
+        paths = []
+        try:
+            results = self.client.search_code(f"filename:dataloop.json repo:{repo.full_name}")
+            paths = [item.path for item in results]
+        except Exception as e:
+            print(f"  [WARN] Failed to search {repo.full_name} for dataloop.json: {e}")
+        return paths
+
+    @staticmethod
+    def _fetch_manifest_deps_pygithub(repo, path: str) -> List[Dict]:
+        """Fetch a dataloop.json from a repo and return its dependencies list."""
+        deps = []
+        try:
+            content = repo.get_contents(path).decoded_content.decode("utf-8")
+            deps = json.loads(content).get("dependencies", [])
+        except Exception:
+            pass
+        return deps
+
+    @staticmethod
+    def _extract_nim_names_from_dep(dep: dict) -> List[str]:
+        """Extract all nim_model_name values from a dependency's components."""
+        return [
+            model.get("configuration", {}).get("nim_model_name")
+            for model in dep.get("components", {}).get("models", [])
+            if model.get("configuration", {}).get("nim_model_name")
+        ]
+
+    # =========================================================================
     # Utility Methods
     # =========================================================================
     

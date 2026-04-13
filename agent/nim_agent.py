@@ -945,6 +945,7 @@ class NIMAgent:
         limit: int = None,
         max_workers: int = 10,
         skip_adapter_test: bool = True,
+        on_result: callable = None,
     ) -> list:
         """
         Run onboarding pipeline for multiple models in parallel.
@@ -1016,6 +1017,9 @@ class NIMAgent:
                         "dpk_name": result["dpk_name"],
                         "manifest": result["manifest"],
                     })
+
+                if on_result:
+                    on_result(result)
         
         successful = len([r for r in self.results if r["status"] == "success"])
         failed = len(self.results) - successful
@@ -1051,6 +1055,7 @@ class NIMAgent:
         models: list = None,
         limit: int = None,
         skip_docker: bool = False,
+        on_result: callable = None,
     ) -> list:
         """
         Build downloadable NIM images + manifests for each model in *models*.
@@ -1091,12 +1096,15 @@ class NIMAgent:
             if not relative_path:
                 msg = f"Cannot resolve relative_path for {model_id} - skipping"
                 print(f"\n[SKIP] {msg}")
-                downloadable_results.append({
+                result = {
                     "model_id": model_id,
                     "status": "skipped",
                     "error": msg,
                     "kind": "downloadable",
-                })
+                }
+                downloadable_results.append(result)
+                if on_result:
+                    on_result(result)
                 continue
 
             print(f"\n{'='*60}")
@@ -1131,6 +1139,8 @@ class NIMAgent:
                 })
 
                 print(f"\n[OK] Downloadable built: {model_id}")
+                if on_result:
+                    on_result(result)
 
             except Exception as e:
                 result = {
@@ -1141,6 +1151,8 @@ class NIMAgent:
                 }
                 downloadable_results.append(result)
                 print(f"\n[FAIL] Downloadable build failed for {model_id}: {e}")
+                if on_result:
+                    on_result(result)
 
         self.results.extend(downloadable_results)
 
@@ -1474,6 +1486,19 @@ class NIMAgent:
                 self._write_step_summary(run_record, state)
                 return {"status": "aborted", "reason": msg}
 
+            # --- Check deprecated models against pipeline templates ---
+            dep_dpk_names = set()
+            dep_nim_names = set()
+            for d in self.api_deprecated + self.downloadable_deprecated:
+                if isinstance(d, dict):
+                    if d.get("name"):
+                        dep_dpk_names.add(d["name"])
+                    if d.get("nim_model_name"):
+                        dep_nim_names.add(d["nim_model_name"])
+            github = self._get_github()
+            template_warnings = github.check_deprecated_in_templates(dep_dpk_names, dep_nim_names)
+            run_record["template_warnings"] = len(template_warnings)
+
             # --- Filter quarantined models from to_add ---
             original_count = len(self.api_to_add)
             quarantined_set = set(state.get_quarantined())
@@ -1500,24 +1525,9 @@ class NIMAgent:
             run_record["skipped_quarantined"] = skipped
             run_record["probed"] = len(probed)
 
-            # --- Onboard API models with filtered list ---
-            self.api_to_add = filtered_to_add
-            self.onboard_api_models(
-                limit=limit,
-                max_workers=max_workers,
-            )
-
-            # --- Onboard downloadable models ---
-            if downloadable_preview:
-                self.preview_downloadables(limit=limit)
-            else:
-                self.onboard_downloadable_models(
-                    limit=limit,
-                    skip_docker=skip_docker,
-                )
-
-            # --- Classify + record each result in state ---
-            for r in self.results:
+            # --- Real-time result callback: record + save after each model ---
+            def _on_result(r):
+                nonlocal env_error
                 mid = r.get("model_id", "")
                 status = r.get("status", "error")
                 error = r.get("error")
@@ -1527,13 +1537,32 @@ class NIMAgent:
                     if mid in quarantined_set:
                         state.clear_quarantine(mid)
                         print(f"  [PROBE OK] {mid} un-quarantined")
-                else:
+                elif status != "skipped":
                     err_type = classify_error(error or "")
                     state.record_result(mid, "error", error)
                     if err_type == "environment":
                         env_error = error
                         print(f"\n  [ENV ERROR] {error}")
-                        break
+
+                state.save()
+
+            # --- Onboard API models with filtered list ---
+            self.api_to_add = filtered_to_add
+            self.onboard_api_models(
+                limit=limit,
+                max_workers=max_workers,
+                on_result=_on_result,
+            )
+
+            # --- Onboard downloadable models ---
+            if downloadable_preview:
+                self.preview_downloadables(limit=limit)
+            else:
+                self.onboard_downloadable_models(
+                    limit=limit,
+                    skip_docker=skip_docker,
+                    on_result=_on_result,
+                )
 
             succeeded = len([r for r in self.results if r["status"] == "success"])
             failed = len(self.results) - succeeded
@@ -1615,6 +1644,7 @@ class NIMAgent:
                 f"| Probed from quarantine | {run_record.get('probed', 0)} |",
                 f"| PR opened | {run_record.get('pr_opened', False)} |",
                 f"| Total quarantined | {len(state.get_quarantined())} |",
+                f"| Template dependency warnings | {run_record.get('template_warnings', 0)} |",
                 "",
             ]
             quarantined = state.get_quarantined()

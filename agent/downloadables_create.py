@@ -182,6 +182,7 @@ def create_manifest(
     manifest["components"]["services"][0]["name"] = names["service"]
     manifest["components"]["services"][0]["moduleName"] = names["module"]
     manifest["components"]["services"][0]["panelNames"] = [names["panel"]]
+    manifest["scope"] = "public"
 
     # Override runner image if provided (for skip_docker mode)
     if runner_image_override:
