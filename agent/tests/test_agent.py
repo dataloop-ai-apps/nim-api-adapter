@@ -507,6 +507,150 @@ class TestUnifiedPrTitle(unittest.TestCase):
         self.assertIn("Deprecate 1", title)
 
 
+class TestCheckDeprecatedInTemplates(unittest.TestCase):
+    """Test GitHubClient.check_deprecated_in_templates with mocked GitHub API."""
+
+    BLUEPRINT_MANIFEST = {
+        "name": "nvidia-biomedical-research",
+        "dependencies": [
+            {"name": "nvidia-biomedical-research"},
+            {
+                "name": "nim-llama-3-3-70b-instruct",
+                "components": {
+                    "models": [{
+                        "name": "nim-llama-3-3-70b-instruct",
+                        "configuration": {
+                            "nim_model_name": "meta/llama-3.3-70b-instruct",
+                        },
+                    }],
+                },
+            },
+            {"name": "nim-rag-bp"},
+        ],
+    }
+
+    TEMPLATE_MANIFEST = {
+        "name": "some-template",
+        "dependencies": [
+            {
+                "name": "nim-mistral-7b",
+                "components": {
+                    "models": [{
+                        "name": "nim-mistral-7b",
+                        "configuration": {"nim_model_name": "mistralai/mistral-7b-instruct-v0.3"},
+                    }],
+                },
+            },
+        ],
+    }
+
+    def setUp(self):
+        with patch.object(GitHubClient, "__init__", lambda self, **kw: None):
+            self.client = GitHubClient()
+
+        self.mock_github = MagicMock()
+        self.client._client = self.mock_github
+
+        search_index = {}
+
+        def _make_repo(full_name, manifests_by_path):
+            repo = MagicMock()
+            repo.full_name = full_name
+
+            items = []
+            for path in manifests_by_path:
+                item = MagicMock()
+                item.path = path
+                items.append(item)
+            search_index[full_name] = items
+
+            def _get_contents(path):
+                content = MagicMock()
+                content.decoded_content = json.dumps(
+                    manifests_by_path[path]
+                ).encode()
+                return content
+
+            repo.get_contents.side_effect = _get_contents
+            return repo
+
+        self.bp_repo = _make_repo(
+            "dataloop-ai-apps/nvidia-nim-blueprints",
+            {"apps/biomedical/dataloop.json": self.BLUEPRINT_MANIFEST},
+        )
+        self.tmpl_repo = _make_repo(
+            "dataloop-ai-apps/pipeline-templates",
+            {"templates/mistral/dataloop.json": self.TEMPLATE_MANIFEST},
+        )
+
+        def _search_code(query):
+            for name, items in search_index.items():
+                if name in query:
+                    return items
+            return []
+
+        self.mock_github.search_code.side_effect = _search_code
+        self.mock_github.get_repo.side_effect = lambda name: {
+            "dataloop-ai-apps/nvidia-nim-blueprints": self.bp_repo,
+            "dataloop-ai-apps/pipeline-templates": self.tmpl_repo,
+        }[name]
+
+    def test_match_by_dpk_name(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-llama-3-3-70b-instruct"},
+            deprecated_nim_names=set(),
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["dep_name"], "nim-llama-3-3-70b-instruct")
+        self.assertEqual(warnings[0]["match_type"], "dpk_name")
+
+    def test_match_by_nim_model_name(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names=set(),
+            deprecated_nim_names={"meta/llama-3.3-70b-instruct"},
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["nim_model_name"], "meta/llama-3.3-70b-instruct")
+        self.assertEqual(warnings[0]["match_type"], "nim_model_name")
+
+    def test_no_match_returns_empty(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-nonexistent-model"},
+            deprecated_nim_names={"vendor/nonexistent"},
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        self.assertEqual(warnings, [])
+
+    def test_empty_deprecated_skips_scan(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names=set(),
+            deprecated_nim_names=set(),
+        )
+        self.assertEqual(warnings, [])
+        self.mock_github.get_repo.assert_not_called()
+
+    def test_multiple_repos(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-llama-3-3-70b-instruct", "nim-mistral-7b"},
+            deprecated_nim_names=set(),
+        )
+        repos_hit = {w["repo"] for w in warnings}
+        self.assertEqual(len(warnings), 2)
+        self.assertIn("dataloop-ai-apps/nvidia-nim-blueprints", repos_hit)
+        self.assertIn("dataloop-ai-apps/pipeline-templates", repos_hit)
+
+    def test_extract_nim_names(self):
+        dep = self.BLUEPRINT_MANIFEST["dependencies"][1]
+        names = GitHubClient._extract_nim_names_from_dep(dep)
+        self.assertEqual(names, ["meta/llama-3.3-70b-instruct"])
+
+    def test_extract_nim_names_empty(self):
+        self.assertEqual(GitHubClient._extract_nim_names_from_dep({}), [])
+        self.assertEqual(GitHubClient._extract_nim_names_from_dep({"name": "x"}), [])
+
+
 # =========================================================================
 # tester tests
 # =========================================================================
