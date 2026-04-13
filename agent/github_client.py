@@ -536,6 +536,89 @@ class GitHubClient:
         """
 
     # =========================================================================
+    # Pipeline template dependency check
+    # =========================================================================
+
+    _TEMPLATE_REPOS = [
+        "dataloop-ai-apps/nvidia-nim-blueprints",
+        "dataloop-ai-apps/pipeline-templates",
+    ]
+
+    def check_deprecated_in_templates(
+        self,
+        deprecated_dpk_names: set,
+        repos: List[str] = None,
+    ) -> List[Dict]:
+        """
+        Scan pipeline-template repos for manifests that depend on deprecated DPKs.
+
+        Reads .dataloop.cfg from each repo root to discover manifest paths,
+        then checks each manifest's dependencies for deprecated DPK names.
+
+        Args:
+            deprecated_dpk_names: DPK names being deprecated (e.g. "nim-llama-3-3-70b-instruct")
+            repos: Repos to scan (default: _TEMPLATE_REPOS)
+
+        Returns:
+            List of warning dicts: {repo, file_path, dep_name}
+        """
+        warnings: List[Dict] = []
+
+        if deprecated_dpk_names:
+            for repo_name in (repos or self._TEMPLATE_REPOS):
+                try:
+                    repo = self.client.get_repo(repo_name)
+                except Exception as e:
+                    print(f"  [WARN] Cannot access {repo_name}: {e}")
+                    continue
+
+                manifest_paths = self._get_manifest_paths_from_cfg(repo)
+                for fpath in manifest_paths:
+                    for dep_name in self._get_dependency_names(repo, fpath):
+                        if dep_name in deprecated_dpk_names:
+                            warnings.append({
+                                "repo": repo_name,
+                                "file_path": fpath,
+                                "dep_name": dep_name,
+                            })
+
+        if warnings:
+            print(f"\n{'='*60}")
+            print(f"WARNING: {len(warnings)} pipeline template(s) depend on deprecated NIM models")
+            print(f"{'='*60}")
+            for w in warnings:
+                print(f"  [{w['repo']}] {w['file_path']}")
+                print(f"    dependency: {w['dep_name']}")
+            print(f"{'='*60}")
+
+        return warnings
+
+    @staticmethod
+    def _get_manifest_paths_from_cfg(repo) -> List[str]:
+        """Read .dataloop.cfg from repo root and return the manifests list."""
+        paths = []
+        try:
+            raw = repo.get_contents(".dataloop.cfg").decoded_content.decode("utf-8")
+            paths = json.loads(raw).get("manifests", [])
+        except Exception as e:
+            print(f"  [WARN] Failed to read .dataloop.cfg from {repo.full_name}: {e}")
+        return paths
+
+    @staticmethod
+    def _get_dependency_names(repo, path: str) -> List[str]:
+        """Fetch a dataloop.json from a repo and return its dependency names."""
+        names = []
+        try:
+            content = repo.get_contents(path).decoded_content.decode("utf-8")
+            names = [
+                dep.get("name") for dep in json.loads(content).get("dependencies", [])
+                if dep.get("name")
+            ]
+        except Exception:
+            pass
+        return names
+
+    # =========================================================================
     # Utility Methods
     # =========================================================================
     
