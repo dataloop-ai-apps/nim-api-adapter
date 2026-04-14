@@ -1,7 +1,7 @@
 {
   "name": "nim-qwen3-5-122b-a10b",
   "displayName": "Qwen3.5 122B A10B",
-  "version": "0.3.60",
+  "version": "0.3.61",
   "scope": "public",
   "description": "NVIDIA NIM adapter for qwen/qwen3.5-122b-a10b",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.60"
+    "gitTag": "0.3.61"
   }
 }
