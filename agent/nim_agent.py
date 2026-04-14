@@ -18,7 +18,7 @@ from openai import OpenAI
 import dtlpy as dl
 
 from nim_tester import Tester
-from dpk_mcp_handler import DPKGeneratorClient, MODEL_TYPE_FOLDERS
+from dpk_mcp_handler import MODEL_TYPE_FOLDERS
 from github_client import GitHubClient
 from downloadables_create import model_name_from_downloadable_dpk_name
 from license_scraper import find_license_for_resource
@@ -41,8 +41,8 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     """Fetch all models for a given NIM type filter (handles pagination)."""
     models = []
     page = 0
-    
-    
+    seen = set()
+
     while True:
         query = {
             "filters": [{"field": "nimType", "value": nim_type_filter}],
@@ -58,8 +58,6 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
         response.raise_for_status()
         data = response.json()
         
-        # Extract resources (deduplicate from grouped results)
-        seen = set()
         for result in data.get("results", []):
             for resource in result.get("resources", []):
                 name = resource.get("name", "")
@@ -88,22 +86,6 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     
     models.sort(key=lambda x: x["name"])
     return models
-
-def is_model_downloadable(model_name: str) -> bool:
-    """
-    Check if a NIM model is in the NGC run-anywhere (downloadable) catalog.
-
-    Accepts any form of model name:
-      - DPK name:  "nim-phi-4-multimodal-instruct"
-      - Model ID:  "microsoft/phi-4-multimodal-instruct"
-      - NGC name:  "phi-4-multimodal-instruct"
-
-    Returns True if the model is downloadable (run-anywhere).
-    """
-    normalized = _normalize_nim_name(model_name)
-    run_anywhere = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
-    run_anywhere_normalized = {_normalize_nim_name(m["name"]) for m in run_anywhere}
-    return normalized in run_anywhere_normalized
 
 def get_all_catalog_models(skip_licenses: bool = False) -> list[dict]:
     """Get all NIM models with their availability type and license."""
@@ -422,19 +404,11 @@ def update_support_matrix() -> str:
     return str(output_path)
 
 
-def featch_report() -> dict:
+def fetch_report() -> str:
     """Fetch report for all models from OpenAI and NGC Catalog.
 
     Returns:
-        dict: Report with the following keys:
-            - openai_ids: List of OpenAI model IDs
-            - api_ids: List of NGC Catalog API model IDs
-            - downloadable_ids: List of NGC Catalog Downloadable model IDs
-            - openai_and_downloadable: List of OpenAI and Downloadable model IDs
-            - openai_and_api_only: List of OpenAI and API-only model IDs
-            - openai_not_in_catalog: List of OpenAI models not in NGC Catalog
-            - catalog_not_in_openai: List of NGC Catalog models not in OpenAI
-            - downloadable_not_in_openai: List of Downloadable models not in OpenAI
+        str: Human-readable report text (also printed and saved to file).
     """
     # 1. Fetch from OpenAI-compatible endpoint
     print("Fetching OpenAI models...")
@@ -491,14 +465,14 @@ def featch_report() -> dict:
     report_lines.append("-" * 80)
     report_lines.append(f"OpenAI INTERSECT Catalog: {len(openai_intersect_catalog)}")
     report_lines.append("-" * 80)
-    for m in sorted(openai_and_api_only):
+    for m in sorted(openai_intersect_catalog):
         report_lines.append(f"  {m}")
         
     report_lines.append("")
     report_lines.append("-" * 80)
     report_lines.append(f"Catalog but NOT on OpenAI: {len(catalog_not_in_openai)}")
     report_lines.append("-" * 80)
-    for m in sorted(openai_and_api_only):
+    for m in sorted(catalog_not_in_openai):
         report_lines.append(f"  {m}")
         
     report_lines.append("")
@@ -576,7 +550,6 @@ class NIMAgent:
         
         # Components
         self.tester = Tester(api_key=self.nim_api_key, auto_init=tester_auto_init)
-        self.dpk_generator = DPKGeneratorClient()
         self.github = None  # Lazy-loaded
         
         # State - Models (populated by fetch_models())
@@ -783,7 +756,7 @@ class NIMAgent:
         """
         print("\n📡 Fetching DPKs from Dataloop...")
 
-        dpks, _ = self.tester._find_nim_dpk()
+        dpks, _ = self.tester.find_nim_dpks()
         if dpks is None:
             raw_dpks = []
         else:
@@ -829,51 +802,7 @@ class NIMAgent:
         print(f"  Dataloop CV DPKs:            {len(self.dataloop_cv_dpks)}")
         print(f"  Dataloop Downloadable DPKs:  {len(self.dataloop_downloadables_dpks)}")
         return self.dataloop_api_only_dpks, self.dataloop_downloadables_dpks
-    
-    def _normalize(self, name: str) -> str:
-        """Normalize name for comparison."""
-        return name.lower().replace("/", "-").replace("_", "-").replace(" ", "-").replace(".", "-")
-    
-    def _extract_model_key(self, name: str) -> str:
-        """
-        Extract core model identifier for comparison.
-        
-        Handles:
-        - DPK names: "nim-llama3-2-90b-vision-meta" → "llama3290bvision"
-        - Model IDs: "meta/llama-3.2-90b-vision-instruct" → "llama3290bvision"
-        """
-        normalized = name.lower()
-        
-        # Remove common prefixes
-        for prefix in ["nim-", "nim_", "nvidia/", "meta/", "google/", "microsoft/", "ibm/", "deepseek-ai/", "mistralai/", "snowflake/"]:
-            if normalized.startswith(prefix):
-                normalized = normalized[len(prefix):]
-        
-        # Remove common suffixes
-        for suffix in ["-instruct", "_instruct", "-chat", "-base", "-meta", "-nvidia"]:
-            if normalized.endswith(suffix):
-                normalized = normalized[:-len(suffix)]
-        
-        # Remove all separators and version dots to get core name
-        key = normalized.replace("-", "").replace("_", "").replace(".", "").replace("/", "")
-        return key
-    
-    def _models_match(self, name1: str, name2: str) -> bool:
-        """Check if two model names refer to the same model."""
-        key1 = self._extract_model_key(name1)
-        key2 = self._extract_model_key(name2)
-        
-        # Exact match after extraction
-        if key1 == key2:
-            return True
-        
-        # One contains the other (for partial matches)
-        if len(key1) > 5 and len(key2) > 5:
-            if key1 in key2 or key2 in key1:
-                return True
-        
-        return False
-    
+
     # =========================================================================
     # Step 3: Onboarding Pipeline
     # =========================================================================
@@ -964,11 +893,11 @@ class NIMAgent:
                 Set to False to run adapter tests serially (via lock, slower).
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
+        from threading import Lock
         
         if models is None:
             models = self.api_to_add
         
-        # Extract model IDs from dicts if needed
         model_ids = []
         for model in models:
             if isinstance(model, dict):
@@ -989,6 +918,7 @@ class NIMAgent:
         
         self.results = []
         self.successful_manifests = []
+        results_lock = Lock()
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_model = {
@@ -1008,15 +938,15 @@ class NIMAgent:
                     }
                     print(f"\n[FAIL] {model_id}: unhandled exception: {e}")
                 
-                self.results.append(result)
-                
-                if result.get("status") == "success" and result.get("manifest"):
-                    self.successful_manifests.append({
-                        "model_id": result["model_id"],
-                        "model_type": result.get("model_type") or result.get("type", "llm"),
-                        "dpk_name": result["dpk_name"],
-                        "manifest": result["manifest"],
-                    })
+                with results_lock:
+                    self.results.append(result)
+                    if result.get("status") == "success" and result.get("manifest"):
+                        self.successful_manifests.append({
+                            "model_id": result["model_id"],
+                            "model_type": result.get("model_type") or result.get("type", "llm"),
+                            "dpk_name": result["dpk_name"],
+                            "manifest": result["manifest"],
+                        })
 
                 if on_result:
                     on_result(result)
@@ -1870,7 +1800,7 @@ if __name__ == "__main__":
         state.save()
 
     elif args.command == "report":
-        featch_report()
+        fetch_report()
 
     else:
         parser.print_help()

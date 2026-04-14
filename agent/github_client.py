@@ -80,6 +80,7 @@ class GitHubClient:
         
         self._client = None
         self._repo = None
+        self._tree_paths: list[str] | None = None
     
     @property
     def client(self):
@@ -113,8 +114,6 @@ class GitHubClient:
         Returns:
             Path to dataloop.json if found, None otherwise
         """
-        import json
-        
         # Search in multiple type folders based on model_type
         type_folders = []
         if model_type:
@@ -151,29 +150,27 @@ class GitHubClient:
         
         return None
     
+    def _ensure_tree_cache(self) -> list[str]:
+        """Fetch the full repo tree once and cache all blob paths."""
+        if self._tree_paths is None:
+            branch = self.repository.get_branch(self.base_branch)
+            tree = self.repository.get_git_tree(branch.commit.sha, recursive=True)
+            self._tree_paths = [el.path for el in tree.tree if el.type == "blob"]
+        return self._tree_paths
+
     def _find_all_manifests_in_path(self, base_path: str) -> list:
         """
-        Recursively find all dataloop.json files under a path.
-        
+        Find all dataloop.json files under a path (uses cached tree).
+
         Returns:
             List of paths to dataloop.json files
         """
-        manifests = []
-        
         try:
-            items = self.repository.get_contents(base_path, ref=self.base_branch)
-            
-            for item in items:
-                if item.type == "file" and item.name == "dataloop.json":
-                    manifests.append(item.path)
-                elif item.type == "dir":
-                    # Recurse into subdirectory
-                    manifests.extend(self._find_all_manifests_in_path(item.path))
-                    
+            all_paths = self._ensure_tree_cache()
+            prefix = base_path.rstrip("/") + "/"
+            return [p for p in all_paths if p.startswith(prefix) and p.endswith("/dataloop.json")]
         except Exception:
-            pass
-        
-        return manifests
+            return []
     
     # =========================================================================
     # Config File Updates
@@ -226,6 +223,10 @@ class GitHubClient:
         """
         Update .bumpversion.cfg to include new model entries and remove deprecated ones.
         
+        Parses the file into sections (header line + body lines) so that
+        entries with varying numbers of properties, blank lines, or comments
+        are handled correctly.
+
         Args:
             existing_content: Current .bumpversion.cfg content
             new_manifest_paths: List of new manifest paths to add
@@ -234,47 +235,45 @@ class GitHubClient:
         Returns:
             Updated .bumpversion.cfg content
         """
-        lines = existing_content.rstrip().split('\n')
-        
-        # Build set of deprecated paths for quick lookup
         deprecated_paths = set(deprecated_manifest_paths) if deprecated_manifest_paths else set()
-        
-        # Filter out deprecated entries and collect existing paths
-        filtered_lines = []
-        existing_paths = set()
-        skip_next = 0
-        
-        for i, line in enumerate(lines):
-            if skip_next > 0:
-                skip_next -= 1
-                continue
 
+        sections: list[tuple[str | None, list[str]]] = []
+        current_path: str | None = None
+        current_lines: list[str] = []
 
+        for line in existing_content.rstrip().split('\n'):
             stripped = line.strip()
-            if stripped.startswith('[bumpversion:file:'):
-                path = stripped.replace('[bumpversion:file:', '').replace(']', '').strip()
+            if stripped.startswith('['):
+                sections.append((current_path, current_lines))
+                current_lines = [line]
+                if stripped.startswith('[bumpversion:file:'):
+                    current_path = stripped.replace('[bumpversion:file:', '').replace(']', '').strip()
+                else:
+                    current_path = None
+            else:
+                current_lines.append(line)
+        sections.append((current_path, current_lines))
+
+        existing_paths: set[str] = set()
+        filtered_lines: list[str] = []
+        for path, lines in sections:
+            if path is not None:
                 existing_paths.add(path)
-                
-                # Check if this is a deprecated path
-                if path in deprecated_paths:
-                    # Skip this entry and its following 2 lines (search/replace)
-                    skip_next = 2
-                    continue
-            
-            filtered_lines.append(line)
-        
-        # Add new entries (only if not already present)
-        new_entries = []
+            if path in deprecated_paths:
+                continue
+            filtered_lines.extend(lines)
+
+        new_entries: list[str] = []
         for path in new_manifest_paths:
             if path not in existing_paths:
                 new_entries.append(f'\n[bumpversion:file:{path}]')
                 new_entries.append('search = "{current_version}"')
                 new_entries.append('replace = "{new_version}"')
-        
+
         result = '\n'.join(filtered_lines)
         if new_entries:
             result += '\n' + '\n'.join(new_entries) + '\n'
-        
+
         return result
     
     # =========================================================================
@@ -527,13 +526,12 @@ class GitHubClient:
         
         sections.append(f"## Changes\n{chr(10).join(changes)}")
         
-        return f"""# NVIDIA NIM Models Update
-
-        {chr(10).join(sections)}
-
-        ---
-        *Auto-generated by NIM Agent*
-        """
+        return (
+            f"# NVIDIA NIM Models Update\n\n"
+            f"{chr(10).join(sections)}\n\n"
+            f"---\n"
+            f"*Auto-generated by NIM Agent*\n"
+        )
 
     # =========================================================================
     # Pipeline template dependency check

@@ -8,7 +8,7 @@ State is stored as JSON and persisted between CI runs via GitHub Action artifact
 import json
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 
@@ -71,8 +71,9 @@ class RunState:
         if os.path.exists(self.path):
             with open(self.path, "r") as f:
                 self.data = json.load(f)
-            if "config" not in self.data:
-                self.data["config"] = dict(DEFAULT_CONFIG)
+            self.data.setdefault("runs", [])
+            self.data.setdefault("models", {})
+            self.data.setdefault("config", dict(DEFAULT_CONFIG))
         return self
 
     def save(self):
@@ -133,25 +134,6 @@ class RunState:
             else:
                 m["status"] = "failed"
 
-    def should_attempt(self, model_id: str) -> bool:
-        """Return False if the model is quarantined and not due for re-probe."""
-        m = self.data["models"].get(model_id)
-        if m is None:
-            return True
-        if m["status"] != "quarantined":
-            return True
-
-        cooldown_days = self.data["config"].get("quarantine_cooldown_days", 14)
-        last = m.get("last_attempt")
-        if last:
-            try:
-                last_dt = datetime.fromisoformat(last)
-                if datetime.now() - last_dt > timedelta(days=cooldown_days):
-                    return True
-            except (ValueError, TypeError):
-                pass
-        return False
-
     def get_quarantined(self) -> list[str]:
         """Return list of currently quarantined model IDs."""
         return [
@@ -200,12 +182,14 @@ class RunState:
         self.data["runs"].append(run)
         return run
 
+    _RUN_RESERVED_KEYS = frozenset({"started", "finished"})
+
     def end_run(self, summary: dict):
         """Finalize the current run with summary data."""
         if self.data["runs"]:
             run = self.data["runs"][-1]
             run["finished"] = datetime.now().isoformat()
-            run.update(summary)
+            run.update({k: v for k, v in summary.items() if k not in self._RUN_RESERVED_KEYS})
 
     def last_run_summary(self) -> dict | None:
         """Return the most recent run record, or None."""

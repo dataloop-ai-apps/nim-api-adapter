@@ -20,9 +20,9 @@ Usage:
 import json
 import os
 import re
-import requests
 from typing import Optional
 
+import httpx
 from openai import OpenAI
 from json_repair import repair_json
 
@@ -33,12 +33,24 @@ from json_repair import repair_json
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
 NIM_LLM_MODEL = "meta/llama-3.1-8b-instruct"
 
-SESSION = requests.Session()
-SESSION.headers.update({
-    "Accept-Encoding": "gzip, deflate",
-    "User-Agent": "Mozilla/5.0 (compatible; nim-license-scraper/1.0)",
-    "Accept-Language": "en-US,en;q=0.9",
-})
+SESSION = httpx.Client(
+    headers={
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (compatible; nim-license-scraper/1.0)",
+        "Accept-Language": "en-US,en;q=0.9",
+    },
+    follow_redirects=True,
+)
+
+_LLM_CLIENT: OpenAI | None = None
+
+
+def _get_llm_client(api_key: str) -> OpenAI:
+    """Return a cached OpenAI client, creating it on first call."""
+    global _LLM_CLIENT
+    if _LLM_CLIENT is None or _LLM_CLIENT.api_key != api_key:
+        _LLM_CLIENT = OpenAI(base_url=NIM_BASE_URL, api_key=api_key)
+    return _LLM_CLIENT
 
 # ---------------------------------------------------------------------------
 # License registry  (specific -> generic, order matters)
@@ -331,7 +343,7 @@ def _llm_extract_license(model_name: str, page_section: str, api_key: str) -> Op
     user_msg = f'Model: "{model_name}"\n\nModel card license sections:\n{page_section[:2500]}'
 
     try:
-        client = OpenAI(base_url=NIM_BASE_URL, api_key=api_key)
+        client = _get_llm_client(api_key)
         response = client.chat.completions.create(
             model=NIM_LLM_MODEL,
             messages=[

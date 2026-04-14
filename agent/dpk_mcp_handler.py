@@ -9,18 +9,12 @@ import json
 import os
 import requests
 import httpx
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # MCP transport mode (auto-selected):
 #   DPK_MCP_NAME set → HTTP (platform-hosted DPK service on Dataloop)
 #   MCP_SERVER_PATH set → stdio (local subprocess)
-DPK_MCP_NAME = os.environ.get("DPK_MCP_NAME")
 ENV = os.environ.get("ENV", "prod")
 PYTHON_PATH = os.environ.get("PYTHON_PATH", "python")
-MCP_SERVER_PATH = os.environ.get("MCP_SERVER_PATH")
 
 def ensure_dataloop_login():
     """Ensure a valid Dataloop session exists, logging in if needed."""
@@ -266,11 +260,14 @@ class DPKGeneratorClient:
     """
 
     def __init__(self):
-        if DPK_MCP_NAME:
+        dpk_mcp_name = os.environ.get("DPK_MCP_NAME")
+        mcp_server_path = os.environ.get("MCP_SERVER_PATH")
+        if dpk_mcp_name:
             self._mode = "http"
-            self._server_url = self._resolve_dpk_url(DPK_MCP_NAME)
-        elif MCP_SERVER_PATH:
+            self._server_url = self._resolve_dpk_url(dpk_mcp_name)
+        elif mcp_server_path:
             self._mode = "stdio"
+            self._mcp_server_path = mcp_server_path
         else:
             raise ValueError(
                 "Set DPK_MCP_NAME (platform-hosted) or MCP_SERVER_PATH (local stdio)."
@@ -330,7 +327,7 @@ class DPKGeneratorClient:
         from mcp.client.stdio import stdio_client
         server_params = StdioServerParameters(
             command=PYTHON_PATH,
-            args=[MCP_SERVER_PATH],
+            args=[self._mcp_server_path],
             env={**os.environ, "NGC_API_KEY": os.environ.get("NGC_API_KEY", ""), "MCP_TRANSPORT": "stdio"},
         )
         async with stdio_client(server_params) as (read, write):
@@ -347,6 +344,14 @@ class DPKGeneratorClient:
         """Dispatch to HTTP or stdio based on configured mode."""
         if self._mode == "http":
             return self._http_call_tool(tool_name, arguments)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop is not None:
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(asyncio.run, self._stdio_call_tool(tool_name, arguments)).result()
         return asyncio.run(self._stdio_call_tool(tool_name, arguments))
     
     def create_nim_dpk_manifest(self, model_id: str, model_type: str, embeddings_size: int = None, license: str = None) -> dict:
@@ -436,7 +441,7 @@ class DPKGeneratorClient:
             # Build MCP tool arguments
             mcp_args = {
                 "name": dpk_name,
-                "display_name": f"{display_name}",
+                "display_name": display_name,
                 "description": f"NVIDIA NIM adapter for {model_id}",
                 "version": version,
                 "scope": "public",
@@ -499,6 +504,8 @@ if __name__ == "__main__":
     Run: python agent/dpk_mcp_handler.py
     """
     import pprint
+    from dotenv import load_dotenv
+    load_dotenv()
 
     print("=" * 60)
     print("DPK MCP HANDLER DRY-RUN")
@@ -609,14 +616,16 @@ if __name__ == "__main__":
     print("5. Full MCP manifest creation")
     print("-" * 60)
 
-    if DPK_MCP_NAME:
-        print(f"  Mode: HTTP (DPK_MCP_NAME={DPK_MCP_NAME})")
-    elif MCP_SERVER_PATH:
-        print(f"  Mode: stdio (MCP_SERVER_PATH={MCP_SERVER_PATH})")
+    dpk_name = os.environ.get("DPK_MCP_NAME")
+    mcp_path = os.environ.get("MCP_SERVER_PATH")
+    if dpk_name:
+        print(f"  Mode: HTTP (DPK_MCP_NAME={dpk_name})")
+    elif mcp_path:
+        print(f"  Mode: stdio (MCP_SERVER_PATH={mcp_path})")
     else:
         print("  Skipping: set DPK_MCP_NAME (HTTP) or MCP_SERVER_PATH (stdio)")
 
-    if DPK_MCP_NAME or MCP_SERVER_PATH:
+    if dpk_name or mcp_path:
         for model_id, mtype, emb_size in TEST_MODELS:
             print(f"\n  >> {model_id} ({mtype})")
             result = create_nim_manifest(model_id, mtype, embeddings_size=emb_size)

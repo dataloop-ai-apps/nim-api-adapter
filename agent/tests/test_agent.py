@@ -208,7 +208,7 @@ class TestCatalogDisplayNameFix(unittest.TestCase):
 
     @staticmethod
     def _build_catalog_ids(catalog, nim_type):
-        """Same comprehension used in fetch_models() and featch_report() after fix."""
+        """Same comprehension used in fetch_models() and fetch_report() after fix."""
         return {
             f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
             for m in catalog if m.get("nim_type") == nim_type
