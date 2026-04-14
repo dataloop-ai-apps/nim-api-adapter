@@ -1,7 +1,7 @@
 {
   "name": "nim-mamba-codestral-7b-v0-1",
   "displayName": "Mamba Codestral 7B V0.1",
-  "version": "0.3.60",
+  "version": "0.3.61",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mamba-codestral-7b-v0.1. License: Apache 2.0",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.60"
+    "gitTag": "0.3.61"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "nim-gliner-pii",
   "displayName": "Gliner Pii",
-  "version": "0.3.60",
+  "version": "0.3.61",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/gliner-pii",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.60"
+    "gitTag": "0.3.61"
   }
 }
