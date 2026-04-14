@@ -1,7 +1,7 @@
 {
   "name": "nim-llama-3-1-405b-instruct",
   "displayName": "Llama 3.1 405B Instruct",
-  "version": "0.3.61",
+  "version": "0.3.62",
   "scope": "public",
   "description": "NVIDIA NIM adapter for meta/llama-3.1-405b-instruct. License: Llama 3.1 Community License",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.61"
+    "gitTag": "0.3.62"
   }
 }

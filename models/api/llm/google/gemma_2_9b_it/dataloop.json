@@ -1,7 +1,7 @@
 {
   "name": "nim-gemma-2-9b-it",
   "displayName": "Gemma 2 9B It",
-  "version": "0.3.61",
+  "version": "0.3.62",
   "scope": "public",
   "description": "NVIDIA NIM adapter for google/gemma-2-9b-it",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.61"
+    "gitTag": "0.3.62"
   }
 }

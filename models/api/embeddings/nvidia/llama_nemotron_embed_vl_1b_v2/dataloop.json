@@ -1,7 +1,7 @@
 {
   "name": "nim-llama-nemotron-embed-vl-1b-v2",
   "displayName": "Llama Nemotron Embed Vl 1B V2",
-  "version": "0.3.61",
+  "version": "0.3.62",
   "scope": "public",
   "description": "NVIDIA NIM adapter for nvidia/llama-nemotron-embed-vl-1b-v2",
   "attributes": {
@@ -122,6 +122,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.61"
+    "gitTag": "0.3.62"
   }
 }

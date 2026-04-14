@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-large-3-675b-instruct-2512",
   "displayName": "Mistral Large 3 675B Instruct 2512",
-  "version": "0.3.61",
+  "version": "0.3.62",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-large-3-675b-instruct-2512",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.61"
+    "gitTag": "0.3.62"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "nim-mistral-small-4-119b-2603",
   "displayName": "Mistral Small 4 119B 2603",
-  "version": "0.3.61",
+  "version": "0.3.62",
   "scope": "public",
   "description": "NVIDIA NIM adapter for mistralai/mistral-small-4-119b-2603",
   "attributes": {
@@ -163,6 +163,6 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.61"
+    "gitTag": "0.3.62"
   }
 }
