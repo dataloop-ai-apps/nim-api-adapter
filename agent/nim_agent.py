@@ -717,9 +717,18 @@ class NIMAgent:
                 self.downloadable_to_add.append(m)
 
         # ---- Downloadable: deprecated ----
+        # A downloadable is deprecated if:
+        #   (a) its nim_model_name left the NGC downloadable catalog, OR
+        #   (b) its matching API model is being deprecated (the downloadable
+        #       DPK depends on the API DPK for the model adapter)
+        api_deprecated_nims = {
+            (d or {}).get("nim_model_name")
+            for d in self.api_deprecated
+        } - {None}
+
         self.downloadable_deprecated = []
         for nim, dpk in dl_by_downloadable_nim.items():
-            if nim not in downloadable_ids:
+            if nim not in downloadable_ids or nim in api_deprecated_nims:
                 self.downloadable_deprecated.append(dpk)
 
         # ---- Print ----

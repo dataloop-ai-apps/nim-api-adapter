@@ -507,6 +507,43 @@ class TestUnifiedPrTitle(unittest.TestCase):
         self.assertIn("Deprecate 1", title)
 
 
+class TestDownloadableDeprecatedWhenApiDeprecated(unittest.TestCase):
+    """A downloadable must be deprecated if its matching API model is deprecated."""
+
+    @patch("nim_agent.Tester", autospec=True)
+    def test_downloadable_deprecated_when_api_gone(self, _mock_tester):
+        from nim_agent import NIMAgent
+
+        agent = NIMAgent.__new__(NIMAgent)
+        agent.potential_api_models = [
+            {"id": "vendor/model-a"},
+        ]
+        agent.potential_downloadable_models = [
+            {"id": "vendor/model-a"},
+            {"id": "vendor/model-b"},
+        ]
+        agent.dataloop_api_only_dpks = [
+            {"name": "nim-model-a", "nim_model_name": "vendor/model-a"},
+            {"name": "nim-model-b", "nim_model_name": "vendor/model-b"},
+        ]
+        agent.dataloop_downloadables_dpks = [
+            {"name": "nim-model-a-downloadable", "nim_model_name": "vendor/model-a"},
+            {"name": "nim-model-b-downloadable", "nim_model_name": "vendor/model-b"},
+        ]
+        agent.dataloop_cv_dpks = []
+
+        agent.compare()
+
+        api_dep_names = {d["name"] for d in agent.api_deprecated}
+        dl_dep_names = {d["name"] for d in agent.downloadable_deprecated}
+
+        self.assertIn("nim-model-b", api_dep_names)
+        self.assertNotIn("nim-model-a", api_dep_names)
+
+        self.assertIn("nim-model-b-downloadable", dl_dep_names)
+        self.assertNotIn("nim-model-a-downloadable", dl_dep_names)
+
+
 class TestCheckDeprecatedInTemplates(unittest.TestCase):
     """Test GitHubClient.check_deprecated_in_templates with mocked GitHub API."""
 
