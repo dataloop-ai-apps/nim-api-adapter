@@ -1361,9 +1361,18 @@ class Tester:
         try:
             app_name = f"{dpk.name}-validate"
             logger.info("Installing as app '%s'...", app_name)
-            app = project.apps.install(dpk=dpk, app_name=app_name, integrations=integrations)
+            try:
+                app = project.apps.install(dpk=dpk, app_name=app_name, integrations=integrations)
+                logger.info("App installed: %s", app.id)
+            except Exception as install_err:
+                if "already exist" in str(install_err).lower() or "already installed" in str(install_err).lower():
+                    logger.info("App already installed, fetching existing and updating...")
+                    app = project.apps.get(app_name=app_name)
+                    app = app.update(dpk=dpk, integrations=integrations)
+                    logger.info("App updated: %s", app.id)
+                else:
+                    raise
             entry["app_id"] = app.id
-            logger.info("App installed: %s", app.id)
 
             model = self._get_model_from_app(project, app)
             entry["model_id"] = model.id
@@ -1613,3 +1622,5 @@ if __name__ == "__main__":
             print(f"   error={result['error'][:120]}")
 
     print("\n" + "=" * 60)
+
+dl.apps
