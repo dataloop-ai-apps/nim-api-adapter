@@ -13,14 +13,15 @@ import json
 import requests
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Literal
 from urllib.parse import quote
 from openai import OpenAI
 import dtlpy as dl
 
-from tester import Tester
-from dpk_mcp_handler import DPKGeneratorClient
+from nim_tester import Tester
+from dpk_mcp_handler import MODEL_TYPE_FOLDERS
 from github_client import GitHubClient
+from downloadables_create import model_name_from_downloadable_dpk_name
+from license_scraper import find_license_for_resource
 
 
 NGC_CATALOG_URL = "https://api.ngc.nvidia.com/v2/search/catalog"
@@ -29,6 +30,8 @@ NGC_CATALOG_URL = "https://api.ngc.nvidia.com/v2/search/catalog"
 NIM_TYPE_DOWNLOADABLE = "nim_type_run_anywhere"
 NIM_TYPE_API_ONLY = "nim_type_preview"
 
+# Reverse lookup: folder name -> model_type (e.g. "embeddings" -> "embedding")
+_FOLDER_TO_TYPE = {v: k for k, v in MODEL_TYPE_FOLDERS.items()}
 
 # =================================================================================
 # FETCHING - Module-level functions for fetching models from NGC Catalog and OpenAI
@@ -38,7 +41,8 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     """Fetch all models for a given NIM type filter (handles pagination)."""
     models = []
     page = 0
-    
+    seen = set()
+
     while True:
         query = {
             "filters": [{"field": "nimType", "value": nim_type_filter}],
@@ -54,8 +58,6 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
         response.raise_for_status()
         data = response.json()
         
-        # Extract resources (deduplicate from grouped results)
-        seen = set()
         for result in data.get("results", []):
             for resource in result.get("resources", []):
                 name = resource.get("name", "")
@@ -85,21 +87,10 @@ def _fetch_catalog_by_nim_type(nim_type_filter: str) -> list[dict]:
     models.sort(key=lambda x: x["name"])
     return models
 
-
-def get_api_models() -> list[dict]:
-    """Get all API-only NIM models."""
-    return _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
-
-
-def get_downloadable_models() -> list[dict]:
-    """Get all downloadable (run-anywhere) NIM models."""
-    return _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
-
-
-def get_all_catalog_models() -> list[dict]:
-    """Get all NIM models with their availability type."""
-    api_models = get_api_models()
-    downloadable_models = get_downloadable_models()
+def get_all_catalog_models(skip_licenses: bool = False) -> list[dict]:
+    """Get all NIM models with their availability type and license."""
+    api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
+    downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     # Deduplicate by name, preferring API models
     seen = {m["name"] for m in api_models}
     all_models = list(api_models)
@@ -108,6 +99,21 @@ def get_all_catalog_models() -> list[dict]:
             all_models.append(m)
             seen.add(m["name"])
     all_models.sort(key=lambda x: x["name"])
+
+    if skip_licenses:
+        for m in all_models:
+            m["license"] = None
+        print(f"  License scraping skipped ({len(all_models)} models)")
+        return all_models
+
+    for m in all_models:
+        lic = find_license_for_resource(resource=m, use_llm=False)
+        m["license"] = lic
+        if lic:
+            print(f"  {m['name']}: {lic}")
+        else:
+            print(f"  {m['name']}: license not found")
+
     return all_models
 
 
@@ -148,9 +154,13 @@ def get_openai_nim_models(api_key: str = None) -> list[dict]:
     client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=api_key)
     response = client.models.list()
     
+    seen_ids = set()
     models = []
     for model in response.data:
         model_id = model.id
+        if model_id in seen_ids: # to skip duplications
+            continue
+        seen_ids.add(model_id)
         publisher = model_id.split("/")[0] if "/" in model_id else "nvidia"
         models.append({
             "id": model_id,
@@ -234,7 +244,7 @@ def get_repository_downloadable_models() -> list[dict]:
         model_name_without_provider: last segment of nim_model_name (e.g. baai/bge-m3 -> bge-m3).
     """
     run_anywhere_normalized = {
-        _normalize_nim_name(m["name"]) for m in get_downloadable_models()
+        _normalize_nim_name(m["name"]) for m in _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
     }
     all_existing = get_all_repository_models()
     return [
@@ -284,10 +294,8 @@ def update_support_matrix() -> str:
                 nim_name = f"{provider}/{model_name}"
                 downloadable_nim_names.add(_normalize_nim_name(nim_name))
             elif len(parts) == 2:
-                # Object detection path: object_detection/model_name (e.g., object_detection/baidu_paddleocr)
-                # Try to extract provider from folder name (e.g., baidu_paddleocr -> baidu/paddleocr)
+                # Object detection path: object_detection/model_name
                 model_folder = parts[1]
-                # Split on first underscore to get provider
                 if "_" in model_folder:
                     first_underscore = model_folder.index("_")
                     provider = model_folder[:first_underscore]
@@ -319,16 +327,10 @@ def update_support_matrix() -> str:
             category = "Object Detection"
         else:
             category = "Other"
-        
-        # Check if downloadable
+
         is_downloadable = _normalize_nim_name(nim_name) in downloadable_nim_names
-        
-        models_by_category[category][nim_name] = {
-            "api": True,
-            "downloadable": is_downloadable,
-        }
-    
-    # Generate markdown
+        models_by_category[category][nim_name] = {"api": True, "downloadable": is_downloadable}
+
     category_order = ["Embeddings", "LLM", "VLM", "Object Detection", "Other"]
     
     # Calculate summary
@@ -402,19 +404,11 @@ def update_support_matrix() -> str:
     return str(output_path)
 
 
-def featch_report() -> dict:
+def fetch_report() -> str:
     """Fetch report for all models from OpenAI and NGC Catalog.
 
     Returns:
-        dict: Report with the following keys:
-            - openai_ids: List of OpenAI model IDs
-            - api_ids: List of NGC Catalog API model IDs
-            - downloadable_ids: List of NGC Catalog Downloadable model IDs
-            - openai_and_downloadable: List of OpenAI and Downloadable model IDs
-            - openai_and_api_only: List of OpenAI and API-only model IDs
-            - openai_not_in_catalog: List of OpenAI models not in NGC Catalog
-            - catalog_not_in_openai: List of NGC Catalog models not in OpenAI
-            - downloadable_not_in_openai: List of Downloadable models not in OpenAI
+        str: Human-readable report text (also printed and saved to file).
     """
     # 1. Fetch from OpenAI-compatible endpoint
     print("Fetching OpenAI models...")
@@ -422,12 +416,12 @@ def featch_report() -> dict:
 
     # 2. Fetch from NGC Catalog (both types)
     print("Fetching NGC Catalog API models...")
-    api_models = get_api_models()
-    api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in api_models}
+    api_models = _fetch_catalog_by_nim_type(NIM_TYPE_API_ONLY)
+    api_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}" for m in api_models}
 
     print("Fetching NGC Catalog Downloadable models...")
-    downloadable_models = get_downloadable_models()
-    downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}" for m in downloadable_models}
+    downloadable_models = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
+    downloadable_ids = {f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}" for m in downloadable_models}
 
     # 3. Cross-reference
     # Note: In NGC catalog, a model is either "api-only" OR "downloadable" (mutually exclusive).
@@ -471,14 +465,14 @@ def featch_report() -> dict:
     report_lines.append("-" * 80)
     report_lines.append(f"OpenAI INTERSECT Catalog: {len(openai_intersect_catalog)}")
     report_lines.append("-" * 80)
-    for m in sorted(openai_and_api_only):
+    for m in sorted(openai_intersect_catalog):
         report_lines.append(f"  {m}")
         
     report_lines.append("")
     report_lines.append("-" * 80)
     report_lines.append(f"Catalog but NOT on OpenAI: {len(catalog_not_in_openai)}")
     report_lines.append("-" * 80)
-    for m in sorted(openai_and_api_only):
+    for m in sorted(catalog_not_in_openai):
         report_lines.append(f"  {m}")
         
     report_lines.append("")
@@ -536,7 +530,7 @@ class NIMAgent:
     4. Report results
     """
     
-    def __init__(self, test_project_id: str = None):
+    def __init__(self, test_project_id: str = None, tester_auto_init: bool = True):
         """
         Args:
             test_project_id: Dataloop project ID for testing
@@ -555,16 +549,17 @@ class NIMAgent:
         self.test_project_id = test_project_id or os.environ.get("DATALOOP_TEST_PROJECT")
         
         # Components
-        self.tester = Tester(api_key=self.nim_api_key)
-        self.dpk_generator = DPKGeneratorClient()
+        self.tester = Tester(api_key=self.nim_api_key, auto_init=tester_auto_init)
         self.github = None  # Lazy-loaded
         
         # State - Models (populated by fetch_models())
-        self.api_models = []            # All models from OpenAI endpoint (source of truth)
-        self.downloadable_models = []   # Subset of api_models that are also "run anywhere" in NGC catalog
+        self.potential_api_models = []            # All models from OpenAI endpoint (source of truth)
+        self.potential_downloadable_models = []   # Subset of api_models that are also "run anywhere" in NGC catalog
         
         # State - Dataloop
-        self.dataloop_dpks = []
+        self.dataloop_downloadables_dpks = []
+        self.dataloop_api_only_dpks = []
+        self.dataloop_cv_dpks = []
         
         # State - Comparison results (populated by compare())
         self.api_to_add = []                # API models not yet in Dataloop
@@ -575,6 +570,7 @@ class NIMAgent:
         # State - Results
         self.results = []
         self.successful_manifests = []
+        self.pr_result = None
     
     def _get_github(self) -> GitHubClient:
         """Lazy-load GitHub client."""
@@ -592,127 +588,166 @@ class NIMAgent:
     # Fetch models from NVIDIA (OpenAI endpoint + NGC Catalog for downloadables)
     # =========================================================================
     
-    def fetch_models(self):
+    def fetch_models(self, skip_licenses: bool = False):
         """
         Fetch all supported NIM models.
-        
+
         - api_models: All models from the OpenAI-compatible endpoint (source of truth
           for what is actually callable via /chat/completions, /embeddings, etc.)
-        - downloadable_models: The subset of api_models that are ALSO listed as
-          "run anywhere" in the NGC Catalog (intersection).
-        
-        Populates: self.api_models, self.downloadable_models
+        - potential_downloadable_models: (1) OpenAI ∩ NGC "run anywhere", plus (2) existing
+          repo models (models/api, incl. object_detection) that are run-anywhere,
+          so we compare downloadables for OD etc. with Dataloop.
+
+        Args:
+            skip_licenses: Skip per-model license scraping from NGC (faster for dry-runs).
+
+        Populates: self.potential_api_models, self.potential_downloadable_models
         """
         # 1. All callable models from OpenAI endpoint
         print("\n📡 Fetching models from OpenAI endpoint...")
-        self.api_models = get_openai_nim_models(api_key=self.nim_api_key)
-        openai_names = {m["name"] for m in self.api_models}
-        print(f"  OpenAI models: {len(self.api_models)}")
-        
-        # 2. Downloadable = OpenAI ∩ NGC "run anywhere"
-        print("📡 Fetching NGC Catalog downloadable models...")
-        catalog_downloadable = get_downloadable_models()
-        catalog_dl_names = {m["name"] for m in catalog_downloadable}
-        print(f"  NGC downloadable (catalog): {len(catalog_downloadable)}")
-        
-        # Intersection: only models that are both on OpenAI AND downloadable in catalog
-        downloadable_names = openai_names & catalog_dl_names
-        self.downloadable_models = [m for m in self.api_models if m["name"] in downloadable_names]
-        
-        print(f"  Downloadable (OpenAI ∩ catalog): {len(self.downloadable_models)}")
-        print(f"  API-only (OpenAI, not downloadable): {len(self.api_models) - len(self.downloadable_models)}")
+        self.potential_api_models = get_openai_nim_models()
+
+        # Use full ID (publisher/name) for safe matching
+        openai_ids = {m["id"] for m in self.potential_api_models}
+        print(f"  OpenAI models: {len(self.potential_api_models)}")
+
+        # 2. Fetch ALL catalog models once (API + downloadable in one pass)
+        print("📡 Fetching NGC Catalog (all types, single pass)...")
+        all_catalog = get_all_catalog_models(skip_licenses=skip_licenses)
+
+        # Build catalog IDs for downloadable intersection
+        catalog_dl_ids = {
+            f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
+            for m in all_catalog if m.get("nim_type") == NIM_TYPE_DOWNLOADABLE
+        }
+        print(f"  Catalog total: {len(all_catalog)} (downloadable: {len(catalog_dl_ids)})")
+
+        # 3. Intersection: OpenAI ∩ Downloadable
+        downloadable_ids = openai_ids & catalog_dl_ids
+
+        self.potential_downloadable_models = [
+            m for m in self.potential_api_models
+            if m["id"] in downloadable_ids
+        ]
+
+        print(f"  Downloadable (OpenAI & catalog): {len(self.potential_downloadable_models)}")
+
+        # 4. Build license map from all catalog models (already scraped)
+        self.license_map = {}
+        if not skip_licenses:
+            for m in all_catalog:
+                if m.get("license"):
+                    self.license_map[m["name"]] = m["license"]
+                    self.license_map[m["name"].replace("_", "-")] = m["license"]
+
+            for m in self.potential_api_models:
+                name = m["id"].split("/")[-1] if "/" in m["id"] else m["id"]
+                lic = self.license_map.get(name) or self.license_map.get(name.replace("_", "-"))
+                m["license"] = lic
+                if lic:
+                    print(f"  {m['id']}: {lic}")
+
+            licensed = sum(1 for m in self.potential_api_models if m.get("license"))
+            print(f"  Models with license: {licensed}/{len(self.potential_api_models)}")
     
     # =========================================================================
     # Compare with Dataloop
     # =========================================================================
-    
+        
     def compare(self) -> dict:
         """
         Compare API and downloadable models with Dataloop DPKs.
-        
-        Requires: fetch_models() and fetch_dataloop_dpks() called first.
-        
-        Populates:
-        - self.api_to_add:              API models not yet in Dataloop
-        - self.api_deprecated:          Dataloop DPKs no longer on OpenAI
-        - self.downloadable_to_add:     Downloadable models not yet in Dataloop
-        - self.downloadable_deprecated: Dataloop downloadable DPKs no longer downloadable
-        
-        Returns:
-            dict with all four lists + matched counts
+
+        Match rule:
+        - A model is "already in Dataloop" if OpenAI model id (e.g. "baai/bge-m3")
+        equals a Dataloop DPK's nim_model_name.
+        - Deprecated (API): Dataloop API-only DPKs whose nim_model_name is not in OpenAI ids.
+        - Deprecated (Downloadable): Dataloop downloadable DPKs whose nim_model_name is not in current downloadable ids.
         """
         print("\n🔍 Comparing models with Dataloop DPKs...")
-        
-        dataloop_normalized = {self._normalize(d["name"]): d for d in self.dataloop_dpks}
-        
-        # --- API comparison (all OpenAI models vs Dataloop) ---
-        
-        openai_normalized = {}
-        for m in self.api_models:
-            openai_normalized[self._normalize(m["id"])] = m
-        
+
+        # ---- Collect IDs ----
+        openai_ids = {m["id"] for m in self.potential_api_models if m.get("id")}
+        downloadable_ids = {m["id"] for m in self.potential_downloadable_models if m.get("id")}
+
+        # ---- Dataloop mapping: nim_model_name -> dpk dict ----
+        dl_by_api_only_nim: dict[str, dict] = {}
+        for d in self.dataloop_api_only_dpks:
+            nim = (d or {}).get("nim_model_name")
+            if nim:
+                dl_by_api_only_nim[nim] = d
+
+        dl_by_downloadable_nim: dict[str, dict] = {}
+        for d in self.dataloop_downloadables_dpks:
+            nim = (d or {}).get("nim_model_name")
+            if nim:
+                dl_by_downloadable_nim[nim] = d
+
+        dataloop_api_only_nim_names = set(dl_by_api_only_nim.keys())
+        dataloop_downloadable_nim_names = set(dl_by_downloadable_nim.keys())
+
+        # ---- API: to_add / matched ----
         self.api_to_add = []
         api_matched = []
-        for model_id, model in openai_normalized.items():
-            found = any(
-                self._models_match(model_id, dpk_name)
-                for dpk_name in dataloop_normalized.keys()
-            )
-            if found:
-                api_matched.append(model)
+        for m in self.potential_api_models:
+            mid = m.get("id")
+            if not mid:
+                continue
+            if mid in dataloop_api_only_nim_names:
+                api_matched.append(m)
             else:
-                self.api_to_add.append(model)
-        
+                self.api_to_add.append(m)
+
+        # ---- API: deprecated ----
         self.api_deprecated = []
-        for dpk_name, dpk in dataloop_normalized.items():
-            found = any(
-                self._models_match(model_id, dpk_name)
-                for model_id in openai_normalized.keys()
-            )
-            if not found:
+        for nim, dpk in dl_by_api_only_nim.items():
+            if nim not in openai_ids:
                 self.api_deprecated.append(dpk)
-        
-        # --- Downloadable comparison (downloadable subset vs Dataloop) ---
-        
-        downloadable_normalized = {}
-        for m in self.downloadable_models:
-            downloadable_normalized[self._normalize(m["id"])] = m
-        
+
+        # ---- Downloadable: to_add / matched ----
         self.downloadable_to_add = []
         downloadable_matched = []
-        for model_id, model in downloadable_normalized.items():
-            found = any(
-                self._models_match(model_id, dpk_name)
-                for dpk_name in dataloop_normalized.keys()
-            )
-            if found:
-                downloadable_matched.append(model)
+        for m in self.potential_downloadable_models:
+            mid = m.get("id")
+            if not mid:
+                continue
+            if mid in dataloop_downloadable_nim_names:
+                downloadable_matched.append(m)
             else:
-                self.downloadable_to_add.append(model)
-        
-        # Downloadable deprecated: DPKs in Dataloop that WERE downloadable but no longer are
-        # (i.e., they exist in Dataloop but not in the current downloadable set)
+                self.downloadable_to_add.append(m)
+
+        # ---- Downloadable: deprecated ----
+        # A downloadable is deprecated if:
+        #   (a) its nim_model_name left the NGC downloadable catalog, OR
+        #   (b) its matching API model is being deprecated (the downloadable
+        #       DPK depends on the API DPK for the model adapter)
+        api_deprecated_nims = {
+            (d or {}).get("nim_model_name")
+            for d in self.api_deprecated
+        } - {None}
+
         self.downloadable_deprecated = []
-        for dpk_name, dpk in dataloop_normalized.items():
-            found = any(
-                self._models_match(model_id, dpk_name)
-                for model_id in downloadable_normalized.keys()
-            )
-            if not found:
+        for nim, dpk in dl_by_downloadable_nim.items():
+            if nim not in downloadable_ids or nim in api_deprecated_nims:
                 self.downloadable_deprecated.append(dpk)
-        
-        print(f"  Dataloop DPKs:              {len(self.dataloop_dpks)}")
+
+        # ---- Print ----
+        total_dl_dpks = len(self.dataloop_api_only_dpks) + len(self.dataloop_cv_dpks) + len(self.dataloop_downloadables_dpks)
+        print(f"  Dataloop DPKs:              {total_dl_dpks}")
+        print(f"    OpenAI-compatible:        {len(dataloop_api_only_nim_names)}")
+        print(f"    CV (dedicated API):       {len(self.dataloop_cv_dpks)}")
+        print(f"    Downloadable:             {len(dataloop_downloadable_nim_names)}")
         print(f"  ---")
-        print(f"  API models (OpenAI):        {len(self.api_models)}")
+        print(f"  API models (OpenAI):        {len(self.potential_api_models)}")
         print(f"    Matched:                  {len(api_matched)}")
         print(f"    To add:                   {len(self.api_to_add)}")
         print(f"    Deprecated:               {len(self.api_deprecated)}")
         print(f"  ---")
-        print(f"  Downloadable (OpenAI∩NGC):  {len(self.downloadable_models)}")
+        print(f"  Downloadable (OpenAI∩NGC):  {len(self.potential_downloadable_models)}")
         print(f"    Matched:                  {len(downloadable_matched)}")
         print(f"    To add:                   {len(self.downloadable_to_add)}")
         print(f"    Deprecated:               {len(self.downloadable_deprecated)}")
-        
+
         return {
             "api_to_add": self.api_to_add,
             "api_deprecated": self.api_deprecated,
@@ -723,107 +758,65 @@ class NIMAgent:
         }
     
     def fetch_dataloop_dpks(self) -> list:
-        """Fetch all NIM DPKs from Dataloop marketplace."""
+        """Fetch all NIM DPKs from Dataloop marketplace.
+
+        Converts dl.Dpk objects to plain dicts so the rest of the
+        pipeline can use ``d["name"]`` consistently.
+        """
         print("\n📡 Fetching DPKs from Dataloop...")
-        
-        filters = dl.Filters(resource=dl.FiltersResource.DPK)
-        filters.add(field='scope', values='public')
-        filters.add(field='attributes.Category', values='NIM')
-        
-        dpks = dl.dpks.list(filters=filters)
-        
-        self.dataloop_dpks = []
-        for dpk in dpks.all():
-            self.dataloop_dpks.append({
-                "name": dpk.name,
-                "display_name": dpk.display_name,
-                "version": dpk.version,
-                "id": dpk.id
-            })
-        
-        print(f"✅ Found {len(self.dataloop_dpks)} NIM DPKs")
-        return self.dataloop_dpks
-    
-    def _normalize(self, name: str) -> str:
-        """Normalize name for comparison."""
-        return name.lower().replace("/", "-").replace("_", "-").replace(" ", "-").replace(".", "-")
-    
-    def _extract_model_key(self, name: str) -> str:
-        """
-        Extract core model identifier for comparison.
-        
-        Handles:
-        - DPK names: "nim-llama3-2-90b-vision-meta" → "llama3290bvision"
-        - Model IDs: "meta/llama-3.2-90b-vision-instruct" → "llama3290bvision"
-        """
-        normalized = name.lower()
-        
-        # Remove common prefixes
-        for prefix in ["nim-", "nim_", "nvidia/", "meta/", "google/", "microsoft/", "ibm/", "deepseek-ai/", "mistralai/", "snowflake/"]:
-            if normalized.startswith(prefix):
-                normalized = normalized[len(prefix):]
-        
-        # Remove common suffixes
-        for suffix in ["-instruct", "_instruct", "-chat", "-base", "-meta", "-nvidia"]:
-            if normalized.endswith(suffix):
-                normalized = normalized[:-len(suffix)]
-        
-        # Remove all separators and version dots to get core name
-        key = normalized.replace("-", "").replace("_", "").replace(".", "").replace("/", "")
-        return key
-    
-    def _infer_model_type_from_dpk_name(self, dpk_name: str) -> str:
-        """
-        Infer model type from DPK name.
-        
-        Args:
-            dpk_name: DPK name like "nv-yolox-page-elements-v1" or "nim-llama3-8b-instruct-meta"
-            
-        Returns:
-            Model type: "llm", "vlm", "embedding", "object_detection", or "ocr"
-        """
-        name_lower = dpk_name.lower()
-        
-        # Object detection indicators
-        if any(x in name_lower for x in ["yolox", "yolo", "detection", "cached"]):
-            return "object_detection"
-        
-        # OCR indicators
-        if any(x in name_lower for x in ["ocr", "paddleocr"]):
-            return "ocr"
-        
-        # Embedding indicators
-        if any(x in name_lower for x in ["embed", "arctic"]):
-            return "embedding"
-        
-        # VLM indicators (vision models)
-        if any(x in name_lower for x in ["vision", "vila", "neva", "kosmos", "deplot", "multimodal"]):
-            return "vlm"
-        
-        # Default to LLM
-        return "llm"
-    
-    def _models_match(self, name1: str, name2: str) -> bool:
-        """Check if two model names refer to the same model."""
-        key1 = self._extract_model_key(name1)
-        key2 = self._extract_model_key(name2)
-        
-        # Exact match after extraction
-        if key1 == key2:
-            return True
-        
-        # One contains the other (for partial matches)
-        if len(key1) > 5 and len(key2) > 5:
-            if key1 in key2 or key2 in key1:
-                return True
-        
-        return False
-    
+
+        dpks, _ = self.tester.find_nim_dpks()
+        if dpks is None:
+            raw_dpks = []
+        else:
+            raw_dpks = dpks
+
+        self.dataloop_api_only_dpks = []
+        self.dataloop_downloadables_dpks = []
+        self.dataloop_cv_dpks = []
+        for d in raw_dpks:
+            d = d.to_json()
+            name = d.get("name", str(d))
+            if 'downloadable' in name:
+                nim_model_name = model_name_from_downloadable_dpk_name(name)
+                self.dataloop_downloadables_dpks.append({
+                    "name": d.get("name", str(d)),
+                    "display_name": d.get("display_name", d.get("name", str(d))),
+                    "version": d.get("version", None),
+                    "id": d.get("id", None),
+                    "nim_model_name": nim_model_name,
+                })
+            else:
+                if d.get("components", {}).get("models", []):
+                    nim_model_name = d.get("components", {}).get("models", [])[0].get("configuration", {}).get("nim_model_name","unknown")
+                else:
+                    nim_model_name = "unknown"
+                entry_point = d.get("codebase", {}).get("entry_point", "")
+                parts = entry_point.replace("\\", "/").split("/")
+                model_type = next((_FOLDER_TO_TYPE[p] for p in parts if p in _FOLDER_TO_TYPE), "llm")
+                entry = {
+                    "name": d.get("name", str(d)),
+                    "display_name": d.get("display_name", d.get("name", str(d))),
+                    "version": d.get("version", None),
+                    "id": d.get("id", None),
+                    "nim_model_name": nim_model_name,
+                    "model_type": model_type,
+                }
+                if nim_model_name.startswith("cv/"):
+                    self.dataloop_cv_dpks.append(entry)
+                else:
+                    self.dataloop_api_only_dpks.append(entry)
+
+        print(f"  Dataloop OpenAI-compat DPKs: {len(self.dataloop_api_only_dpks)}")
+        print(f"  Dataloop CV DPKs:            {len(self.dataloop_cv_dpks)}")
+        print(f"  Dataloop Downloadable DPKs:  {len(self.dataloop_downloadables_dpks)}")
+        return self.dataloop_api_only_dpks, self.dataloop_downloadables_dpks
+
     # =========================================================================
     # Step 3: Onboarding Pipeline
     # =========================================================================
     
-    def onboard_model(self, model_id: str, skip_adapter_test: bool = False) -> dict:
+    def onboard_api_model(self, model_id: str, skip_adapter_test: bool = False) -> dict:
         """
         Run full onboarding pipeline for a single model (without PR).
         
@@ -848,6 +841,15 @@ class NIMAgent:
         print(f"🚀 Onboarding: {model_id}")
         print("=" * 60)
         
+        # Resolve license from pre-built lookup
+        model_name = model_id.split("/")[-1] if "/" in model_id else model_id
+        license_name = getattr(self, "license_map", {}).get(model_name) or \
+                       getattr(self, "license_map", {}).get(model_name.replace("-", "_"))
+        if license_name:
+            print(f"  License: {license_name}")
+        else:
+            print(f"  License: not found in catalog")
+        
         # Tests the model adapter
         result = self.tester.test_single_model(
             model_id=model_id,
@@ -855,6 +857,7 @@ class NIMAgent:
             cleanup=True,
             save_manifest=True,
             skip_adapter_test=skip_adapter_test,
+            license=license_name,
         )
         
         if result.get("type") and not result.get("model_type"):
@@ -874,12 +877,13 @@ class NIMAgent:
         
         return result
     
-    def onboard_multiple_models(
+    def onboard_api_models(
         self, 
         models: list = None, 
         limit: int = None,
         max_workers: int = 10,
         skip_adapter_test: bool = True,
+        on_result: callable = None,
     ) -> list:
         """
         Run onboarding pipeline for multiple models in parallel.
@@ -898,11 +902,11 @@ class NIMAgent:
                 Set to False to run adapter tests serially (via lock, slower).
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
+        from threading import Lock
         
         if models is None:
             models = self.api_to_add
         
-        # Extract model IDs from dicts if needed
         model_ids = []
         for model in models:
             if isinstance(model, dict):
@@ -914,19 +918,20 @@ class NIMAgent:
             model_ids = model_ids[:limit]
         
         if not model_ids:
-            print("\nNo models to onboard")
+            print("\nNo API models to onboard")
             return []
         
         print(f"\n{'='*60}")
-        print(f"Onboarding {len(model_ids)} models (max_workers={max_workers})")
+        print(f"Onboarding {len(model_ids)} API models (max_workers={max_workers})")
         print(f"{'='*60}")
         
         self.results = []
         self.successful_manifests = []
+        results_lock = Lock()
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_model = {
-                executor.submit(self.onboard_model, model_id, skip_adapter_test): model_id
+                executor.submit(self.onboard_api_model, model_id, skip_adapter_test): model_id
                 for model_id in model_ids
             }
             
@@ -940,25 +945,190 @@ class NIMAgent:
                         "status": "error",
                         "error": str(e),
                     }
-                    print(f"\n❌ {model_id}: unhandled exception: {e}")
+                    print(f"\n[FAIL] {model_id}: unhandled exception: {e}")
                 
-                self.results.append(result)
-                
-                if result.get("status") == "success" and result.get("manifest"):
-                    self.successful_manifests.append({
-                        "model_id": result["model_id"],
-                        "model_type": result.get("model_type") or result.get("type", "llm"),
-                        "dpk_name": result["dpk_name"],
-                        "manifest": result["manifest"],
-                    })
+                with results_lock:
+                    self.results.append(result)
+                    if result.get("status") == "success" and result.get("manifest"):
+                        self.successful_manifests.append({
+                            "model_id": result["model_id"],
+                            "model_type": result.get("model_type") or result.get("type", "llm"),
+                            "dpk_name": result["dpk_name"],
+                            "manifest": result["manifest"],
+                        })
+
+                if on_result:
+                    on_result(result)
         
         successful = len([r for r in self.results if r["status"] == "success"])
         failed = len(self.results) - successful
         print(f"\n{'='*60}")
-        print(f"Onboarding complete: {successful} succeeded, {failed} failed out of {len(self.results)}")
+        print(f"API onboarding complete: {successful} succeeded, {failed} failed out of {len(self.results)}")
         print(f"{'='*60}")
         
         return self.results
+
+    # =========================================================================
+    # Downloadable onboarding
+    # =========================================================================
+
+    def _resolve_downloadable_relative_path(self, model: dict) -> str | None:
+        """
+        Resolve relative_path for a downloadable model (e.g. 'llm/meta/llama_3_1_8b_instruct').
+
+        If model already has 'relative_path' (repo-sourced), use it.
+        Otherwise look it up from existing API manifests.
+        """
+        if model.get("relative_path"):
+            return model["relative_path"]
+
+        model_id = model.get("id") or model.get("name", "")
+        norm = _normalize_nim_name(model_id)
+        for repo_model in get_all_repository_models():
+            if _normalize_nim_name(repo_model["nim_model_name"]) == norm:
+                return repo_model["relative_path"]
+        return None
+
+    def onboard_downloadable_models(
+        self,
+        models: list = None,
+        limit: int = None,
+        skip_docker: bool = False,
+        on_result: callable = None,
+    ) -> list:
+        """
+        Build downloadable NIM images + manifests for each model in *models*.
+
+        For every model:
+        1. Resolve the manifest_path (relative_path from models/api).
+        2. Call ``build_downloadable_nim(model_name, manifest_path, skip_docker)``.
+        3. Read back the created manifest and add to ``self.successful_manifests``
+           so the PR step picks them up.
+
+        Args:
+            models: List of model dicts (default: self.downloadable_to_add)
+            limit: Max number of models to process
+            skip_docker: If True, skip Docker build (manifest-only update)
+        """
+        from downloadables_create import build_downloadable_nim
+
+        if models is None:
+            models = self.downloadable_to_add
+
+        if limit:
+            models = models[:limit]
+
+        if not models:
+            print("\nNo downloadable models to onboard")
+            return []
+
+        print(f"\n{'='*60}")
+        print(f"Onboarding {len(models)} downloadable models")
+        print(f"{'='*60}")
+
+        downloadable_results = []
+
+        for model in models:
+            model_id = model.get("id") or model.get("name", "")
+            relative_path = self._resolve_downloadable_relative_path(model)
+
+            if not relative_path:
+                msg = f"Cannot resolve relative_path for {model_id} - skipping"
+                print(f"\n[SKIP] {msg}")
+                result = {
+                    "model_id": model_id,
+                    "status": "skipped",
+                    "error": msg,
+                    "kind": "downloadable",
+                }
+                downloadable_results.append(result)
+                if on_result:
+                    on_result(result)
+                continue
+
+            print(f"\n{'='*60}")
+            print(f"Building downloadable: {model_id} -> {relative_path}")
+            print(f"{'='*60}")
+
+            try:
+                manifest = build_downloadable_nim(
+                    model_name=model_id,
+                    manifest_path=relative_path,
+                    skip_docker=skip_docker,
+                )
+
+                result = {
+                    "model_id": model_id,
+                    "status": "success",
+                    "manifest": manifest,
+                    "manifest_path": f"models/downloadable/{relative_path}/dataloop.json",
+                    "kind": "downloadable",
+                }
+                downloadable_results.append(result)
+
+                # Add to successful_manifests so the PR step includes them.
+                # Use a special model_type 'downloadable' so github_client
+                # generates the right path under models/downloadable/.
+                self.successful_manifests.append({
+                    "model_id": model_id,
+                    "model_type": "downloadable",
+                    "dpk_name": manifest.get("name", model_id),
+                    "manifest": manifest,
+                    "manifest_path": f"models/downloadable/{relative_path}/dataloop.json",
+                })
+
+                print(f"\n[OK] Downloadable built: {model_id}")
+                if on_result:
+                    on_result(result)
+
+            except Exception as e:
+                result = {
+                    "model_id": model_id,
+                    "status": "error",
+                    "error": str(e),
+                    "kind": "downloadable",
+                }
+                downloadable_results.append(result)
+                print(f"\n[FAIL] Downloadable build failed for {model_id}: {e}")
+                if on_result:
+                    on_result(result)
+
+        self.results.extend(downloadable_results)
+
+        successful = len([r for r in downloadable_results if r["status"] == "success"])
+        failed = len(downloadable_results) - successful
+        print(f"\n{'='*60}")
+        print(f"Downloadable onboarding complete: {successful} succeeded, {failed} failed out of {len(downloadable_results)}")
+        print(f"{'='*60}")
+
+        return downloadable_results
+    
+    def preview_downloadables(self, limit: int = None):
+        models = self.downloadable_to_add or []
+        if limit:
+            models = models[:limit]
+
+        print(f"\n{'='*60}")
+        print(f"Downloadable preview (no docker, no manifests) - {len(models)} models")
+        print(f"{'='*60}")
+
+        ok = 0
+        missing = 0
+
+        for model in models:
+            model_id = model.get("id") or model.get("name", "")
+            rel = self._resolve_downloadable_relative_path(model)
+
+            if rel:
+                ok += 1
+                manifest_path = f"models/downloadable/{rel}/dataloop.json"
+                exists = Path(manifest_path).exists()
+                print(f"[OK]   {model_id}  rel_path={rel}  manifest_exists={exists}")
+            else:
+                missing += 1
+                print(f"[MISS] {model_id}  rel_path=(not resolved)")
+
+        print(f"\nSummary: resolvable={ok}, not_resolvable={missing}")
     
     # =========================================================================
     # Open PRs
@@ -975,15 +1145,18 @@ class NIMAgent:
         """
         github = self._get_github()
         
-        # Prepare new models
-        new_models = [
-            {
+        # Prepare new models (API + downloadable)
+        new_models = []
+        for item in self.successful_manifests:
+            entry = {
                 "model_id": item["model_id"],
                 "model_type": item.get("model_type", "llm"),
-                "manifest": item["manifest"]
+                "manifest": item["manifest"],
             }
-            for item in self.successful_manifests
-        ]
+            # Downloadable manifests carry an explicit manifest_path
+            if item.get("manifest_path"):
+                entry["manifest_path"] = item["manifest_path"]
+            new_models.append(entry)
         
         # Prepare deprecated models (API deprecated = no longer on OpenAI)
         deprecated_models = []
@@ -998,7 +1171,7 @@ class NIMAgent:
                 deprecated_models.append({
                     "model_id": dpk_name,
                     "display_name": display_name,
-                    "model_type": self._infer_model_type_from_dpk_name(dpk_name)
+                    "model_type": d.get("model_type", "llm") if isinstance(d, dict) else "llm",
                 })
         
         # Collect failed models for PR body info
@@ -1018,8 +1191,12 @@ class NIMAgent:
             deprecated_models=deprecated_models,
             failed_models=failed_models
         )
-        
-        print(f"  ✅ PR created: {pr_result['pr_url']}")
+
+        self.pr_result = pr_result
+        if pr_result.get("status") == "error":
+            print(f"  ❌ PR creation failed: {pr_result.get('error')}")
+        else:
+            print(f"  ✅ PR created: {pr_result['pr_url']}")
         return pr_result
     
     
@@ -1032,12 +1209,16 @@ class NIMAgent:
         successful = [r for r in self.results if r["status"] == "success"]
         failed = [r for r in self.results if r["status"] != "success"]
         
+        total_dpks = len(self.dataloop_api_only_dpks) + len(self.dataloop_cv_dpks) + len(self.dataloop_downloadables_dpks)
         return {
             "timestamp": datetime.now().isoformat(),
             "summary": {
-                "api_models": len(self.api_models),
-                "downloadable_models": len(self.downloadable_models),
-                "dataloop_dpks": len(self.dataloop_dpks),
+                "api_models": len(self.potential_api_models),
+                "downloadable_models": len(self.potential_downloadable_models),
+                "dataloop_dpks": total_dpks,
+                "dataloop_openai_compat": len(self.dataloop_api_only_dpks),
+                "dataloop_cv": len(self.dataloop_cv_dpks),
+                "dataloop_downloadable": len(self.dataloop_downloadables_dpks),
                 "api_to_add": len(self.api_to_add),
                 "api_deprecated": len(self.api_deprecated),
                 "downloadable_to_add": len(self.downloadable_to_add),
@@ -1048,8 +1229,9 @@ class NIMAgent:
             },
             "api_deprecated": self.api_deprecated,
             "downloadable_deprecated": self.downloadable_deprecated,
+            "pr_url": self.pr_result.get("pr_url") if self.pr_result else None,
             "successful": [
-                {"model_id": r["model_id"], "dpk_name": r["dpk_name"], "pr_url": r.get("pr_url")}
+                {"model_id": r["model_id"], "dpk_name": r["dpk_name"]}
                 for r in successful
             ],
             "failed": [
@@ -1071,6 +1253,9 @@ class NIMAgent:
         print(f"\n  API Models (OpenAI):        {s['api_models']}")
         print(f"  Downloadable (OpenAI∩NGC):  {s['downloadable_models']}")
         print(f"  Dataloop DPKs:              {s['dataloop_dpks']}")
+        print(f"    OpenAI-compatible:        {s['dataloop_openai_compat']}")
+        print(f"    CV (dedicated API):       {s['dataloop_cv']}")
+        print(f"    Downloadable:             {s['dataloop_downloadable']}")
         
         print(f"\n  API to add:                 {s['api_to_add']}")
         print(f"  API deprecated:             {s['api_deprecated']}")
@@ -1081,19 +1266,22 @@ class NIMAgent:
         print(f"  Successful:                 {s['successful']}")
         print(f"  Failed:                     {s['failed']}")
         
+        if report.get("pr_url"):
+            print(f"\n  PR: {report['pr_url']}")
+
         if report["successful"]:
-            print(f"\n  Successful PRs:")
+            print(f"\n  Successful models ({len(report['successful'])}):")
             for item in report["successful"][:5]:
-                print(f"      - {item['dpk_name']}: {item.get('pr_url', 'No PR')}")
+                print(f"      - {item['dpk_name']}")
         
         if report["failed"]:
             print(f"\n  Failed:")
             for item in report["failed"][:5]:
                 print(f"      - {item['model_id']}: {item['error'][:50]}...")
     
-    def save_results(self, output_dir: str = "output"):
+    def save_results(self, output_dir: str = "agent/run_data"):
         """Save all results to files."""
-        Path(output_dir).mkdir(exist_ok=True)
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Save report
@@ -1114,134 +1302,514 @@ class NIMAgent:
     # =========================================================================
     
     def run(
-        self, 
-        limit: int = None, 
-        open_pr: bool = True, 
+        self,
+        limit: int = None,
+        open_pr: bool = True,
         max_workers: int = 10,
+        skip_docker: bool = False,
     ):
         """
         Run the complete flow.
-        
+
         Args:
             limit: Max number of models to onboard (for testing)
             open_pr: Whether to open PRs after successful tests
             max_workers: Max parallel workers for testing (default: 10)
+            skip_docker: If True, skip Docker build for downloadables (manifest-only)
         """
         print("=" * 60)
         print("NIM Agent")
         print("=" * 60)
         print(f"Limit: {limit or 'all'}")
         print(f"Max workers: {max_workers}")
-        
+
         # Step 1: Fetch from NVIDIA (OpenAI endpoint + NGC catalog for downloadables)
         self.fetch_models()
-        
+
         # Step 2: Compare with Dataloop
         self.fetch_dataloop_dpks()
         self.compare()
-        
-        # Step 3: Run onboarding pipeline (parallel threads using onboard_model)
-        self.onboard_multiple_models(
+
+        # Step 3a: Onboard API models (parallel)
+        self.onboard_api_models(
             limit=limit,
             max_workers=max_workers,
         )
-        
+
+        # Step 3b: Onboard downloadable models (Docker build + manifest creation)
+        self.onboard_downloadable_models(
+            limit=limit,
+            skip_docker=skip_docker,
+        )
+
         # Step 4: Update support matrix
         update_support_matrix()
-        
-        # Step 5: Open PR (new + deprecated models in one PR)
+
+        # Step 5: Open PR (new API + new downloadable + deprecated, all in one PR)
         if open_pr:
             self.open_new_and_deprecated_pr()
-        
+
         # Step 6: Report
         self.print_report()
         self.save_results()
-        
+
         return self.generate_report()
 
+    # =========================================================================
+    # Agentic Entry Point  (additive -- does NOT modify run())
+    # =========================================================================
+
+    def run_agentic(
+        self,
+        limit: int = None,
+        open_pr: bool = True,
+        max_workers: int = 10,
+        skip_docker: bool = False,
+        state_path: str = None,
+        downloadable_preview: bool = False,
+    ) -> dict:
+        """
+        State-aware variant of run().
+
+        Same pipeline stages as run() but wrapped with:
+        - State persistence (quarantine, per-model history)
+        - Anomaly gate (abort if >50% of DPKs suddenly deprecated)
+        - Quarantine filter (skip known-bad models, probe sample)
+        - Error classification (permanent / transient / environment)
+        - PR gate (skip PR when failure rate too high)
+        - GitHub Actions step summary (when running in CI)
+
+        Args:
+            limit:        Max new models to onboard per run
+            open_pr:      Create a PR if there are successes
+            max_workers:  Parallel workers for onboarding
+            skip_docker:  Skip Docker build for downloadables
+            state_path:   Path to run_state.json (default: agent/run_data/run_state.json)
+            downloadable_preview: Do not build downloadable manifests or docker; only print which downloadables are resolvable - For Debug usage
+        """
+        from run_state import RunState, classify_error
+
+        state = RunState(path=state_path) if state_path else RunState()
+        state.load()
+
+        run_record = state.start_run()
+        env_error = None
+
+        print("=" * 60)
+        print("NIM Agent  (agentic mode)")
+        print("=" * 60)
+        print(f"  State file:  {state.path}")
+        print(f"  Quarantined: {len(state.get_quarantined())}")
+        print(f"  Limit:       {limit or 'all'}")
+
+        try:
+            # --- Step 1: Fetch + compare (same as run()) ---
+            self.fetch_models()
+            self.fetch_dataloop_dpks()
+            self.compare()
+
+            # --- Anomaly gate ---
+            dep_ratio = (
+                len(self.api_deprecated) / len(self.dataloop_api_only_dpks)
+                if self.dataloop_api_only_dpks else 0
+            )
+            if dep_ratio > state.anomaly_deprecation_threshold:
+                msg = (
+                    f"Anomaly detected: {len(self.api_deprecated)}/{len(self.dataloop_api_only_dpks)} "
+                    f"DPKs ({dep_ratio:.0%}) appear deprecated. Aborting to prevent destructive PR."
+                )
+                print(f"\n[ABORT] {msg}")
+                run_record.update({"status": "aborted", "reason": msg})
+                state.end_run(run_record)
+                state.save()
+                self._write_step_summary(run_record, state)
+                return {"status": "aborted", "reason": msg}
+
+            # --- Check deprecated models against pipeline templates ---
+            dep_dpk_names = {
+                d["name"] for d in self.api_deprecated + self.downloadable_deprecated
+                if isinstance(d, dict) and d.get("name")
+            }
+            github = self._get_github()
+            template_warnings = github.check_deprecated_in_templates(dep_dpk_names)
+            run_record["template_warnings"] = len(template_warnings)
+
+            # --- Filter quarantined models from to_add ---
+            original_count = len(self.api_to_add)
+            quarantined_set = set(state.get_quarantined())
+            probe_ids = set(state.pick_probe_sample())
+
+            filtered_to_add = []
+            probed = []
+            for m in self.api_to_add:
+                mid = m.get("id") or m.get("name", "")
+                if mid in quarantined_set:
+                    if mid in probe_ids:
+                        probed.append(m)
+                    continue
+                filtered_to_add.append(m)
+
+            filtered_to_add.extend(probed)
+            skipped = original_count - len(filtered_to_add)
+
+            print(f"\n  Models to add (original): {original_count}")
+            print(f"  Skipped (quarantined):    {skipped}")
+            print(f"  Probing from quarantine:  {len(probed)}")
+            print(f"  Final to-onboard:         {len(filtered_to_add)}")
+
+            run_record["skipped_quarantined"] = skipped
+            run_record["probed"] = len(probed)
+
+            # --- Real-time result callback: record + save after each model ---
+            def _on_result(r):
+                nonlocal env_error
+                mid = r.get("model_id", "")
+                status = r.get("status", "error")
+                error = r.get("error")
+
+                if status == "success":
+                    state.record_result(mid, "success")
+                    if mid in quarantined_set:
+                        state.clear_quarantine(mid)
+                        print(f"  [PROBE OK] {mid} un-quarantined")
+                elif status != "skipped":
+                    err_type = classify_error(error or "")
+                    state.record_result(mid, "error", error)
+                    if err_type == "environment":
+                        env_error = error
+                        print(f"\n  [ENV ERROR] {error}")
+
+                state.save()
+
+            # --- Onboard API models with filtered list ---
+            self.api_to_add = filtered_to_add
+            self.onboard_api_models(
+                limit=limit,
+                max_workers=max_workers,
+                on_result=_on_result,
+            )
+
+            # --- Onboard downloadable models ---
+            if downloadable_preview:
+                self.preview_downloadables(limit=limit)
+            else:
+                self.onboard_downloadable_models(
+                    limit=limit,
+                    skip_docker=skip_docker,
+                    on_result=_on_result,
+                )
+
+            succeeded = len([r for r in self.results if r["status"] == "success"])
+            failed = len(self.results) - succeeded
+            attempted = len(self.results)
+            permanent = len([
+                r for r in self.results
+                if r["status"] != "success"
+                and classify_error(r.get("error", "")) == "permanent"
+            ])
+            real_attempted = attempted - permanent
+            failure_rate = (failed - permanent) / real_attempted if real_attempted else 0
+
+            run_record["attempted"] = attempted
+            run_record["succeeded"] = succeeded
+            run_record["failed"] = failed
+            run_record["permanent_errors"] = permanent
+
+            # --- PR gate (permanent errors like 404 are excluded from failure rate) ---
+            pr_summary = (
+                f"succeeded={succeeded}, failed={failed}, permanent={permanent}, "
+                f"failure_rate={failure_rate:.0%}"
+            )
+
+            if not open_pr:
+                run_record["status"] = "completed"
+                run_record["pr_opened"] = False
+                print(f"\n  PR gate: SKIP  (open_pr=False) | {pr_summary}")
+            elif env_error:
+                run_record["status"] = "env_error"
+                run_record["pr_opened"] = False
+                print(f"\n  PR gate: SKIP  (environment error: {env_error})")
+            elif succeeded == 0:
+                run_record["status"] = "no_successes"
+                run_record["pr_opened"] = False
+                print(f"\n  PR gate: SKIP  (0 successes) | {pr_summary}")
+            elif failure_rate >= state.pr_max_failure_rate:
+                run_record["status"] = "high_failure_rate"
+                run_record["pr_opened"] = False
+                print(f"\n  PR gate: SKIP  (failure_rate {failure_rate:.0%} >= {state.pr_max_failure_rate:.0%}) | {pr_summary}")
+            else:
+                print(f"\n  PR gate: PASS  | {pr_summary}")
+                self.open_new_and_deprecated_pr()
+                run_record["status"] = "completed"
+                run_record["pr_opened"] = True
+                run_record["pr_url"] = self.pr_result.get("pr_url") if self.pr_result else None
+                print(f"  PR: {run_record['pr_url']}")
+
+        except Exception as exc:
+            run_record["status"] = "error"
+            run_record["error"] = str(exc)[:500]
+            print(f"\n[ERROR] Unhandled exception: {exc}")
+            raise
+        finally:
+            state.end_run(run_record)
+            state.save()
+            self._write_step_summary(run_record, state)
+
+        self.print_report()
+        self.save_results()
+        return self.generate_report()
+
+    @staticmethod
+    def _write_step_summary(run_record: dict, state):
+        """Write a markdown summary to $GITHUB_STEP_SUMMARY (CI only)."""
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if not summary_path:
+            return
+        try:
+            lines = [
+                "## NIM Agent Run Summary",
+                "",
+                f"| Metric | Value |",
+                f"|--------|-------|",
+                f"| Status | {run_record.get('status', '?')} |",
+                f"| Attempted | {run_record.get('attempted', 0)} |",
+                f"| Succeeded | {run_record.get('succeeded', 0)} |",
+                f"| Failed | {run_record.get('failed', 0)} |",
+                f"| Skipped (quarantined) | {run_record.get('skipped_quarantined', 0)} |",
+                f"| Probed from quarantine | {run_record.get('probed', 0)} |",
+                f"| PR opened | {run_record.get('pr_opened', False)} |",
+                f"| Total quarantined | {len(state.get_quarantined())} |",
+                f"| Template dependency warnings | {run_record.get('template_warnings', 0)} |",
+                "",
+            ]
+            quarantined = state.get_quarantined()
+            if quarantined:
+                lines.append("<details><summary>Quarantined models</summary>\n")
+                for mid in quarantined[:50]:
+                    m = state.data["models"].get(mid, {})
+                    lines.append(f"- `{mid}` -- {m.get('last_error', '?')[:80]}")
+                if len(quarantined) > 50:
+                    lines.append(f"- ... and {len(quarantined) - 50} more")
+                lines.append("\n</details>")
+
+            with open(summary_path, "a", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+        except OSError:
+            pass
+
+
 if __name__ == "__main__":
-    from downloadables_create import build_downloadable_nim
+    import argparse
     from dotenv import load_dotenv
     load_dotenv()
-    
-    # report = featch_report()
-    openai_nim_models = get_openai_nim_models()
-    print(f"OpenAI NIM models: {len(openai_nim_models)}")
-    # ==========================================================================
-    # DEBUG MODE - Test full flow with subset of models
-    # ==========================================================================
-    
-    # DEBUG_LIMIT = 10      # Number of models to test (set to None for all)
-    # OPEN_PR = True        # Set to True to test PR creation
-    # DELETE_PR = True      # Set to True to delete PR after test
-    # MAX_WORKERS = 5       # Parallel workers for testing
-    
-    # print("\n" + "="*60)
-    # print("DEBUG MODE")
-    # print("="*60)
-    # print(f"   Models to onboard: {DEBUG_LIMIT or 'ALL'}")
-    # print(f"   Max workers: {MAX_WORKERS}")
-    # print(f"   Open PR: {OPEN_PR}")
-    # print(f"   Delete PR after: {DELETE_PR}")
-    # print("="*60)
-    
-    # agent = NIMAgent()
-    
-    # # Run full flow with limit
-    # report = agent.run(
-    #     limit=DEBUG_LIMIT,
-    #     open_pr=OPEN_PR,
-    #     include_deprecated=True,
-    #     max_workers=MAX_WORKERS,
-    # )
-    
-    # # Delete PR if requested
-    # if DELETE_PR and OPEN_PR:
-    #     pr_result = getattr(agent, '_last_pr_result', None)
-        
-    #     if pr_result and pr_result.get("pr_number"):
-    #         print("\n" + "="*60)
-    #         print("CLEANUP")
-    #         print("="*60)
-            
-    #         github = agent._get_github()
-    #         pr_number = pr_result["pr_number"]
-    #         branch_name = pr_result.get("branch_name")
-            
-    #         print(f"Closing PR #{pr_number}...")
-    #         closed = github.close_pr(pr_number, comment="Test completed - closing automatically.")
-            
-    #         if closed:
-    #             print(f"  PR #{pr_number} closed")
-                
-    #             # Delete branch
-    #             if branch_name:
-    #                 try:
-    #                     repo = github.repository
-    #                     branch_ref = repo.get_git_ref(f"heads/{branch_name}")
-    #                     branch_ref.delete()
-    #                     print(f"  Branch {branch_name} deleted")
-    #                 except Exception as e:
-    #                     print(f"  Failed to delete branch: {e}")
-    #         else:
-    #             print(f"  Failed to close PR")
-    
-    # print("\nDone!")
-    
-    # ==========================================================================
-    # Other useful commands:
-    # ==========================================================================
-    # 
-    # Test single model without PR:
-    #   result = agent.onboard_model("nvidia/llama-3.1-70b-instruct")
-    #   print(json.dumps(result, indent=2, default=str))
-    # 
-    # Run full flow (all models):
-    #   agent.run(limit=None, open_pr=True)
-    # 
-    # Just fetch and compare (no onboarding):
-    #   agent.fetch_models()
-    #   agent.fetch_dataloop_dpks()
-    #   agent.compare()
-    #   print(f"To add: {len(agent.to_add)}")
-    #   print(f"Deprecated: {len(agent.deprecated)}")
+
+    parser = argparse.ArgumentParser(
+        description="NVIDIA NIM Agent -- discover, test, and onboard NIM models to Dataloop.",
+    )
+    sub = parser.add_subparsers(dest="command", help="Command to run")
+
+    # --- run (original blind pipeline) ---
+    p_run = sub.add_parser("run", help="Run the original pipeline (no state tracking)")
+    p_run.add_argument("--limit", type=int, default=None, help="Max models to onboard")
+    p_run.add_argument("--no-pr", action="store_true", help="Skip PR creation")
+    p_run.add_argument("--skip-docker", action="store_true", help="Skip Docker build")
+    p_run.add_argument("--max-workers", type=int, default=10)
+
+    # --- run-agentic (state-aware pipeline) ---
+    p_ag = sub.add_parser("run-agentic", help="State-aware pipeline with quarantine and decision gates")
+    p_ag.add_argument("--limit", type=int, default=None, help="Max models to onboard")
+    p_ag.add_argument("--no-pr", action="store_true", help="Skip PR creation")
+    p_ag.add_argument("--skip-docker", action="store_true", help="Skip Docker build")
+    p_ag.add_argument(
+    "--downloadable-preview",
+    action="store_true",
+    help="Do not build downloadable manifests or docker; only print which downloadables are resolvable",
+    )
+    p_ag.add_argument("--max-workers", type=int, default=10)
+    p_ag.add_argument("--state-path", type=str, default=None, help="Path to run_state.json")
+
+    # --- dry-run (existing dry-run behaviour) ---
+    p_dry = sub.add_parser("dry-run", help="Quick dry-run of the pipeline (limited, no PR, no Docker)")
+    p_dry.add_argument("--limit", type=int, default=2, help="Models per category")
+
+    # --- status ---
+    sub.add_parser("status", help="Print current run-state (quarantined models, last run)")
+
+    # --- clear-quarantine ---
+    p_cq = sub.add_parser("clear-quarantine", help="Un-quarantine a model (or 'all')")
+    p_cq.add_argument("model_id", type=str, help="Model ID to un-quarantine, or 'all'")
+
+    # --- report ---
+    sub.add_parser("report", help="Fetch and print NIM availability report")
+
+    args = parser.parse_args()
+
+    # ---- Dispatch ----
+
+    if args.command == "run":
+        agent = NIMAgent()
+        agent.run(
+            limit=args.limit,
+            open_pr=not args.no_pr,
+            max_workers=args.max_workers,
+            skip_docker=args.skip_docker,
+        )
+
+    elif args.command == "run-agentic":
+        agent = NIMAgent()
+        agent.run_agentic(
+            limit=args.limit,
+            open_pr=not args.no_pr,
+            max_workers=args.max_workers,
+            skip_docker=args.skip_docker,
+            state_path=args.state_path,
+            downloadable_preview=args.downloadable_preview,
+        )
+
+    elif args.command == "dry-run":
+        DRY_RUN_LIMIT = args.limit
+
+        print("=" * 60)
+        print("NIM AGENT DRY-RUN")
+        print("=" * 60)
+        print(f"  Limit per category: {DRY_RUN_LIMIT}")
+        print(f"  Open PR:  False")
+        print(f"  Docker:   Skipped")
+        print(f"  Adapter:  Skipped (API smoke test only)")
+
+        agent = NIMAgent()
+
+        print("\n" + "=" * 60)
+        print(f"STAGE 1: fetch_models(limit={DRY_RUN_LIMIT}, skip_licenses=True)")
+        print("=" * 60)
+        agent.fetch_models(skip_licenses=True)
+        print(f"\n  [Result] API models (OpenAI):          {len(agent.potential_api_models)}")
+        print(f"  [Result] Downloadable (OpenAI + NGC):  {len(agent.potential_downloadable_models)}")
+        if agent.potential_api_models:
+            print(f"  [Sample API]          {agent.potential_api_models[0].get('id') or agent.potential_api_models[0].get('name')}")
+        if agent.potential_downloadable_models:
+            print(f"  [Sample Downloadable] {agent.potential_downloadable_models[0].get('id') or agent.potential_downloadable_models[0].get('name')}")
+
+        print("\n" + "=" * 60)
+        print("STAGE 2: fetch_dataloop_dpks() + compare()")
+        print("=" * 60)
+        agent.fetch_dataloop_dpks()
+        comparison = agent.compare()
+        print(f"\n  [Result] API to add:                {len(agent.api_to_add)}")
+        print(f"  [Result] API deprecated:            {len(agent.api_deprecated)}")
+        print(f"  [Result] CV DPKs (dedicated API):   {len(agent.dataloop_cv_dpks)}")
+        print(f"  [Result] Downloadable to add:       {len(agent.downloadable_to_add)}")
+        print(f"  [Result] Downloadable deprecated:   {len(agent.downloadable_deprecated)}")
+        if agent.api_to_add:
+            print(f"\n  [Sample API to add]")
+            for m in agent.api_to_add[:5]:
+                print(f"    - {m.get('id') or m.get('name')}")
+        if agent.downloadable_to_add:
+            print(f"\n  [Sample Downloadable to add]")
+            for m in agent.downloadable_to_add[:5]:
+                print(f"    - {m.get('id') or m.get('name')}")
+        if agent.api_deprecated:
+            print(f"\n  [Sample API deprecated]")
+            for d in agent.api_deprecated[:5]:
+                name = d.get("name") if isinstance(d, dict) else d
+                print(f"    - {name}")
+
+        print("\n" + "=" * 60)
+        print(f"STAGE 3a: onboard_api_models(limit={DRY_RUN_LIMIT})")
+        print("=" * 60)
+        api_results = agent.onboard_api_models(
+            limit=DRY_RUN_LIMIT, max_workers=1, skip_adapter_test=True,
+        )
+        print(f"\n  [Result] API onboard results: {len(api_results)}")
+        for r in api_results:
+            status = r.get("status", "?")
+            mid = r.get("model_id", "?")
+            mtype = r.get("model_type") or r.get("type", "?")
+            dpk = r.get("dpk_name", "-")
+            err = r.get("error", "")[:80] if r.get("error") else ""
+            print(f"    [{status:7s}] {mid} type={mtype} dpk={dpk} {err}")
+
+        print("\n" + "=" * 60)
+        print(f"STAGE 3b: downloadable pipeline preview (limit={DRY_RUN_LIMIT})")
+        print("  (Docker build + manifest creation skipped -- testing path")
+        print("   resolution and model-name mapping only)")
+        print("=" * 60)
+        dl_preview = agent.downloadable_to_add[:DRY_RUN_LIMIT] if agent.downloadable_to_add else []
+        if not dl_preview:
+            print("\n  No downloadable models to add")
+        else:
+            for model in dl_preview:
+                model_id = model.get("id") or model.get("name", "?")
+                relative_path = agent._resolve_downloadable_relative_path(model)
+                manifest_path = f"models/downloadable/{relative_path}/dataloop.json" if relative_path else None
+                print(f"\n  Model:          {model_id}")
+                print(f"    rel_path:     {relative_path or '(not resolved)'}")
+                print(f"    manifest_path:{manifest_path or '(none)'}")
+                if not relative_path:
+                    print(f"    NOTE: would be skipped at build time (no relative_path)")
+        print(f"\n  Total downloadable_to_add: {len(agent.downloadable_to_add)}")
+        print(f"  Previewed: {len(dl_preview)}")
+
+        print("\n" + "=" * 60)
+        print("STAGE 4: PR preview (dry-run, no actual PR)")
+        print("=" * 60)
+        print(f"\n  successful_manifests: {len(agent.successful_manifests)}")
+        for sm in agent.successful_manifests:
+            print(f"    - {sm['model_id']} ({sm.get('model_type','?')})  manifest_path={sm.get('manifest_path','-')}")
+        if agent.successful_manifests or agent.api_deprecated:
+            new_models = []
+            for item in agent.successful_manifests:
+                entry = {"model_id": item["model_id"], "model_type": item.get("model_type", "llm"), "manifest": item["manifest"]}
+                if item.get("manifest_path"):
+                    entry["manifest_path"] = item["manifest_path"]
+                new_models.append(entry)
+            deprecated_models = []
+            for d in agent.api_deprecated:
+                dpk_name = d.get("name") if isinstance(d, dict) else d
+                if dpk_name:
+                    deprecated_models.append({"model_id": dpk_name})
+            failed_models = [
+                {"model_id": r.get("model_id", "?"), "error": r.get("error", "?")}
+                for r in agent.results if r.get("status") != "success"
+            ]
+            github = agent._get_github()
+            pr_title = github._generate_unified_pr_title(new_models, deprecated_models)
+            print(f"\n  PR title would be: {pr_title}")
+            print(f"  New models:       {len(new_models)}")
+            print(f"  Deprecated:       {len(deprecated_models)}")
+            print(f"  Failed (in body): {len(failed_models)}")
+        else:
+            print("  Nothing to include in PR")
+
+        print("\n" + "=" * 60)
+        print("STAGE 5: print_report()")
+        print("=" * 60)
+        agent.print_report()
+        print("\n" + "=" * 60)
+        print("NIM AGENT DRY-RUN COMPLETE")
+        print("=" * 60)
+
+    elif args.command == "status":
+        from run_state import RunState
+        state = RunState()
+        state.load()
+        state.print_status()
+
+    elif args.command == "clear-quarantine":
+        from run_state import RunState
+        state = RunState()
+        state.load()
+        if args.model_id.lower() == "all":
+            for mid in list(state.get_quarantined()):
+                state.clear_quarantine(mid)
+            print("All models un-quarantined.")
+        else:
+            state.clear_quarantine(args.model_id)
+            print(f"Un-quarantined: {args.model_id}")
+        state.save()
+
+    elif args.command == "report":
+        fetch_report()
+
+    else:
+        parser.print_help()

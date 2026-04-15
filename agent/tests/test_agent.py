@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock, PropertyMock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "agent"))
 
 from github_client import GitHubClient
-from tester import Tester
+from nim_tester import Tester
 
 
 # =========================================================================
@@ -78,45 +78,72 @@ class TestGetModelIds(unittest.TestCase):
 class TestGetAllCatalogModelsDedup(unittest.TestCase):
     """Test get_all_catalog_models deduplication logic."""
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_dedup_prefers_api(self, mock_api, mock_dl):
-        mock_api.return_value = [
-            {"name": "model-a", "publisher": "nvidia", "nim_type": "api"},
-            {"name": "model-b", "publisher": "nvidia", "nim_type": "api"},
-        ]
-        mock_dl.return_value = [
-            {"name": "model-a", "publisher": "nvidia", "nim_type": "downloadable"},  # duplicate
-            {"name": "model-c", "publisher": "nvidia", "nim_type": "downloadable"},
-        ]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_dedup_prefers_api(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [
+                    {"name": "model-a", "publisher": "nvidia", "nim_type": nim_type_filter},
+                    {"name": "model-b", "publisher": "nvidia", "nim_type": nim_type_filter},
+                ]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [
+                    {"name": "model-a", "publisher": "nvidia", "nim_type": nim_type_filter},
+                    {"name": "model-c", "publisher": "nvidia", "nim_type": nim_type_filter},
+                ]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
 
         names = [m["name"] for m in result]
         self.assertEqual(sorted(names), ["model-a", "model-b", "model-c"])
         # model-a should be the API version (first wins)
         model_a = next(m for m in result if m["name"] == "model-a")
-        self.assertEqual(model_a["nim_type"], "api")
+        self.assertEqual(model_a["nim_type"], NIM_TYPE_API_ONLY)
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_no_duplicates(self, mock_api, mock_dl):
-        mock_api.return_value = [{"name": "a", "publisher": "x"}]
-        mock_dl.return_value = [{"name": "b", "publisher": "y"}]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_no_duplicates(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [{"name": "a", "publisher": "x", "nim_type": nim_type_filter}]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [{"name": "b", "publisher": "y", "nim_type": nim_type_filter}]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
         self.assertEqual(len(result), 2)
 
-    @patch("nim_agent.get_downloadable_models")
-    @patch("nim_agent.get_api_models")
-    def test_sorted_by_name(self, mock_api, mock_dl):
-        mock_api.return_value = [{"name": "zebra", "publisher": "x"}]
-        mock_dl.return_value = [{"name": "alpha", "publisher": "y"}]
+    @patch("nim_agent._fetch_catalog_by_nim_type")
+    def test_sorted_by_name(self, mock_fetch):
+        from nim_agent import (
+            get_all_catalog_models,
+            NIM_TYPE_API_ONLY,
+            NIM_TYPE_DOWNLOADABLE,
+        )
 
-        from nim_agent import get_all_catalog_models
-        result = get_all_catalog_models()
+        def fetch_side_effect(nim_type_filter):
+            if nim_type_filter == NIM_TYPE_API_ONLY:
+                return [{"name": "zebra", "publisher": "x", "nim_type": nim_type_filter}]
+            if nim_type_filter == NIM_TYPE_DOWNLOADABLE:
+                return [{"name": "alpha", "publisher": "y", "nim_type": nim_type_filter}]
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+        result = get_all_catalog_models(skip_licenses=True)
         self.assertEqual([m["name"] for m in result], ["alpha", "zebra"])
 
 
@@ -169,6 +196,80 @@ class TestFetchCatalogParsing(unittest.TestCase):
         self.assertEqual(len(models), 1)
 
 
+class TestCatalogDisplayNameFix(unittest.TestCase):
+    """Verify that NGC catalog underscore names match OpenAI dot names via display_name.
+
+    NGC catalog returns name="llama-3_1-8b-instruct" (underscores) while
+    OpenAI returns id="meta/llama-3.1-8b-instruct" (dots).  The fix uses
+    display_name (which has dots) when building catalog IDs for intersection.
+    """
+
+    NIM_TYPE_DL = "nim_type_run_anywhere"
+
+    @staticmethod
+    def _build_catalog_ids(catalog, nim_type):
+        """Same comprehension used in fetch_models() and fetch_report() after fix."""
+        return {
+            f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
+            for m in catalog if m.get("nim_type") == nim_type
+        }
+
+    @staticmethod
+    def _build_catalog_ids_old(catalog, nim_type):
+        """Original (broken) comprehension that used m['name']."""
+        return {
+            f"{m['publisher'].lower().replace(' ', '-')}/{m['name']}"
+            for m in catalog if m.get("nim_type") == nim_type
+        }
+
+    def test_fetch_models_intersection_uses_display_name(self):
+        """Models with underscored NGC names must still match OpenAI IDs."""
+        all_catalog = [
+            {"name": "llama-3_1-8b-instruct", "display_name": "llama-3.1-8b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+            {"name": "llama-3_3-70b-instruct", "display_name": "llama-3.3-70b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+            {"name": "nv-embed-v1", "display_name": "nv-embed-v1",
+             "publisher": "nvidia", "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids = self._build_catalog_ids(all_catalog, self.NIM_TYPE_DL)
+
+        openai_ids = {
+            "meta/llama-3.1-8b-instruct",
+            "meta/llama-3.3-70b-instruct",
+            "nvidia/nv-embed-v1",
+        }
+
+        matched = openai_ids & catalog_dl_ids
+        self.assertEqual(matched, openai_ids,
+                         f"These OpenAI IDs were NOT matched: {openai_ids - matched}")
+
+    def test_old_name_field_would_fail(self):
+        """Confirm the bug: using 'name' (underscores) misses the intersection."""
+        all_catalog = [
+            {"name": "llama-3_1-8b-instruct", "display_name": "llama-3.1-8b-instruct",
+             "publisher": "meta", "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids_old = self._build_catalog_ids_old(all_catalog, self.NIM_TYPE_DL)
+        openai_ids = {"meta/llama-3.1-8b-instruct"}
+
+        matched = openai_ids & catalog_dl_ids_old
+        self.assertEqual(matched, set(),
+                         "Bug repro: name-based IDs should NOT match OpenAI IDs")
+
+    def test_display_name_fallback_to_name(self):
+        """When display_name is missing, fall back to name gracefully."""
+        all_catalog = [
+            {"name": "nv-embed-v1", "publisher": "nvidia",
+             "nim_type": self.NIM_TYPE_DL},
+        ]
+
+        catalog_dl_ids = self._build_catalog_ids(all_catalog, self.NIM_TYPE_DL)
+        self.assertIn("nvidia/nv-embed-v1", catalog_dl_ids)
+
+
 class TestOpenAINimModelsParsing(unittest.TestCase):
     """Test get_openai_nim_models parsing."""
 
@@ -203,59 +304,54 @@ class TestOpenAINimModelsParsing(unittest.TestCase):
 # =========================================================================
 
 class TestParseModelId(unittest.TestCase):
-    """Test GitHubClient._parse_model_id path parsing."""
+    """Test parse_model_id (shared function in dpk_mcp_handler)."""
 
     def setUp(self):
-        with patch.object(
-            GitHubClient,
-            "__init__", lambda self, **kw: None
-        ):
-            self.client = GitHubClient()
+        from dpk_mcp_handler import parse_model_id
+        self.parse = parse_model_id
 
     def test_with_publisher(self):
-        pub, name = self.client._parse_model_id("nvidia/llama-3.1-70b-instruct")
+        pub, name = self.parse("nvidia/llama-3.1-70b-instruct")
         self.assertEqual(pub, "nvidia")
         self.assertEqual(name, "llama_3_1_70b_instruct")
 
     def test_without_publisher(self):
-        pub, name = self.client._parse_model_id("nv-embed-v1")
+        pub, name = self.parse("nv-embed-v1")
         self.assertEqual(pub, "nvidia")
         self.assertEqual(name, "nv_embed_v1")
 
     def test_dots_replaced(self):
-        pub, name = self.client._parse_model_id("meta/llama-3.2-11b-vision")
+        pub, name = self.parse("meta/llama-3.2-11b-vision")
         self.assertEqual(pub, "meta")
         self.assertEqual(name, "llama_3_2_11b_vision")
 
     def test_publisher_dashes_to_underscores(self):
-        pub, name = self.client._parse_model_id("baichuan-inc/model-a")
+        pub, name = self.parse("baichuan-inc/model-a")
         self.assertEqual(pub, "baichuan_inc")
 
 
 class TestGetModelFolder(unittest.TestCase):
-    """Test GitHubClient._get_model_folder and _get_manifest_path."""
+    """Test get_model_folder and get_manifest_path (shared functions)."""
 
     def setUp(self):
-        with patch.object(
-            GitHubClient,
-            "__init__", lambda self, **kw: None
-        ):
-            self.client = GitHubClient()
+        from dpk_mcp_handler import get_model_folder, get_manifest_path
+        self.get_folder = get_model_folder
+        self.get_path = get_manifest_path
 
     def test_llm_folder(self):
-        path = self.client._get_model_folder("meta/llama-3.1-8b", "llm")
+        path = self.get_folder("meta/llama-3.1-8b", "llm")
         self.assertEqual(path, "models/api/llm/meta/llama_3_1_8b")
 
     def test_embedding_folder(self):
-        path = self.client._get_model_folder("nvidia/nv-embed-v1", "embedding")
+        path = self.get_folder("nvidia/nv-embed-v1", "embedding")
         self.assertEqual(path, "models/api/embeddings/nvidia/nv_embed_v1")
 
     def test_vlm_folder(self):
-        path = self.client._get_model_folder("meta/llama-3.2-11b-vision", "vlm")
+        path = self.get_folder("meta/llama-3.2-11b-vision", "vlm")
         self.assertEqual(path, "models/api/vlm/meta/llama_3_2_11b_vision")
 
     def test_manifest_path(self):
-        path = self.client._get_manifest_path("meta/llama-3.1-8b", "llm")
+        path = self.get_path("meta/llama-3.1-8b", "llm")
         self.assertEqual(path, "models/api/llm/meta/llama_3_1_8b/dataloop.json")
 
 
@@ -393,7 +489,7 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}, {"model_id": "b"}],
             deprecated_models=[]
         )
-        self.assertIn("Add 2 models", title)
+        self.assertIn("Add 2 API models", title)
 
     def test_deprecated_only(self):
         title = self.client._generate_unified_pr_title(
@@ -407,8 +503,142 @@ class TestUnifiedPrTitle(unittest.TestCase):
             new_models=[{"model_id": "a"}],
             deprecated_models=[{"model_id": "old"}]
         )
-        self.assertIn("Add 1 model", title)
+        self.assertIn("Add 1 API model", title)
         self.assertIn("Deprecate 1", title)
+
+
+class TestDownloadableDeprecatedWhenApiDeprecated(unittest.TestCase):
+    """A downloadable must be deprecated if its matching API model is deprecated."""
+
+    @patch("nim_agent.Tester", autospec=True)
+    def test_downloadable_deprecated_when_api_gone(self, _mock_tester):
+        from nim_agent import NIMAgent
+
+        agent = NIMAgent.__new__(NIMAgent)
+        agent.potential_api_models = [
+            {"id": "vendor/model-a"},
+        ]
+        agent.potential_downloadable_models = [
+            {"id": "vendor/model-a"},
+            {"id": "vendor/model-b"},
+        ]
+        agent.dataloop_api_only_dpks = [
+            {"name": "nim-model-a", "nim_model_name": "vendor/model-a"},
+            {"name": "nim-model-b", "nim_model_name": "vendor/model-b"},
+        ]
+        agent.dataloop_downloadables_dpks = [
+            {"name": "nim-model-a-downloadable", "nim_model_name": "vendor/model-a"},
+            {"name": "nim-model-b-downloadable", "nim_model_name": "vendor/model-b"},
+        ]
+        agent.dataloop_cv_dpks = []
+
+        agent.compare()
+
+        api_dep_names = {d["name"] for d in agent.api_deprecated}
+        dl_dep_names = {d["name"] for d in agent.downloadable_deprecated}
+
+        self.assertIn("nim-model-b", api_dep_names)
+        self.assertNotIn("nim-model-a", api_dep_names)
+
+        self.assertIn("nim-model-b-downloadable", dl_dep_names)
+        self.assertNotIn("nim-model-a-downloadable", dl_dep_names)
+
+
+class TestCheckDeprecatedInTemplates(unittest.TestCase):
+    """Test GitHubClient.check_deprecated_in_templates with mocked GitHub API."""
+
+    BP_CFG = {"manifests": ["apps/biomedical/dataloop.json"], "public_app": False}
+    TMPL_CFG = {"manifests": ["templates/mistral/dataloop.json"], "public_app": False}
+
+    BLUEPRINT_MANIFEST = {
+        "name": "nvidia-biomedical-research",
+        "dependencies": [
+            {"name": "nvidia-biomedical-research"},
+            {"name": "nim-llama-3-3-70b-instruct"},
+            {"name": "nim-rag-bp"},
+        ],
+    }
+
+    TEMPLATE_MANIFEST = {
+        "name": "some-template",
+        "dependencies": [
+            {"name": "nim-mistral-7b"},
+        ],
+    }
+
+    def setUp(self):
+        with patch.object(GitHubClient, "__init__", lambda self, **kw: None):
+            self.client = GitHubClient()
+
+        self.mock_github = MagicMock()
+        self.client._client = self.mock_github
+
+        def _make_repo(cfg, files_by_path):
+            repo = MagicMock()
+            all_files = {".dataloop.cfg": cfg, **files_by_path}
+
+            def _get_contents(path):
+                content = MagicMock()
+                content.decoded_content = json.dumps(all_files[path]).encode()
+                return content
+
+            repo.get_contents.side_effect = _get_contents
+            return repo
+
+        self.bp_repo = _make_repo(
+            self.BP_CFG,
+            {"apps/biomedical/dataloop.json": self.BLUEPRINT_MANIFEST},
+        )
+        self.tmpl_repo = _make_repo(
+            self.TMPL_CFG,
+            {"templates/mistral/dataloop.json": self.TEMPLATE_MANIFEST},
+        )
+
+        self.mock_github.get_repo.side_effect = lambda name: {
+            "dataloop-ai-apps/nvidia-nim-blueprints": self.bp_repo,
+            "dataloop-ai-apps/pipeline-templates": self.tmpl_repo,
+        }[name]
+
+    def test_match_by_dpk_name(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-llama-3-3-70b-instruct"},
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["dep_name"], "nim-llama-3-3-70b-instruct")
+        self.assertEqual(warnings[0]["file_path"], "apps/biomedical/dataloop.json")
+
+    def test_no_match_returns_empty(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-nonexistent-model"},
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        self.assertEqual(warnings, [])
+
+    def test_empty_deprecated_skips_scan(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names=set(),
+        )
+        self.assertEqual(warnings, [])
+        self.mock_github.get_repo.assert_not_called()
+
+    def test_multiple_repos(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-llama-3-3-70b-instruct", "nim-mistral-7b"},
+        )
+        repos_hit = {w["repo"] for w in warnings}
+        self.assertEqual(len(warnings), 2)
+        self.assertIn("dataloop-ai-apps/nvidia-nim-blueprints", repos_hit)
+        self.assertIn("dataloop-ai-apps/pipeline-templates", repos_hit)
+
+    def test_non_deprecated_dep_ignored(self):
+        warnings = self.client.check_deprecated_in_templates(
+            deprecated_dpk_names={"nim-llama-3-3-70b-instruct"},
+            repos=["dataloop-ai-apps/nvidia-nim-blueprints"],
+        )
+        dep_names = {w["dep_name"] for w in warnings}
+        self.assertNotIn("nim-rag-bp", dep_names)
+        self.assertNotIn("nvidia-biomedical-research", dep_names)
 
 
 # =========================================================================
@@ -420,9 +650,10 @@ class TestDetectModelType(unittest.TestCase):
 
     def setUp(self):
         with patch.object(
-            Tester,
+            __import__("nim_tester", fromlist=["Tester"]).Tester,
             "__init__", lambda self, **kw: None
         ):
+            from nim_tester import Tester
             self.tester = Tester()
             # Mock the OpenAI client so no real API calls are made
             self.tester.client = MagicMock()
@@ -498,6 +729,101 @@ class TestDetectModelType(unittest.TestCase):
 
         result = self.tester.detect_model_type("nvidia/nv-embed-v1")
         self.assertEqual(result["dimension"], 4096)
+
+
+# =========================================================================
+# license_scraper tests
+# =========================================================================
+
+class TestNormalizeLicense(unittest.TestCase):
+    """Test _normalize_license maps raw strings to canonical names."""
+
+    def setUp(self):
+        from license_scraper import _normalize_license
+        self.normalize = _normalize_license
+
+    def test_apache_variants(self):
+        self.assertEqual(self.normalize("Apache License 2.0"), "Apache 2.0")
+        self.assertEqual(self.normalize("Apache 2"), "Apache 2.0")
+        self.assertEqual(self.normalize("apache-2.0"), "Apache 2.0")
+
+    def test_nvidia_community(self):
+        self.assertEqual(self.normalize("NVIDIA Community Model License"), "NVIDIA Community Model License")
+        self.assertEqual(self.normalize("NVIDIA Community License"), "NVIDIA Community Model License")
+
+    def test_nvidia_open(self):
+        self.assertEqual(self.normalize("NVIDIA Open Model License"), "NVIDIA Open Model License")
+
+    def test_unknown_returns_other(self):
+        self.assertEqual(self.normalize("some totally unknown license"), "Other")
+
+    def test_fuzzy_substring_match(self):
+        self.assertEqual(self.normalize("Gemma Terms of Use"), "Gemma Terms of Use")
+
+
+class TestFindLicenseValidation(unittest.TestCase):
+    """Test find_license input validation."""
+
+    def setUp(self):
+        from license_scraper import find_license
+        self.find_license = find_license
+
+    def test_raises_on_empty_publisher(self):
+        result = self.find_license("some-model", "")
+        self.assertIsNone(result)
+
+    @patch("license_scraper._fetch_modelcard_sections", return_value=("", "http://example.com"))
+    def test_returns_none_on_empty_page(self, mock_fetch):
+        result = self.find_license("some-model", "SomePublisher", use_llm=False)
+        self.assertIsNone(result)
+
+
+class TestFindLicenseRegexFallback(unittest.TestCase):
+    """Test find_license regex fallback (no LLM)."""
+
+    def setUp(self):
+        from license_scraper import find_license
+        self.find_license = find_license
+
+    @patch("license_scraper._fetch_modelcard_sections")
+    def test_extracts_governed_by(self, mock_fetch):
+        mock_fetch.return_value = (
+            "Use of this model is governed by the NVIDIA Open Model License.",
+            "http://example.com",
+        )
+        result = self.find_license("test-model", "NVIDIA", use_llm=False)
+        self.assertEqual(result, "NVIDIA Open Model License")
+
+    @patch("license_scraper._fetch_modelcard_sections")
+    def test_extracts_mit(self, mock_fetch):
+        mock_fetch.return_value = (
+            "License: MIT",
+            "http://example.com",
+        )
+        result = self.find_license("test-model", "NVIDIA", use_llm=False)
+        self.assertEqual(result, "MIT")
+
+
+class TestFindLicenseForResource(unittest.TestCase):
+    """Test find_license_for_resource extracts publisher from labels."""
+
+    def setUp(self):
+        from license_scraper import find_license_for_resource
+        self.find_for_resource = find_license_for_resource
+
+    def test_raises_on_missing_name(self):
+        with self.assertRaises(ValueError):
+            self.find_for_resource({})
+
+    @patch("license_scraper.find_license", return_value="Apache 2.0")
+    def test_extracts_publisher_from_labels(self, mock_find):
+        resource = {
+            "name": "test-model",
+            "labels": [{"key": "publisher", "values": ["TestPublisher"]}],
+        }
+        result = self.find_for_resource(resource, use_llm=False)
+        self.assertEqual(result, "Apache 2.0")
+        mock_find.assert_called_once_with("test-model", "TestPublisher", use_llm=False, api_key=None)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,89 @@
+name: NIM Agent (Agentic)
+
+on:
+  schedule:
+    # Weekly on Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max models to onboard (0 = all)"
+        required: false
+        default: "0"
+      skip_docker:
+        description: "Skip Docker build for downloadables"
+        required: false
+        type: boolean
+        default: true
+      no_pr:
+        description: "Skip PR creation"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download previous run state
+        uses: actions/download-artifact@v4
+        with:
+          name: nim-agent-state
+          path: agent/run_data/
+        continue-on-error: true
+
+      - name: Run NIM Agent (agentic)
+        env:
+          NGC_API_KEY: ${{ secrets.NGC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATALOOP_TEST_PROJECT: ${{ secrets.DATALOOP_TEST_PROJECT }}
+          BOT_EMAIL: ${{ secrets.BOT_EMAIL }}
+          BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cd agent
+          LIMIT_ARG=""
+          if [ "${{ github.event.inputs.limit }}" != "" ] && [ "${{ github.event.inputs.limit }}" != "0" ]; then
+            LIMIT_ARG="--limit ${{ github.event.inputs.limit }}"
+          fi
+
+          DOCKER_ARG=""
+          if [ "${{ github.event.inputs.skip_docker }}" = "true" ]; then
+            DOCKER_ARG="--skip-docker"
+          fi
+
+          PR_ARG=""
+          if [ "${{ github.event.inputs.no_pr }}" = "true" ]; then
+            PR_ARG="--no-pr"
+          fi
+
+          python nim_agent.py run-agentic $LIMIT_ARG $DOCKER_ARG $PR_ARG
+
+      - name: Upload run state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nim-agent-state
+          path: agent/run_data/run_state.json
+          retention-days: 90
+          overwrite: true
