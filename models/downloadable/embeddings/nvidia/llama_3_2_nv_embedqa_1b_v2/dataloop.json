@@ -60,7 +60,7 @@
           "podType": "gpu-t4-m",
           "numReplicas": 1,
           "concurrency": 10,
-          "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/nvidia-llama-3.2-nv-embedqa-1b-v2:0.3.42",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-downloadable/nvidia-llama-3.2-nv-embedqa-1b-v2:0.3.42",
           "singleAgent": false,
           "autoscaler": {
             "type": "rabbitmq",
