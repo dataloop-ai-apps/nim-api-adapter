@@ -1,5 +1,5 @@
 {
-  "version": "0.3.60",
+  "version": "0.3.62",
   "name": "nim-meta-llama-3.1-70b-instruct-downloadable",
   "displayName": "NIM Llama 3.1 70B Instruct Downloadable",
   "description": "NVIDIA NIM Llama 3.1 70B Instruct adapter - runs start_server.sh and streams logs. License: Llama 3.1",
@@ -60,7 +60,7 @@
           "podType": "gpu-t4-m",
           "numReplicas": 1,
           "concurrency": 10,
-          "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/meta-llama-3.1-70b-instruct:0.3.42",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-downloadable/meta-llama-3.1-70b-instruct:0.3.42",
           "singleAgent": false,
           "autoscaler": {
             "type": "rabbitmq",
@@ -81,7 +81,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.60"
+    "gitTag": "0.3.62"
   },
   "dependencies": [
     {

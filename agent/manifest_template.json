@@ -1,5 +1,5 @@
 {
-    "version": "0.3.60",
+    "version": "0.3.62",
     "name": "nim-{{MODEL_NAME}}-downloadable",
     "displayName": "NIM {{MODEL_DISPLAY_NAME}} Downloadable",
     "description": "NVIDIA NIM {{MODEL_DISPLAY_NAME}} adapter - runs start_server.sh and streams logs",
@@ -54,7 +54,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
+                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-downloadable/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rps",
@@ -78,6 +78,6 @@
     "codebase": {
         "type": "git",
         "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        "gitTag": "0.3.60"
+        "gitTag": "0.3.62"
     }
 }

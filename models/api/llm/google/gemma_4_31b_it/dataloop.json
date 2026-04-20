@@ -1,0 +1,168 @@
+{
+  "name": "nim-gemma-4-31b-it",
+  "displayName": "Gemma 4 31B It",
+  "version": "0.3.62",
+  "scope": "public",
+  "description": "NVIDIA NIM adapter for google/gemma-4-31b-it",
+  "attributes": {
+    "Category": [
+      "Model",
+      "NIM"
+    ],
+    "Gen AI": "LLM",
+    "Provider": "Google",
+    "Media Type": [
+      "Text"
+    ],
+    "Hub": [
+      "Nvidia",
+      "Dataloop"
+    ],
+    "Deployed By": "NVIDIA",
+    "NLP": "Conversational",
+    "License": "NVIDIA Open Model License"
+  },
+  "components": {
+    "computeConfigs": [
+      {
+        "name": "nim-gemma-4-31b-it-deploy",
+        "runtime": {
+          "podType": "regular-xs",
+          "concurrency": 1,
+          "autoscaler": {
+            "type": "rabbitmq",
+            "minReplicas": 0,
+            "maxReplicas": 2,
+            "queueLength": 100
+          },
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "name": "nim-gemma-4-31b-it-module",
+        "entryPoint": "models/api/llm/base.py",
+        "className": "ModelAdapter",
+        "computeConfig": "nim-gemma-4-31b-it-deploy",
+        "description": "NVIDIA NIM adapter for google/gemma-4-31b-it",
+        "initInputs": [
+          {
+            "type": "Model",
+            "name": "model_entity"
+          }
+        ],
+        "functions": [
+          {
+            "name": "predict_items",
+            "input": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "List of items to run inference on"
+              }
+            ],
+            "output": [
+              {
+                "type": "Item[]",
+                "name": "items",
+                "description": "The same input images for prediction."
+              },
+              {
+                "type": "Annotation[]",
+                "name": "annotations",
+                "description": "The predicted annotations."
+              }
+            ],
+            "displayName": "Predict Items",
+            "displayIcon": "",
+            "description": "Function to run nim-gemma-4-31b-it inference on items"
+          },
+          {
+            "name": "predict_dataset",
+            "input": [
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": ""
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [],
+            "displayName": "Predict Dataset",
+            "displayIcon": "",
+            "description": "Function to run nim-gemma-4-31b-it inference on a dataset"
+          },
+          {
+            "name": "evaluate_model",
+            "input": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              },
+              {
+                "type": "Json",
+                "name": "filters",
+                "description": "Dataloop Filter DQL"
+              }
+            ],
+            "output": [
+              {
+                "type": "Model",
+                "name": "model",
+                "description": "Dataloop Model Entity"
+              },
+              {
+                "type": "Dataset",
+                "name": "dataset",
+                "description": "Dataloop Dataset Entity"
+              }
+            ],
+            "displayName": "Evaluate a Model",
+            "displayIcon": "",
+            "description": "Function to evaluate nim-gemma-4-31b-it model performance"
+          }
+        ],
+        "integrations": [
+          "dl-ngc-api-key"
+        ]
+      }
+    ],
+    "models": [
+      {
+        "name": "nim-gemma-4-31b-it",
+        "moduleName": "nim-gemma-4-31b-it-module",
+        "scope": "project",
+        "status": "pre-trained",
+        "description": "NVIDIA NIM adapter for google/gemma-4-31b-it",
+        "configuration": {
+          "nim_model_name": "google/gemma-4-31b-it",
+          "max_tokens": 512,
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "stream": true,
+          "base_url": "https://integrate.api.nvidia.com/v1",
+          "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+          "add_metadata": [
+            "system.document.source"
+          ]
+        }
+      }
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.62"
+  }
+}
