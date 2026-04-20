@@ -54,7 +54,7 @@
                     "podType": "gpu-t4-m",
                     "numReplicas": 1,
                     "concurrency": 10,
-                    "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
+                    "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-downloadable/{{MODEL_NAME}}:{{IMAGE_VERSION}}",
                     "singleAgent": false,
                     "autoscaler": {
                         "type": "rabbitmq",

@@ -60,7 +60,7 @@
           "podType": "gpu-t4-m",
           "numReplicas": 1,
           "concurrency": 10,
-          "runnerImage": "hub.dataloop.ai/customerhub/piper/agent/runner/apps/nim-downloadable/baidu-paddleocr:0.3.50",
+          "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-downloadable/baidu-paddleocr:0.3.50",
           "singleAgent": false,
           "autoscaler": {
             "type": "rabbitmq",
