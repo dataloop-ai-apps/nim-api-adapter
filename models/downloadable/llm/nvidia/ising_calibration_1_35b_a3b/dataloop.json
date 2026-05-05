@@ -1,0 +1,93 @@
+{
+  "version": "0.3.60",
+  "name": "nim-nvidia-ising-calibration-1-35b-a3b-downloadable",
+  "displayName": "NIM Ising Calibration 1 35B A3B Downloadable",
+  "description": "NVIDIA NIM Ising Calibration 1 35B A3B adapter - runs start_server.sh and streams logs",
+  "scope": "public",
+  "attributes": {
+    "Category": [
+      "Application",
+      "NIM"
+    ],
+    "Provider": "NVIDIA",
+    "Application Type": "Model"
+  },
+  "components": {
+    "modules": [
+      {
+        "name": "m-nvidia-ising-calibration-1-3-30i7",
+        "entryPoint": "models/downloadable/main.py",
+        "className": "Runner",
+        "initInputs": [],
+        "integrations": [
+          "dl-ngc-api-key"
+        ],
+        "config": {
+          "isCustomServer": true
+        },
+        "functions": [
+          {
+            "name": "dummy",
+            "output": [],
+            "input": []
+          }
+        ]
+      }
+    ],
+    "panels": [
+      {
+        "name": "p-nvidia-ising-calibration-1-3-30i7",
+        "supportedSlots": [
+          {
+            "type": "datasetBrowser",
+            "configuration": {}
+          }
+        ],
+        "conditions": {}
+      }
+    ],
+    "services": [
+      {
+        "name": "s-nvidia-ising-calibration-1-3-30i7",
+        "displayName": "nvidia-ising-calibration-1-35b-a3b-downloadable-runner",
+        "moduleName": "m-nvidia-ising-calibration-1-3-30i7",
+        "panelNames": [
+          "p-nvidia-ising-calibration-1-3-30i7"
+        ],
+        "initParams": {},
+        "runtime": {
+          "podType": "gpu-t4-m",
+          "numReplicas": 1,
+          "concurrency": 10,
+          "runnerImage": "hub.dataloop.ai/dataloop/piper/agent/runner/gpu/nvidia-ising-calibration-1-35b-a3b:0.3.60",
+          "singleAgent": false,
+          "autoscaler": {
+            "type": "rps",
+            "minReplicas": 0,
+            "maxReplicas": 5,
+            "threshold": 100,
+            "rateSeconds": 30,
+            "polling_interval": 10,
+            "cooldownPeriod": "3600"
+          },
+          "preemptible": false
+        },
+        "drainTime": 600,
+        "onReset": "failed",
+        "runExecutionAsProcess": false,
+        "executionTimeout": 3600,
+        "maxAttempts": 3
+      }
+    ]
+  },
+  "codebase": {
+    "type": "git",
+    "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    "gitTag": "0.3.60"
+  },
+  "dependencies": [
+    {
+      "name": "nim-ising-calibration-1-35b-a3b"
+    }
+  ]
+}
