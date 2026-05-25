@@ -4,7 +4,7 @@ Testing Tool
 Manages all testing operations:
 - API call testing (VLM/LLM/Embedding detection)
 - Model adapter testing
-- DPK creation via MCP
+- DPK creation via JSON templates (default) or MCP
 - DPK publishing
 - App testing
 """
@@ -31,8 +31,8 @@ from enum import Enum
 from openai import OpenAI
 import dtlpy as dl
 
-from dpk_mcp_handler import (
-    DPKGeneratorClient,
+from dpk_handler import (
+    create_nim_dpk_manifest_via_template,
     ensure_dataloop_login,
     get_adapter_path,
     get_model_folder,
@@ -600,7 +600,7 @@ class Tester:
     Tests:
     1. API call - determine type (vlm/llm/embedding/rerank)
     2. Model adapter - test with base adapters code
-    3. DPK creation - via MCP
+    3. DPK creation — template files in ``agent/templates/``
     4. if test_platform=True:
     4.1. DPK publish to Dataloop
     4.2. App test - test the DPK as an app
@@ -608,7 +608,6 @@ class Tester:
     Environment variables required:
     - NGC_API_KEY: NVIDIA NGC API key
     - DATALOOP_TEST_PROJECT: Dataloop project name for testing
-    - OPENROUTER_API_KEY: OpenRouter API key (for MCP)
     """
 
     def __init__(
@@ -632,12 +631,7 @@ class Tester:
             api_key=self.api_key,
         )
 
-        self.openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-        if not self.openrouter_api_key:
-            raise ValueError("OPENROUTER_API_KEY is not set")
-
         self._config = config
-        self._dpk_generator: DPKGeneratorClient | None = None
 
         project_name = os.environ.get("DATALOOP_TEST_PROJECT", "NVIDIA-AGENT-PROJECT")
         dataset_name = os.environ.get("DATALOOP_TEST_DATASET", "NVIDIA-AGENT-DATASET")
@@ -666,13 +660,6 @@ class Tester:
     def get_test_model_id(self, model_type: ModelType | str) -> str:
         """Get cached test model entity ID for the given model type."""
         return self._resources.get_model_id(model_type)
-
-    @property
-    def dpk_generator(self) -> DPKGeneratorClient:
-        """Lazily created DPKGeneratorClient, shared across all test_single_model calls."""
-        if self._dpk_generator is None:
-            self._dpk_generator = DPKGeneratorClient()
-        return self._dpk_generator
 
     # ------------------------------------------------------------------
     # Detect Model Type + Verify via API Call
@@ -1516,9 +1503,18 @@ class Tester:
                 result["error"] = adapter_result.get("error")
                 return result
 
+        embeddings_size_arg = None
+        if model_type == ModelType.EMBEDDING:
+            embeddings_size_arg = type_result.get("dimension")
+
         # Step 3: Generate DPK manifest
         logger.info("📋 Step 3: Creating DPK manifest...")
-        dpk_result = self.dpk_generator.create_nim_dpk_manifest(model_id, model_type, license=license)
+        dpk_result = create_nim_dpk_manifest_via_template(
+            model_id,
+            model_type,
+            embeddings_size=embeddings_size_arg,
+            license=license,
+        )
         result["steps"]["dpk_generate"] = dpk_result
         if dpk_result["status"] != "success":
             logger.warning("❌ DPK manifest creation failed: %s", dpk_result.get('error'))

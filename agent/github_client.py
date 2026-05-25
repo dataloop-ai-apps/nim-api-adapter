@@ -34,7 +34,7 @@ import json
 from datetime import datetime
 from typing import Optional, List, Dict
 
-from dpk_mcp_handler import (
+from dpk_handler import (
     parse_model_id,
     get_manifest_path,
     MODEL_TYPE_FOLDERS,
@@ -510,7 +510,7 @@ class GitHubClient:
             section = "## ❌ Failed Tests (Not Included)\n\n"
             section += "<details>\n<summary>Click to expand</summary>\n\n"
             for m in failed_models:
-                error = m.get("error", "Unknown error")
+                error = m.get("error") or "Unknown error"
                 section += f"- `{m.get('model_id', 'unknown')}`: {error[:100]}...\n"
             section += "\n</details>\n"
             sections.append(section)

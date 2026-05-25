@@ -18,7 +18,7 @@ from openai import OpenAI
 import dtlpy as dl
 
 from nim_tester import Tester
-from dpk_mcp_handler import MODEL_TYPE_FOLDERS
+from dpk_handler import MODEL_TYPE_FOLDERS
 from github_client import GitHubClient
 from downloadables_create import model_name_from_downloadable_dpk_name
 from license_scraper import find_license_for_resource
@@ -530,10 +530,15 @@ class NIMAgent:
     4. Report results
     """
     
-    def __init__(self, test_project_id: str = None, tester_auto_init: bool = True):
+    def __init__(
+        self,
+        test_project_id: str = None,
+        tester_auto_init: bool = True,
+    ):
         """
         Args:
             test_project_id: Dataloop project ID for testing
+            tester_auto_init: Auto-initialize Dataloop test resources on construction
         """
         # NVIDIA NIM API
         self.nim_api_key = os.environ.get("NGC_API_KEY")
@@ -547,9 +552,12 @@ class NIMAgent:
         
         # Config
         self.test_project_id = test_project_id or os.environ.get("DATALOOP_TEST_PROJECT")
-        
+
         # Components
-        self.tester = Tester(api_key=self.nim_api_key, auto_init=tester_auto_init)
+        self.tester = Tester(
+            api_key=self.nim_api_key,
+            auto_init=tester_auto_init,
+        )
         self.github = None  # Lazy-loaded
         
         # State - Models (populated by fetch_models())
@@ -994,6 +1002,7 @@ class NIMAgent:
         models: list = None,
         limit: int = None,
         skip_docker: bool = False,
+        incremental_downloadable_docker: bool = False,
         on_result: callable = None,
     ) -> list:
         """
@@ -1008,9 +1017,12 @@ class NIMAgent:
         Args:
             models: List of model dicts (default: self.downloadable_to_add)
             limit: Max number of models to process
-            skip_docker: If True, skip Docker build (manifest-only update)
+            skip_docker: If True, skip Docker build for every model (manifest-only).
+            incremental_downloadable_docker: If True and skip_docker is False, skip Docker only
+                when ``models/downloadable/<path>/dataloop.json`` already has a ``runnerImage``
+                (typical for models built in a previous run). New paths still get a full build.
         """
-        from downloadables_create import build_downloadable_nim
+        from downloadables_create import build_downloadable_nim, _get_existing_runner_image
 
         if models is None:
             models = self.downloadable_to_add
@@ -1024,6 +1036,12 @@ class NIMAgent:
 
         print(f"\n{'='*60}")
         print(f"Onboarding {len(models)} downloadable models")
+        if skip_docker:
+            print("  Docker: skip all (--skip-docker)")
+        elif incremental_downloadable_docker:
+            print("  Docker: incremental (build only when no existing runnerImage in downloadable manifest)")
+        else:
+            print("  Docker: build for all downloadable models")
         print(f"{'='*60}")
 
         downloadable_results = []
@@ -1050,16 +1068,24 @@ class NIMAgent:
             print(f"Building downloadable: {model_id} -> {relative_path}")
             print(f"{'='*60}")
 
+            skip_docker_this = skip_docker
+            if not skip_docker and incremental_downloadable_docker:
+                existing_img = _get_existing_runner_image(relative_path)
+                if existing_img:
+                    skip_docker_this = True
+                    print(f"  [incremental] Skipping Docker (reuse existing image from manifest)")
+
             try:
                 manifest = build_downloadable_nim(
                     model_name=model_id,
                     manifest_path=relative_path,
-                    skip_docker=skip_docker,
+                    skip_docker=skip_docker_this,
                 )
 
                 result = {
                     "model_id": model_id,
                     "status": "success",
+                    "dpk_name": manifest.get("name", model_id),
                     "manifest": manifest,
                     "manifest_path": f"models/downloadable/{relative_path}/dataloop.json",
                     "kind": "downloadable",
@@ -1176,8 +1202,8 @@ class NIMAgent:
         
         # Collect failed models for PR body info
         failed_models = [
-            {"model_id": r.get("model_id", "unknown"), "error": r.get("error", "Unknown")}
-            for r in self.results if r.get("status") != "success"
+            {"model_id": r.get("model_id", "unknown"), "error": r.get("error") or "Unknown"}
+            for r in self.results if r.get("status") not in ("success", "skipped")
         ]
         
         print(f"\nNew models: {len(new_models)}, Deprecated: {len(deprecated_models)}, Failed: {len(failed_models)}")
@@ -1204,6 +1230,17 @@ class NIMAgent:
     # Reporting
     # =========================================================================
     
+    @staticmethod
+    def _result_dpk_name(result: dict) -> str:
+        """DPK name for reporting (API onboarding sets dpk_name; downloadables may only set manifest.name)."""
+        name = result.get("dpk_name")
+        if name:
+            return name
+        manifest = result.get("manifest")
+        if isinstance(manifest, dict) and manifest.get("name"):
+            return manifest["name"]
+        return result.get("model_id") or "unknown"
+
     def generate_report(self) -> dict:
         """Generate comprehensive report."""
         successful = [r for r in self.results if r["status"] == "success"]
@@ -1231,7 +1268,11 @@ class NIMAgent:
             "downloadable_deprecated": self.downloadable_deprecated,
             "pr_url": self.pr_result.get("pr_url") if self.pr_result else None,
             "successful": [
-                {"model_id": r["model_id"], "dpk_name": r["dpk_name"]}
+                {
+                    "model_id": r["model_id"],
+                    "dpk_name": self._result_dpk_name(r),
+                    "kind": r.get("kind"),
+                }
                 for r in successful
             ],
             "failed": [
@@ -1269,15 +1310,40 @@ class NIMAgent:
         if report.get("pr_url"):
             print(f"\n  PR: {report['pr_url']}")
 
+        def _dep_line(dpk):
+            if isinstance(dpk, dict):
+                n = dpk.get("name") or "?"
+                nim = dpk.get("nim_model_name") or ""
+                if nim:
+                    return f"{n}  (NIM: {nim})"
+                return n
+            return str(dpk)
+
+        api_dep = report.get("api_deprecated") or []
+        if api_dep:
+            print(f"\n  API deprecated DPKs ({len(api_dep)}):")
+            for d in api_dep:
+                print(f"      - {_dep_line(d)}")
+
+        dl_dep = report.get("downloadable_deprecated") or []
+        if dl_dep:
+            print(f"\n  Downloadable deprecated DPKs ({len(dl_dep)}):")
+            for d in dl_dep:
+                print(f"      - {_dep_line(d)}")
+
         if report["successful"]:
-            print(f"\n  Successful models ({len(report['successful'])}):")
-            for item in report["successful"][:5]:
-                print(f"      - {item['dpk_name']}")
+            print(f"\n  Successful onboardings ({len(report['successful'])}):")
+            for item in report["successful"]:
+                kind = item.get("kind")
+                suffix = f"  [{kind}]" if kind else ""
+                print(f"      - {item['dpk_name']}{suffix}")
         
         if report["failed"]:
-            print(f"\n  Failed:")
-            for item in report["failed"][:5]:
-                print(f"      - {item['model_id']}: {item['error'][:50]}...")
+            print(f"\n  Failed (showing up to 20):")
+            for item in report["failed"][:20]:
+                err = item.get("error") or ""
+                preview = (err[:120] + "…") if len(err) > 120 else err
+                print(f"      - {item['model_id']}: {preview}")
     
     def save_results(self, output_dir: str = "agent/run_data"):
         """Save all results to files."""
@@ -1307,6 +1373,7 @@ class NIMAgent:
         open_pr: bool = True,
         max_workers: int = 10,
         skip_docker: bool = False,
+        incremental_downloadable_docker: bool = False,
     ):
         """
         Run the complete flow.
@@ -1316,6 +1383,8 @@ class NIMAgent:
             open_pr: Whether to open PRs after successful tests
             max_workers: Max parallel workers for testing (default: 10)
             skip_docker: If True, skip Docker build for downloadables (manifest-only)
+            incremental_downloadable_docker: If True with skip_docker False, skip Docker only for
+                downloadables that already have a runnable image recorded in dataloop.json
         """
         print("=" * 60)
         print("NIM Agent")
@@ -1340,6 +1409,7 @@ class NIMAgent:
         self.onboard_downloadable_models(
             limit=limit,
             skip_docker=skip_docker,
+            incremental_downloadable_docker=incremental_downloadable_docker,
         )
 
         # Step 4: Update support matrix
@@ -1365,6 +1435,10 @@ class NIMAgent:
         open_pr: bool = True,
         max_workers: int = 10,
         skip_docker: bool = False,
+        # Plain ``run-agentic`` (no flags): incremental on — Docker runs only for downloadables whose
+        # ``models/downloadable/.../dataloop.json`` has no ``runnerImage`` yet; otherwise the prior image ref is kept.
+        # CI/workflows often pass ``skip_docker=True`` instead. Force full rebuild: ``--rebuild-all-downloadable-docker``.
+        incremental_downloadable_docker: bool = True,
         state_path: str = None,
         downloadable_preview: bool = False,
     ) -> dict:
@@ -1376,14 +1450,16 @@ class NIMAgent:
         - Anomaly gate (abort if >50% of DPKs suddenly deprecated)
         - Quarantine filter (skip known-bad models, probe sample)
         - Error classification (permanent / transient / environment)
-        - PR gate (skip PR when failure rate too high)
+        - PR gate (opens PR when there are new manifests and/or API deprecations; skips on auth/env errors)
         - GitHub Actions step summary (when running in CI)
 
         Args:
             limit:        Max new models to onboard per run
-            open_pr:      Create a PR if there are successes
+            open_pr:      Create a PR when there is mergeable work (unless skipped for env/auth)
             max_workers:  Parallel workers for onboarding
-            skip_docker:  Skip Docker build for downloadables
+            skip_docker:  Skip Docker build for all downloadables
+            incremental_downloadable_docker: When True and skip_docker is False, run Docker only for
+                downloadables without an existing runnerImage in their local dataloop.json (default True).
             state_path:   Path to run_state.json (default: agent/run_data/run_state.json)
             downloadable_preview: Do not build downloadable manifests or docker; only print which downloadables are resolvable - For Debug usage
         """
@@ -1496,6 +1572,7 @@ class NIMAgent:
                 self.onboard_downloadable_models(
                     limit=limit,
                     skip_docker=skip_docker,
+                    incremental_downloadable_docker=incremental_downloadable_docker,
                     on_result=_on_result,
                 )
 
@@ -1515,10 +1592,14 @@ class NIMAgent:
             run_record["failed"] = failed
             run_record["permanent_errors"] = permanent
 
-            # --- PR gate (permanent errors like 404 are excluded from failure rate) ---
+            # PR opens when there is something to merge: new manifests from this run and/or API deprecations.
+            # (Failure rate does not block PRs; env/auth errors still do.)
+            has_pr_work = bool(self.successful_manifests) or bool(self.api_deprecated)
+
             pr_summary = (
                 f"succeeded={succeeded}, failed={failed}, permanent={permanent}, "
-                f"failure_rate={failure_rate:.0%}"
+                f"failure_rate={failure_rate:.0%}, "
+                f"manifests={len(self.successful_manifests)}, api_deprecated={len(self.api_deprecated)}"
             )
 
             if not open_pr:
@@ -1528,15 +1609,11 @@ class NIMAgent:
             elif env_error:
                 run_record["status"] = "env_error"
                 run_record["pr_opened"] = False
-                print(f"\n  PR gate: SKIP  (environment error: {env_error})")
-            elif succeeded == 0:
-                run_record["status"] = "no_successes"
+                print(f"\n  PR gate: SKIP  (environment/auth error — fix keys before merging) | {env_error}")
+            elif not has_pr_work:
+                run_record["status"] = "nothing_to_pr"
                 run_record["pr_opened"] = False
-                print(f"\n  PR gate: SKIP  (0 successes) | {pr_summary}")
-            elif failure_rate >= state.pr_max_failure_rate:
-                run_record["status"] = "high_failure_rate"
-                run_record["pr_opened"] = False
-                print(f"\n  PR gate: SKIP  (failure_rate {failure_rate:.0%} >= {state.pr_max_failure_rate:.0%}) | {pr_summary}")
+                print(f"\n  PR gate: SKIP  (no new manifests and no API deprecations to apply) | {pr_summary}")
             else:
                 print(f"\n  PR gate: PASS  | {pr_summary}")
                 self.open_new_and_deprecated_pr()
@@ -1613,17 +1690,27 @@ if __name__ == "__main__":
     p_run.add_argument("--limit", type=int, default=None, help="Max models to onboard")
     p_run.add_argument("--no-pr", action="store_true", help="Skip PR creation")
     p_run.add_argument("--skip-docker", action="store_true", help="Skip Docker build")
+    p_run.add_argument(
+        "--incremental-downloadable-docker",
+        action="store_true",
+        help="Reuse existing runnerImage in models/downloadable/.../dataloop.json; Docker only for new paths",
+    )
     p_run.add_argument("--max-workers", type=int, default=10)
 
     # --- run-agentic (state-aware pipeline) ---
     p_ag = sub.add_parser("run-agentic", help="State-aware pipeline with quarantine and decision gates")
     p_ag.add_argument("--limit", type=int, default=None, help="Max models to onboard")
     p_ag.add_argument("--no-pr", action="store_true", help="Skip PR creation")
-    p_ag.add_argument("--skip-docker", action="store_true", help="Skip Docker build")
+    p_ag.add_argument("--skip-docker", action="store_true", help="Skip Docker build for all downloadables")
     p_ag.add_argument(
-    "--downloadable-preview",
-    action="store_true",
-    help="Do not build downloadable manifests or docker; only print which downloadables are resolvable",
+        "--rebuild-all-downloadable-docker",
+        action="store_true",
+        help="Build/push Docker for every downloadable (default: incremental — skip Docker when manifest already has runnerImage)",
+    )
+    p_ag.add_argument(
+        "--downloadable-preview",
+        action="store_true",
+        help="Do not build downloadable manifests or docker; only print which downloadables are resolvable",
     )
     p_ag.add_argument("--max-workers", type=int, default=10)
     p_ag.add_argument("--state-path", type=str, default=None, help="Path to run_state.json")
@@ -1653,6 +1740,7 @@ if __name__ == "__main__":
             open_pr=not args.no_pr,
             max_workers=args.max_workers,
             skip_docker=args.skip_docker,
+            incremental_downloadable_docker=args.incremental_downloadable_docker,
         )
 
     elif args.command == "run-agentic":
@@ -1662,6 +1750,7 @@ if __name__ == "__main__":
             open_pr=not args.no_pr,
             max_workers=args.max_workers,
             skip_docker=args.skip_docker,
+            incremental_downloadable_docker=not args.rebuild_all_downloadable_docker,
             state_path=args.state_path,
             downloadable_preview=args.downloadable_preview,
         )
@@ -1677,7 +1766,7 @@ if __name__ == "__main__":
         print(f"  Docker:   Skipped")
         print(f"  Adapter:  Skipped (API smoke test only)")
 
-        agent = NIMAgent()
+        agent = NIMAgent(tester_auto_init=False)
 
         print("\n" + "=" * 60)
         print(f"STAGE 1: fetch_models(limit={DRY_RUN_LIMIT}, skip_licenses=True)")

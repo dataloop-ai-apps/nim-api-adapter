@@ -1,0 +1,194 @@
+{
+  "llm": [
+    {
+      "dpk_name": "nim-nvidia-nemotron-nano-9b-v2",
+      "dpk_id": "69de0827a39313dda3eaf063",
+      "model_type": "llm",
+      "app_id": "69de0b63fe82f1fc2d456963",
+      "model_id": "69de0b64eac221fc4e4e9b36",
+      "status": "success",
+      "response": "\n\nHello, I am working!\n",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-kimi-k2-instruct-0905",
+      "dpk_id": "69de0826339c751377a6d99e",
+      "model_type": "llm",
+      "app_id": "69de0bf68f1b6c2067d4c82d",
+      "model_id": "69de0bf79a341ba7a090d815",
+      "status": "success",
+      "response": "Hello, I am working!",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-phi-3-small-8k-instruct",
+      "dpk_id": "69de0824a39313dda3eaf02d",
+      "model_type": "llm",
+      "app_id": "69de0c7f339c751377a6f045",
+      "model_id": "69de0c804697c05878e75cd0",
+      "status": "failed",
+      "response": null,
+      "error": "Execution 69de0cc19aee6112696b9285 timed out after 600s (last status: in-progress)"
+    },
+    {
+      "dpk_name": "nim-qwen2-7b-instruct",
+      "dpk_id": "69de0828906b5ceddb0cd71a",
+      "model_type": "llm",
+      "app_id": "69de0f22339c751377a70105",
+      "model_id": "69de0f22eac221fc4e4e9b3a",
+      "status": "failed",
+      "response": null,
+      "error": "Execution 69de0f63339c751377a70108 timed out after 600s (last status: in-progress)"
+    },
+    {
+      "dpk_name": "nim-phi-3-mini-128k-instruct",
+      "dpk_id": "69de08249aee6112696b7c1b",
+      "model_type": "llm",
+      "app_id": null,
+      "model_id": null,
+      "status": "failed",
+      "response": null,
+      "error": "('400', 'Invalid input specified, Unexpected Error,  already exist, App nim-phi-3-mini-128k-instruct already installed in project 0264c8c9-3432-473c-9dab-9593192168a6')"
+    },
+    {
+      "dpk_name": "nim-eurollm-9b-instruct",
+      "dpk_id": "69de082a906b5ceddb0cd732",
+      "model_type": "llm",
+      "app_id": "69de151cfe82f1fc2d459979",
+      "model_id": "69de151c4697c05878e75cd5",
+      "status": "failed",
+      "response": null,
+      "error": "Execution 69de155d8f1b6c2067d4f116 timed out after 600s (last status: created)"
+    },
+    {
+      "dpk_name": "nim-minimax-m2-5",
+      "dpk_id": "69de0824a39313dda3eaf033",
+      "model_type": "llm",
+      "app_id": "69de17bc906b5ceddb0d14c2",
+      "model_id": "69de17bd4697c05878e75cd6",
+      "status": "success",
+      "response": "<think>The user is asking me to say exactly \"Hello, I am working!\" - I should just do exactly what they're asking for.\n</think>\n\nHello, I am working!",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-llama-3-1-8b-instruct",
+      "dpk_id": "69de0823906b5ceddb0cd6f4",
+      "model_type": "llm",
+      "app_id": "69de1972339c751377a7134b",
+      "model_id": "69de19729a341ba7a090d81a",
+      "status": "success",
+      "response": "Hello, I am working!",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-seed-oss-36b-instruct",
+      "dpk_id": "69de08209aee6112696b7bf5",
+      "model_type": "llm",
+      "app_id": "69de19fb906b5ceddb0d1515",
+      "model_id": "69de19fbeac221fc4e4e9b3d",
+      "status": "failed",
+      "response": null,
+      "error": "Execution failed with status: failed"
+    },
+    {
+      "dpk_name": "nim-deepseek-v3-2",
+      "dpk_id": "69de0821090ca25d1f52a603",
+      "model_type": "llm",
+      "app_id": "69de1c04339c751377a7140c",
+      "model_id": "69de1c05eac221fc4e4e9b3e",
+      "status": "success",
+      "response": "Hello, I am working!",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-marin-8b-instruct",
+      "dpk_id": "69de0822339c751377a6d968",
+      "model_type": "llm",
+      "app_id": "69de1dc495d7bd3814b06a92",
+      "model_id": "69de1dc4eac221fc4e4e9b40",
+      "status": "success",
+      "response": "Hello, I am working!",
+      "error": null
+    },
+    {
+      "dpk_name": "nim-gemma-2-27b-it",
+      "dpk_id": "69de0821090ca25d1f52a609",
+      "model_type": "llm",
+      "app_id": "69de1fed8f1b6c2067d51832",
+      "model_id": "69de1fed9a341ba7a090d81e",
+      "status": "failed",
+      "response": null,
+      "error": "Execution failed with status: failed"
+    },
+    {
+      "dpk_name": "nim-italia-10b-instruct-16k",
+      "dpk_id": "69de0822090ca25d1f52a615",
+      "model_type": "llm",
+      "app_id": "69de2089fe82f1fc2d45bf6c",
+      "model_id": "69de208a9a341ba7a090d81f",
+      "status": "success",
+      "response": "Hello, I am working!\n",
+      "error": null
+    }
+  ],
+  "vlm": [
+    {
+      "dpk_name": "google-deplot",
+      "dpk_id": "69024e1e37116c3bc1bb63ac",
+      "model_type": "vlm",
+      "app_id": null,
+      "model_id": null,
+      "status": "failed",
+      "response": null,
+      "error": "('400', 'Invalid input specified, Unexpected Error,  already exist, App google-deplot already installed in project 0264c8c9-3432-473c-9dab-9593192168a6')"
+    }
+  ],
+  "embedding": [
+    {
+      "dpk_name": "nim-nv-embedqa-e5-v5",
+      "dpk_id": "69de0820fe82f1fc2d455b42",
+      "model_type": "embedding",
+      "app_id": "69de216b090ca25d1f52ffbf",
+      "model_id": "69de216ceac221fc4e4e9b45",
+      "status": "failed",
+      "response": null,
+      "error": "Execution 69de21ac090ca25d1f52ffc9 timed out after 600s (last status: in-progress)"
+    },
+    {
+      "dpk_name": "nv-embedqa-e5v5",
+      "dpk_id": "6981f4ca4799e7cebbcbfb4e",
+      "model_type": "embedding",
+      "app_id": null,
+      "model_id": null,
+      "status": "failed",
+      "response": null,
+      "error": "('400', 'Invalid input specified, Unexpected Error,  already exist, App nv-embedqa-e5v5 already installed in project 0264c8c9-3432-473c-9dab-9593192168a6')"
+    }
+  ],
+  "summary": {
+    "total": 16,
+    "passed": 7,
+    "failed": 9,
+    "percentage_tested": 0.1,
+    "by_type": {
+      "llm": {
+        "total_available": 123,
+        "tested": 13,
+        "passed": 7,
+        "failed": 6
+      },
+      "vlm": {
+        "total_available": 7,
+        "tested": 1,
+        "passed": 0,
+        "failed": 1
+      },
+      "embedding": {
+        "total_available": 11,
+        "tested": 2,
+        "passed": 0,
+        "failed": 2
+      }
+    }
+  }
+}

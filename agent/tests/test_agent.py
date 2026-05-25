@@ -304,10 +304,10 @@ class TestOpenAINimModelsParsing(unittest.TestCase):
 # =========================================================================
 
 class TestParseModelId(unittest.TestCase):
-    """Test parse_model_id (shared function in dpk_mcp_handler)."""
+    """Test parse_model_id (shared function in dpk_handler)."""
 
     def setUp(self):
-        from dpk_mcp_handler import parse_model_id
+        from dpk_handler import parse_model_id
         self.parse = parse_model_id
 
     def test_with_publisher(self):
@@ -334,7 +334,7 @@ class TestGetModelFolder(unittest.TestCase):
     """Test get_model_folder and get_manifest_path (shared functions)."""
 
     def setUp(self):
-        from dpk_mcp_handler import get_model_folder, get_manifest_path
+        from dpk_handler import get_model_folder, get_manifest_path
         self.get_folder = get_model_folder
         self.get_path = get_manifest_path
 
