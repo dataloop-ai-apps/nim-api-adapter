@@ -1441,6 +1441,7 @@ class NIMAgent:
         incremental_downloadable_docker: bool = True,
         state_path: str = None,
         downloadable_preview: bool = False,
+        anomaly_threshold: float = None,
     ) -> dict:
         """
         State-aware variant of run().
@@ -1489,10 +1490,11 @@ class NIMAgent:
                 len(self.api_deprecated) / len(self.dataloop_api_only_dpks)
                 if self.dataloop_api_only_dpks else 0
             )
-            if dep_ratio > state.anomaly_deprecation_threshold:
+            effective_threshold = anomaly_threshold if anomaly_threshold is not None else state.anomaly_deprecation_threshold
+            if dep_ratio > effective_threshold:
                 msg = (
                     f"Anomaly detected: {len(self.api_deprecated)}/{len(self.dataloop_api_only_dpks)} "
-                    f"DPKs ({dep_ratio:.0%}) appear deprecated. Aborting to prevent destructive PR."
+                    f"DPKs ({dep_ratio:.0%}) appear deprecated (threshold: {effective_threshold:.0%}). Aborting to prevent destructive PR."
                 )
                 print(f"\n[ABORT] {msg}")
                 run_record.update({"status": "aborted", "reason": msg})
@@ -1714,6 +1716,12 @@ if __name__ == "__main__":
     )
     p_ag.add_argument("--max-workers", type=int, default=10)
     p_ag.add_argument("--state-path", type=str, default=None, help="Path to run_state.json")
+    p_ag.add_argument(
+        "--anomaly-threshold",
+        type=float,
+        default=None,
+        help="Override anomaly deprecation threshold (0.0–1.0). Default: value from run_state.json (0.50)",
+    )
 
     # --- dry-run (existing dry-run behaviour) ---
     p_dry = sub.add_parser("dry-run", help="Quick dry-run of the pipeline (limited, no PR, no Docker)")
@@ -1744,7 +1752,7 @@ if __name__ == "__main__":
         )
 
     elif args.command == "run-agentic":
-        agent = NIMAgent()
+        agent = NIMAgent(tester_auto_init=False)
         agent.run_agentic(
             limit=args.limit,
             open_pr=not args.no_pr,
@@ -1753,6 +1761,7 @@ if __name__ == "__main__":
             incremental_downloadable_docker=not args.rebuild_all_downloadable_docker,
             state_path=args.state_path,
             downloadable_preview=args.downloadable_preview,
+            anomaly_threshold=args.anomaly_threshold,
         )
 
     elif args.command == "dry-run":

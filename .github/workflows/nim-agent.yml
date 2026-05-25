@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      anomaly_threshold:
+        description: "Anomaly deprecation threshold override (0.0–1.0, default 0.50)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -77,7 +81,12 @@ jobs:
             PR_ARG="--no-pr"
           fi
 
-          python nim_agent.py run-agentic $LIMIT_ARG $DOCKER_ARG $PR_ARG
+          ANOMALY_ARG=""
+          if [ "${{ github.event.inputs.anomaly_threshold }}" != "" ]; then
+            ANOMALY_ARG="--anomaly-threshold ${{ github.event.inputs.anomaly_threshold }}"
+          fi
+
+          python nim_agent.py run-agentic $LIMIT_ARG $DOCKER_ARG $PR_ARG $ANOMALY_ARG
 
       - name: Upload run state
         if: always()
