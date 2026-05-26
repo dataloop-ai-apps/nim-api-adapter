@@ -1435,9 +1435,6 @@ class NIMAgent:
         open_pr: bool = True,
         max_workers: int = 10,
         skip_docker: bool = False,
-        # Plain ``run-agentic`` (no flags): incremental on — Docker runs only for downloadables whose
-        # ``models/downloadable/.../dataloop.json`` has no ``runnerImage`` yet; otherwise the prior image ref is kept.
-        # CI/workflows often pass ``skip_docker=True`` instead. Force full rebuild: ``--rebuild-all-downloadable-docker``.
         incremental_downloadable_docker: bool = True,
         state_path: str = None,
         downloadable_preview: bool = False,
@@ -1705,9 +1702,9 @@ if __name__ == "__main__":
     p_ag.add_argument("--no-pr", action="store_true", help="Skip PR creation")
     p_ag.add_argument("--skip-docker", action="store_true", help="Skip Docker build for all downloadables")
     p_ag.add_argument(
-        "--rebuild-all-downloadable-docker",
+        "--force-docker",
         action="store_true",
-        help="Build/push Docker for every downloadable (default: incremental — skip Docker when manifest already has runnerImage)",
+        help="Force Docker build even for models that already have a runnerImage in their manifest (from a prior partial run)",
     )
     p_ag.add_argument(
         "--downloadable-preview",
@@ -1758,7 +1755,7 @@ if __name__ == "__main__":
             open_pr=not args.no_pr,
             max_workers=args.max_workers,
             skip_docker=args.skip_docker,
-            incremental_downloadable_docker=not args.rebuild_all_downloadable_docker,
+            incremental_downloadable_docker=not args.force_docker,
             state_path=args.state_path,
             downloadable_preview=args.downloadable_preview,
             anomaly_threshold=args.anomaly_threshold,
