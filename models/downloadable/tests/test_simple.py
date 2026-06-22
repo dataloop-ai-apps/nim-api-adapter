@@ -14,10 +14,10 @@ dl.setenv('prod')
 
 def call_nim_endpoint(app_id: str, endpoint: str, method: str = "get", data: dict = None):
     """
-    Call a NIM endpoint through Dataloop's app routing.
+    Call a NIM endpoint through DDOE's app routing.
     
     Args:
-        app_id: Dataloop app ID
+        app_id: DDOE app ID
         endpoint: API endpoint (e.g., "/v1/embeddings", "/v1/health/live")
         method: HTTP method ("get" or "post")
         data: JSON data for POST requests

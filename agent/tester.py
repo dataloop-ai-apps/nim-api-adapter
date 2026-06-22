@@ -68,12 +68,12 @@ class Tester:
     2. Model adapter - test with base adapters code
     3. DPK creation - via MCP
     4. if test_platform=True:  
-    4.1. DPK publish to Dataloop 
+    4.1. DPK publish to DDOE 
     4.2. App test - test the DPK as an app
     
     Environment variables required:
     - NGC_API_KEY: NVIDIA NGC API key
-    - DATALOOP_TEST_PROJECT: Dataloop project name for testing
+    - DATALOOP_TEST_PROJECT: DDOE project name for testing
     - OPENROUTER_API_KEY: OpenRouter API key (for MCP)
     """
     
@@ -105,7 +105,7 @@ class Tester:
             self._init_test_resources()
             
     # =========================================================================        
-    # Test Resources Initialization - Dataloop Items and Models
+    # Test Resources Initialization - DDOE Items and Models
     # =========================================================================
     
     def _init_test_resources(self):
@@ -291,7 +291,7 @@ class Tester:
         except Exception:
             pass
         
-        # Create a simple synthetic test video (WebM - Dataloop preferred format)
+        # Create a simple synthetic test video (WebM - DDOE preferred format)
         print(f"  📹 Creating synthetic test video (WebM)...")
         temp_path = self._create_synthetic_video()
         
@@ -315,7 +315,7 @@ class Tester:
             print("  ⚠️ opencv-python not installed. Run: pip install opencv-python")
             return None
         
-        # Create temp file (WebM format - Dataloop preferred)
+        # Create temp file (WebM format - DDOE preferred)
         with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as f:
             temp_path = f.name
         
@@ -474,7 +474,7 @@ class Tester:
         Get existing test model or create by cloning from a DPK.
         
         Args:
-            project: Dataloop project
+            project: DDOE project
             config: Dict with 'dpk_name' (source DPK) and 'test_model_name' (target model name)
         """
         test_model_name = config["test_model_name"]
@@ -765,10 +765,10 @@ class Tester:
         }
         
         try:
-            # Ensure Dataloop session is valid
+            # Ensure DDOE session is valid
             dl.setenv(ENV)
             if dl.token_expired() or not dl.token():
-                print("  Refreshing Dataloop session...")
+                print("  Refreshing DDOE session...")
                 dl.login()
             
             # Prepare model entity with NIM model config
@@ -865,7 +865,7 @@ class Tester:
         cleanup: bool = True
     ) -> dict:
         """
-        Publish DPK and test it as a Dataloop app.
+        Publish DPK and test it as a DDOE app.
         
         Steps:
         1. Check if DPK exists, delete if it does
@@ -971,7 +971,7 @@ class Tester:
                 shutil.rmtree(temp_dir, ignore_errors=True)
             
             # Step 3: Install as App
-            # NGC API key must exist as an integration in your Dataloop org (Settings → Integrations).
+            # NGC API key must exist as an integration in your DDOE org (Settings → Integrations).
             # Create one with key "dl-ngc-api-key" and set its ID in DATALOOP_NGC_INTEGRATION_ID.
             ngc_integration_id = os.environ.get("DATALOOP_NGC_INTEGRATION_ID", "").strip()
             if not ngc_integration_id:
@@ -1283,7 +1283,7 @@ class Tester:
         
         Environment variables required:
         - NGC_API_KEY: NVIDIA NGC API key
-        - DATALOOP_TEST_PROJECT: Dataloop project name for testing
+        - DATALOOP_TEST_PROJECT: DDOE project name for testing
         - OPENROUTER_API_KEY: For DPK generation via MCP
         """
         print(f"\n{'='*60}")

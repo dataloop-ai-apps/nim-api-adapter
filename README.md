@@ -1,14 +1,14 @@
-# NVIDIA NIM Adapter for Dataloop
+# NVIDIA NIM Adapter for DDOE
 
-Dataloop model adapters for [NVIDIA NIM](https://build.nvidia.com/) — providing access to NVIDIA's inference models through the Dataloop platform.
+DDOE model adapters for [NVIDIA NIM](https://build.nvidia.com/) — providing access to NVIDIA's inference models through the DDOE platform.
 
-Models are available in two deployment modes: **API** (hosted by NVIDIA) and **Downloadable** (self-hosted on Dataloop infrastructure). Both modes expose an OpenAI-compatible interface and share the same adapter codebase.
+Models are available in two deployment modes: **API** (hosted by NVIDIA) and **Downloadable** (self-hosted on DDOE infrastructure). Both modes expose an OpenAI-compatible interface and share the same adapter codebase.
 
 ## Architecture
 
 ```mermaid
 graph TB
-    subgraph "Dataloop Platform"
+    subgraph "DDOE Platform"
         MODEL_A["Model A<br/><i>project scope</i>"]
         MODEL_B["Model B<br/><i>project scope</i>"]
         MODEL_C["Model C<br/><i>project scope</i>"]
@@ -27,10 +27,10 @@ graph TB
 
 Each **API model app** (e.g. `nim-llama-3-1-8b-instruct`) provides a model entity and adapter code. It can talk to **either** backend:
 
-| Backend | When | GPU on Dataloop |
+| Backend | When | GPU on DDOE |
 |---------|------|:---------------:|
 | **NVIDIA Cloud** | No `app_id` in model config — requests go to `integrate.api.nvidia.com` via NGC API key | No |
-| **Self-Hosted (Downloadable)** | `app_id` is set — requests route to a local NIM service running on Dataloop | Yes |
+| **Self-Hosted (Downloadable)** | `app_id` is set — requests route to a local NIM service running on DDOE | Yes |
 
 The **Downloadable app** (e.g. `nim-meta-llama-3.1-8b-instruct-downloadable`) provisions the GPU service and declares the API model app as a dependency (auto-installed). The service can be installed at **project or org scope**, and **multiple models can point to the same service** by sharing the same `app_id`.
 
@@ -91,6 +91,6 @@ agent/                          # Automated model onboarding agent
 ## Requirements
 
 - Python 3.10+
-- `dtlpy` (Dataloop SDK)
+- `dtlpy` (DDOE SDK)
 - `openai` (OpenAI Python client)
 - `httpx`, `PyJWT` (for downloadable auth)

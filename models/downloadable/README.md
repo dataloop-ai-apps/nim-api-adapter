@@ -1,12 +1,12 @@
-# Downloadable NIM Models for Dataloop
+# Downloadable NIM Models for DDOE
 
-Deploy NVIDIA NIM models as downloadable services on Dataloop platform.
+Deploy NVIDIA NIM models as downloadable services on DDOE platform.
 
 ## Overview
 
 This project provides templates and scripts to:
-1. Build Docker images that wrap NVIDIA NIM models with Dataloop agent support
-2. Deploy these images as Dataloop services with OpenAI-compatible API endpoints
+1. Build Docker images that wrap NVIDIA NIM models with DDOE agent support
+2. Deploy these images as DDOE services with OpenAI-compatible API endpoints
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ bash build_downloadable_nim.sh nvclip
 
 This builds and pushes `gcr.io/viewo-g/piper/agent/runner/gpu/nvclip:1.0.0`
 
-### 2. Deploy to Dataloop
+### 2. Deploy to DDOE
 
 ```bash
 python deploy.py --model nvclip --project "Your Project Name"
@@ -28,7 +28,7 @@ Options:
 - `--build` / `-b`: Build Docker image before deploying
 - `--clean` / `-c`: Clean existing installations first
 - `--version` / `-v`: Docker image version (default: 0.1.13)
-- `--env` / `-e`: Dataloop environment (prod/dev/rc)
+- `--env` / `-e`: DDOE environment (prod/dev/rc)
 
 ### 3. Test the Deployment
 
@@ -42,7 +42,7 @@ python test_deployment.py --app-id <your-app-id>
 .
 ├── main.py                 # Service runner - starts NIM server and streams logs
 ├── Dockerfile.template     # Docker template for building NIM images
-├── manifest_template.json  # Dataloop manifest template
+├── manifest_template.json  # DDOE manifest template
 ├── deploy.py              # Deployment script
 ├── build_downloadable_nim.sh  # Docker build script
 ├── test_deployment.py     # Test script for deployed services
@@ -56,7 +56,7 @@ python test_deployment.py --app-id <your-app-id>
 
 The Dockerfile.template:
 1. Extends the official NVIDIA NIM image (`nvcr.io/nim/nvidia/<model>:latest`)
-2. Installs Dataloop SDK and agent packages
+2. Installs DDOE SDK and agent packages
 3. Configures the server to run on port 3000
 
 ### Service Runner
@@ -116,7 +116,7 @@ Example: `https://nvclip-downloadable-runner-69885809eb577aee86877518.apps.datal
 python test_deployment.py --app-id <your-app-id>
 ```
 
-The script uses the Dataloop SDK's `gen_request` for authentication.
+The script uses the DDOE SDK's `gen_request` for authentication.
 
 ### Via SDK (Programmatic Access)
 

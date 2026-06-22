@@ -1,5 +1,5 @@
 """
-Downloadable NIM Runner for Dataloop.
+Downloadable NIM Runner for DDOE.
 
 Starts the NIM inference server and streams logs with GPU memory monitoring.
 This module is common for ALL downloadable NIM models.
