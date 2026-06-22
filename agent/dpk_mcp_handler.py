@@ -145,7 +145,7 @@ class DPKGeneratorClient:
             
             # Build attributes based on model type
             attributes = {
-                "Hub": ["Nvidia", "Dataloop"],
+                "Hub": ["Nvidia", "DDOE"],
                 "Provider": model_provider,
                 "Deployed By": "NVIDIA",
                 "Category": ["Model", "NIM"],
@@ -173,7 +173,7 @@ class DPKGeneratorClient:
                 "class_name": "ModelAdapter",
                 "runner_image": "gcr.io/viewo-g/piper/agent/runner/apps/openai-model-adapters:0.0.14",
                 "integrations": ["dl-ngc-api-key"],  # NGC API key secret
-                "hub": ["Nvidia", "Dataloop"],
+                "hub": ["Nvidia", "DDOE"],
                 "git_url": "https://github.com/dataloop-ai-apps/nim-api-adapter",
                 "git_tag": DPK_VERSION,
                 "configuration": {

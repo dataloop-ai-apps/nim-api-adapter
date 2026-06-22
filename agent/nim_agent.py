@@ -3,7 +3,7 @@ NVIDIA NIM Agent
 
 Main orchestrator for:
 1. Fetching models from NVIDIA
-2. Comparing with Dataloop marketplace
+2. Comparing with DDOE marketplace
 3. Managing the onboarding pipeline
 4. Opening PRs for successful DPKs
 """
@@ -526,7 +526,7 @@ class NIMAgent:
     
     Flow:
     1. Fetch models from NVIDIA (OpenAI API)
-    2. Compare with Dataloop marketplace
+    2. Compare with DDOE marketplace
     3. For each new model:
        a. Detect model type
        b. Test adapter locally
@@ -539,7 +539,7 @@ class NIMAgent:
     def __init__(self, test_project_id: str = None):
         """
         Args:
-            test_project_id: Dataloop project ID for testing
+            test_project_id: DDOE project ID for testing
         """
         # NVIDIA NIM API
         self.nim_api_key = os.environ.get("NGC_API_KEY")
@@ -563,14 +563,14 @@ class NIMAgent:
         self.api_models = []            # All models from OpenAI endpoint (source of truth)
         self.downloadable_models = []   # Subset of api_models that are also "run anywhere" in NGC catalog
         
-        # State - Dataloop
+        # State - DDOE
         self.dataloop_dpks = []
         
         # State - Comparison results (populated by compare())
-        self.api_to_add = []                # API models not yet in Dataloop
-        self.api_deprecated = []            # Dataloop DPKs no longer on OpenAI
-        self.downloadable_to_add = []       # Downloadable models not yet in Dataloop
-        self.downloadable_deprecated = []   # Dataloop downloadable DPKs no longer downloadable
+        self.api_to_add = []                # API models not yet in DDOE
+        self.api_deprecated = []            # DDOE DPKs no longer on OpenAI
+        self.downloadable_to_add = []       # Downloadable models not yet in DDOE
+        self.downloadable_deprecated = []   # DDOE downloadable DPKs no longer downloadable
         
         # State - Results
         self.results = []
@@ -623,29 +623,29 @@ class NIMAgent:
         print(f"  API-only (OpenAI, not downloadable): {len(self.api_models) - len(self.downloadable_models)}")
     
     # =========================================================================
-    # Compare with Dataloop
+    # Compare with DDOE
     # =========================================================================
     
     def compare(self) -> dict:
         """
-        Compare API and downloadable models with Dataloop DPKs.
+        Compare API and downloadable models with DDOE DPKs.
         
         Requires: fetch_models() and fetch_dataloop_dpks() called first.
         
         Populates:
-        - self.api_to_add:              API models not yet in Dataloop
-        - self.api_deprecated:          Dataloop DPKs no longer on OpenAI
-        - self.downloadable_to_add:     Downloadable models not yet in Dataloop
-        - self.downloadable_deprecated: Dataloop downloadable DPKs no longer downloadable
+        - self.api_to_add:              API models not yet in DDOE
+        - self.api_deprecated:          DDOE DPKs no longer on OpenAI
+        - self.downloadable_to_add:     Downloadable models not yet in DDOE
+        - self.downloadable_deprecated: DDOE downloadable DPKs no longer downloadable
         
         Returns:
             dict with all four lists + matched counts
         """
-        print("\n🔍 Comparing models with Dataloop DPKs...")
+        print("\n🔍 Comparing models with DDOE DPKs...")
         
         dataloop_normalized = {self._normalize(d["name"]): d for d in self.dataloop_dpks}
         
-        # --- API comparison (all OpenAI models vs Dataloop) ---
+        # --- API comparison (all OpenAI models vs DDOE) ---
         
         openai_normalized = {}
         for m in self.api_models:
@@ -672,7 +672,7 @@ class NIMAgent:
             if not found:
                 self.api_deprecated.append(dpk)
         
-        # --- Downloadable comparison (downloadable subset vs Dataloop) ---
+        # --- Downloadable comparison (downloadable subset vs DDOE) ---
         
         downloadable_normalized = {}
         for m in self.downloadable_models:
@@ -690,8 +690,8 @@ class NIMAgent:
             else:
                 self.downloadable_to_add.append(model)
         
-        # Downloadable deprecated: DPKs in Dataloop that WERE downloadable but no longer are
-        # (i.e., they exist in Dataloop but not in the current downloadable set)
+        # Downloadable deprecated: DPKs in DDOE that WERE downloadable but no longer are
+        # (i.e., they exist in DDOE but not in the current downloadable set)
         self.downloadable_deprecated = []
         for dpk_name, dpk in dataloop_normalized.items():
             found = any(
@@ -701,7 +701,7 @@ class NIMAgent:
             if not found:
                 self.downloadable_deprecated.append(dpk)
         
-        print(f"  Dataloop DPKs:              {len(self.dataloop_dpks)}")
+        print(f"  DDOE DPKs:              {len(self.dataloop_dpks)}")
         print(f"  ---")
         print(f"  API models (OpenAI):        {len(self.api_models)}")
         print(f"    Matched:                  {len(api_matched)}")
@@ -723,8 +723,8 @@ class NIMAgent:
         }
     
     def fetch_dataloop_dpks(self) -> list:
-        """Fetch all NIM DPKs from Dataloop marketplace."""
-        print("\n📡 Fetching DPKs from Dataloop...")
+        """Fetch all NIM DPKs from DDOE marketplace."""
+        print("\n📡 Fetching DPKs from DDOE...")
         
         filters = dl.Filters(resource=dl.FiltersResource.DPK)
         filters.add(field='scope', values='public')
@@ -1070,7 +1070,7 @@ class NIMAgent:
         # Source models
         print(f"\n  API Models (OpenAI):        {s['api_models']}")
         print(f"  Downloadable (OpenAI∩NGC):  {s['downloadable_models']}")
-        print(f"  Dataloop DPKs:              {s['dataloop_dpks']}")
+        print(f"  DDOE DPKs:              {s['dataloop_dpks']}")
         
         print(f"\n  API to add:                 {s['api_to_add']}")
         print(f"  API deprecated:             {s['api_deprecated']}")
@@ -1136,7 +1136,7 @@ class NIMAgent:
         # Step 1: Fetch from NVIDIA (OpenAI endpoint + NGC catalog for downloadables)
         self.fetch_models()
         
-        # Step 2: Compare with Dataloop
+        # Step 2: Compare with DDOE
         self.fetch_dataloop_dpks()
         self.compare()
         

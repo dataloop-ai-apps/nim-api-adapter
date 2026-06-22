@@ -29,7 +29,7 @@ else:
 
 def get_downloadable_endpoint_and_cookie(app_id: str):
     """
-    Resolve Dataloop app route and obtain JWT-APP cookie via redirect.
+    Resolve DDOE app route and obtain JWT-APP cookie via redirect.
     Use when the model adapter should talk to a downloadable NIM app (.apps.dataloop.ai).
 
     Returns:

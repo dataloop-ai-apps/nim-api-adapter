@@ -16,7 +16,7 @@
     ],
     "Hub": [
       "Nvidia",
-      "Dataloop"
+      "DDOE"
     ],
     "Deployed By": "NVIDIA",
     "NLP": "Conversational"
@@ -88,7 +88,7 @@
               {
                 "type": "Json",
                 "name": "filters",
-                "description": "Dataloop Filter DQL"
+                "description": "DDOE Filter DQL"
               }
             ],
             "output": [],
@@ -102,29 +102,29 @@
               {
                 "type": "Model",
                 "name": "model",
-                "description": "Dataloop Model Entity"
+                "description": "DDOE Model Entity"
               },
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": "Dataloop Dataset Entity"
+                "description": "DDOE Dataset Entity"
               },
               {
                 "type": "Json",
                 "name": "filters",
-                "description": "Dataloop Filter DQL"
+                "description": "DDOE Filter DQL"
               }
             ],
             "output": [
               {
                 "type": "Model",
                 "name": "model",
-                "description": "Dataloop Model Entity"
+                "description": "DDOE Model Entity"
               },
               {
                 "type": "Dataset",
                 "name": "dataset",
-                "description": "Dataloop Dataset Entity"
+                "description": "DDOE Dataset Entity"
               }
             ],
             "displayName": "Evaluate a Model",

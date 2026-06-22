@@ -4,7 +4,7 @@ Deploy script for downloadable NIM models.
 This script handles:
 1. Building Docker images (optional)
 2. Creating dynamic manifests from template
-3. Publishing and installing to Dataloop
+3. Publishing and installing to DDOE
 
 Usage:
     python deploy.py --model nvclip --project "COCO ors"
@@ -76,7 +76,7 @@ def publish_and_install(project: dl.Project, manifest: dict, integration_id: str
     Publish the DPK and install/update the app in the project.
     
     Args:
-        project: Dataloop project
+        project: DDOE project
         manifest: Manifest dictionary
         integration_id: Optional integration ID for NGC API key
     
@@ -124,18 +124,18 @@ def publish_and_install(project: dl.Project, manifest: dict, integration_id: str
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Deploy downloadable NIM models to Dataloop')
+    parser = argparse.ArgumentParser(description='Deploy downloadable NIM models to DDOE')
     parser.add_argument('--model', '-m', required=True, help='Model name (e.g., nvclip)')
-    parser.add_argument('--project', '-p', required=True, help='Dataloop project name')
+    parser.add_argument('--project', '-p', required=True, help='DDOE project name')
     parser.add_argument('--version', '-v', default='0.1.13', help='Docker image version (default: 0.1.13)')
     parser.add_argument('--build', '-b', action='store_true', help='Build Docker image before deploying')
     parser.add_argument('--clean', '-c', action='store_true', help='Clean existing installations before deploying')
-    parser.add_argument('--env', '-e', default='prod', choices=['prod', 'dev', 'rc'], help='Dataloop environment')
+    parser.add_argument('--env', '-e', default='prod', choices=['prod', 'dev', 'rc'], help='DDOE environment')
     parser.add_argument('--integration', '-i', default='54945abd-a5c7-448f-a58a-c986445d1203', help='Integration ID for NGC API key (dl-ngc-api-key)')
     
     args = parser.parse_args()
     
-    # Setup Dataloop
+    # Setup DDOE
     dl.setenv('prod')
     
     print(args.project)

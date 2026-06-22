@@ -1,15 +1,15 @@
 # NVIDIA NIM Agent
 
-Automated agent for discovering NVIDIA NIM models and onboarding them to the Dataloop marketplace.
+Automated agent for discovering NVIDIA NIM models and onboarding them to the DDOE marketplace.
 
 ## Overview
 
 This agent automates the entire workflow of:
 1. **Discovering** new NVIDIA NIM models via API
-2. **Comparing** them with existing Dataloop marketplace DPKs
+2. **Comparing** them with existing DDOE marketplace DPKs
 3. **Testing** model adapters locally
 4. **Generating** DPK manifests
-5. **Publishing** and validating as Dataloop apps
+5. **Publishing** and validating as DDOE apps
 6. **Opening PRs** to add successful models to the repository
 
 **See the [Support Matrix](../support_matrix.md) for a complete list of supported models and their availability.**
@@ -17,7 +17,7 @@ This agent automates the entire workflow of:
 ## Flow Diagram
 
 ```
-NVIDIA API --> Fetch Models --> Compare with Dataloop --> Find New Models
+NVIDIA API --> Fetch Models --> Compare with DDOE --> Find New Models
                                                                |
                                                                v
                         +----------------------------------+
@@ -50,15 +50,15 @@ NVIDIA API --> Fetch Models --> Compare with Dataloop --> Find New Models
 - Calls `https://integrate.api.nvidia.com/v1/models` (OpenAI-compatible API)
 - Returns list of all available NIM models with metadata
 
-### Step 2: Fetch Dataloop DPKs
-- Queries Dataloop marketplace for existing NIM DPKs
+### Step 2: Fetch DDOE DPKs
+- Queries DDOE marketplace for existing NIM DPKs
 - Filters by `scope=public` and `attributes.Category=NIM`
 
 ### Step 3: Compare & Find New Models
 - Normalizes model names for comparison
 - Identifies:
-  - **To Add**: Models in NVIDIA but not in Dataloop
-  - **Deprecated**: DPKs in Dataloop but no longer in NVIDIA
+  - **To Add**: Models in NVIDIA but not in DDOE
+  - **Deprecated**: DPKs in DDOE but no longer in NVIDIA
   - **Matched**: Already onboarded models
 
 ### Step 4: Onboard Each Model
@@ -83,7 +83,7 @@ For each new model, the `onboard_model()` method runs:
 - Returns `dataloop.json` manifest
 
 #### 4.4 Publish & Test App
-- Publishes DPK to Dataloop
+- Publishes DPK to DDOE
 - Installs as app in test project
 - Deploys model service
 - Runs test prediction with `PromptItem`
@@ -147,7 +147,7 @@ print(result)
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NGC_API_KEY` | Yes | NVIDIA NGC API key |
-| `DATALOOP_TEST_PROJECT` | Yes | Dataloop project ID for testing |
+| `DATALOOP_TEST_PROJECT` | Yes | DDOE project ID for testing |
 | `GITHUB_TOKEN` | For PRs | GitHub personal access token |
 | `GITHUB_REPO` | For PRs | Target repo (default: `dataloop-ai-apps/nim-api-adapter`) |
 | `DPK_MCP_PYTHON` | For DPK | Python path for MCP server (default: `python`) |
