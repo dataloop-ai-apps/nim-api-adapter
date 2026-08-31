@@ -591,7 +591,74 @@ class NIMAgent:
         if not self.test_project_id:
             raise ValueError("test_project_id required")
         return dl.projects.get(project_id=self.test_project_id)
-    
+
+    # =========================================================================
+    # Sanity check — verify all credentials before the run
+    # =========================================================================
+
+    def sanity_check(self):
+        """
+        Verify every credential works before committing to a full run.
+
+        Checks (in order):
+          1. NGC_API_KEY  — authenticated GET to integrate.api.nvidia.com
+          2. GITHUB_TOKEN — repo access + push permission via PyGithub
+          3. Dataloop     — M2M login (BOT_EMAIL / BOT_PASSWORD / ENV) + dpk list probe
+
+        Raises:
+            ValueError: if one or more checks fail, listing all failures.
+        """
+        errors = []
+
+        # 1. NGC API key
+        print("\n🔑 Sanity check: NGC_API_KEY...")
+        try:
+            resp = requests.get(
+                "https://integrate.api.nvidia.com/v1/models",
+                headers={"Authorization": f"Bearer {self.nim_api_key}"},
+                timeout=15,
+            )
+            if resp.status_code == 401:
+                errors.append("NGC_API_KEY: unauthorized (401) — key invalid or expired")
+            elif resp.status_code not in (200, 206):
+                errors.append(f"NGC_API_KEY: unexpected status {resp.status_code}")
+            else:
+                print("  ✅ NGC_API_KEY OK")
+        except Exception as e:
+            errors.append(f"NGC_API_KEY: connection error — {e}")
+
+        # 2. GitHub token — read access + push permission
+        print("🔑 Sanity check: GITHUB_TOKEN...")
+        try:
+            github = self._get_github()
+            repo = github.repository  # triggers auth
+            if not repo.permissions.push:
+                errors.append(
+                    f"GITHUB_TOKEN: no push permission on {repo.full_name} "
+                    "(workflow needs 'contents: write')"
+                )
+            else:
+                print(f"  ✅ GITHUB_TOKEN OK (repo: {repo.full_name})")
+        except Exception as e:
+            errors.append(f"GITHUB_TOKEN: {e}")
+
+        # 3. Dataloop M2M auth + basic API probe
+        print("🔑 Sanity check: Dataloop (BOT_EMAIL / BOT_PASSWORD / ENV)...")
+        try:
+            from dpk_handler import ensure_dataloop_login
+            ensure_dataloop_login()
+            # Lightweight probe: list one DPK to confirm the session works
+            _ = list(dl.dpks.list().all())[:1]
+            print("  ✅ Dataloop auth OK")
+        except Exception as e:
+            errors.append(f"Dataloop auth: {e}")
+
+        if errors:
+            lines = "\n".join(f"  ❌ {e}" for e in errors)
+            raise ValueError(f"\nSanity check failed — fix these before running:\n{lines}")
+
+        print("\n✅ All credential checks passed.\n")
+
     # =========================================================================
     # Fetch models from NVIDIA (OpenAI endpoint + NGC Catalog for downloadables)
     # =========================================================================
@@ -1184,9 +1251,9 @@ class NIMAgent:
                 entry["manifest_path"] = item["manifest_path"]
             new_models.append(entry)
         
-        # Prepare deprecated models (API deprecated = no longer on OpenAI)
+        # Prepare deprecated models (API + downloadable no longer on NVIDIA)
         deprecated_models = []
-        for d in self.api_deprecated:
+        for d in self.api_deprecated + self.downloadable_deprecated:
             if isinstance(d, dict):
                 dpk_name = d.get("name")
                 display_name = d.get("display_name", dpk_name)
@@ -1475,6 +1542,9 @@ class NIMAgent:
         print(f"  State file:  {state.path}")
         print(f"  Quarantined: {len(state.get_quarantined())}")
         print(f"  Limit:       {limit or 'all'}")
+
+        # Validate all credentials before committing to a long run
+        self.sanity_check()
 
         try:
             # --- Step 1: Fetch + compare (same as run()) ---

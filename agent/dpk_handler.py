@@ -7,7 +7,7 @@ import copy
 import json
 import os
 
-ENV = os.environ.get("ENV", "prod")
+ENV = os.environ.get("ENV", "rc")
 
 def ensure_dataloop_login():
     """Ensure a valid Dataloop session exists, logging in if needed."""

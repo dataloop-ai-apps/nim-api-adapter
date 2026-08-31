@@ -65,10 +65,20 @@ class GitHubClient:
         self.token = token or os.environ.get("GITHUB_TOKEN")
         if not self.token:
             raise ValueError("GitHub token required (set GITHUB_TOKEN or pass token)")
-        
-        self.repo = repo or os.environ.get("GITHUB_REPO", "dataloop-ai/nim-api-adapter")
+
+        # Repo: explicit arg > GITHUB_REPO env > GITHUB_REPOSITORY (set by Actions) > fallback
+        self.repo = (
+            repo
+            or os.environ.get("GITHUB_REPO")
+            or os.environ.get("GITHUB_REPOSITORY", "dataloop-ai-apps/nim-api-adapter")
+        )
         self.base_branch = base_branch
-        
+
+        # GHE support: GITHUB_API_URL is set automatically by GitHub Actions when
+        # running on a GHE instance (e.g. https://githubcsg.cec.delllabs.net/api/v3).
+        # For local runs against GHE, set GITHUB_API_URL in your .env file.
+        self.github_api_url = os.environ.get("GITHUB_API_URL", "").rstrip("/")
+
         # Import PyGithub
         try:
             from github import Github, GithubException, Auth
@@ -77,16 +87,22 @@ class GitHubClient:
             self.Auth = Auth
         except ImportError:
             raise ImportError("PyGithub required: pip install PyGithub")
-        
+
         self._client = None
         self._repo = None
         self._tree_paths: list[str] | None = None
-    
+
     @property
     def client(self):
-        """Lazy-load GitHub client."""
+        """Lazy-load GitHub client (GHE-aware)."""
         if self._client is None:
-            self._client = self.Github(auth=self.Auth.Token(self.token))
+            if self.github_api_url:
+                self._client = self.Github(
+                    base_url=self.github_api_url,
+                    auth=self.Auth.Token(self.token),
+                )
+            else:
+                self._client = self.Github(auth=self.Auth.Token(self.token))
         return self._client
     
     @property
@@ -122,8 +138,8 @@ class GitHubClient:
         type_folders.extend(["llm", "vlm", "embedding", "embeddings", "object_detection", "ocr"])
         type_folders = list(dict.fromkeys(type_folders))  # Remove duplicates, preserve order
         
-        # Search in both models/api/{type} and models/{type} (for backwards compatibility)
-        base_prefixes = ["models/api", "models"]
+        # Search in models/api/{type}, models/downloadable/{type}, and models/{type} (legacy)
+        base_prefixes = ["models/api", "models/downloadable", "models"]
         
         for base_prefix in base_prefixes:
             for type_folder in type_folders:
