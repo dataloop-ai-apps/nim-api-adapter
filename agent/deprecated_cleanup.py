@@ -1,73 +1,38 @@
 """
 Deprecated NIM DPK Cleanup
 
-Three entry points:
+CLI:
+  python deprecated_cleanup.py find  [DPK_NAME ...] [--from-report PATH] [--output CSV] [--env rc|prod]
+  python deprecated_cleanup.py clean [DPK_NAME ...] [--from-report PATH] [--execute] [--output CSV] [--env rc|prod]
 
-  find_deprecated_dpks(dpk_names)
-      Resolve DPK names → live dl.Dpk objects from the marketplace.
-      Returns (found, missing) lists.
-
-  audit(dpk_names)
-      For every deprecated DPK, list every project that has it installed:
-      project name/id, app name/id/creator, and every model name/id/creator
-      linked to that app.  Prints a table and returns the raw data.
-
-  cleanup(dpk_names, dry_run=True)
-      For each DPK (by name), across all accessible projects:
-        1. Delete all models linked to the DPK  (filter by packageId)
-        2. Uninstall all apps linked to the DPK (filter by dpkName)
-        3. Delete the DPK from the marketplace
-      dry_run=True (default) only prints what would happen — safe to run first.
-
-CLI
----
-  python deprecated_cleanup.py audit   [--from-report PATH] [DPK_NAME ...]
-  python deprecated_cleanup.py cleanup [--from-report PATH] [DPK_NAME ...] [--execute]
+Examples:
+  python deprecated_cleanup.py find  --from-report agent/run_data/report_20260827_204809.json
+  python deprecated_cleanup.py clean --from-report agent/run_data/report_20260827_204809.json --execute
 """
 
+import argparse
 import csv
-import datetime
 import json
-import os
-import sys
-import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
 from pathlib import Path
 
 import dtlpy as dl
 from dotenv import load_dotenv
 
-from dpk_handler import ensure_dataloop_login
+logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)s  %(message)s")
+log = logging.getLogger(__name__)
+
+_CSV_FIELDS = ["dpk_name", "dpk_id", "app_name", "app_id", "project", "model_name", "model_id"]
+
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-NIM_GIT_URLS = [
-    "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-    "https://github.com/dataloop-ai-apps/nim-api-adapter",
-]
-
-
-def _all_projects() -> list[dl.Project]:
-    """Return all projects the current auth token can access."""
-    try:
-        return list(dl.projects.list())
-    except Exception as e:
-        print(f"  ⚠️  Could not list projects: {e}")
-        return []
-
-
-def _dpk_names_from_report(report_path: str) -> list[str]:
-    """
-    Extract deprecated DPK names from a run-report JSON
-    (agent/run_data/report_*.json).
-
-    Both api_deprecated and downloadable_deprecated are included.
-    """
-    with open(report_path, encoding="utf-8") as f:
+def _names_from_report(path: str) -> list[str]:
+    """Extract deprecated DPK names from a run-report JSON."""
+    with open(path, encoding="utf-8") as f:
         report = json.load(f)
-
     names = []
     for section in ("api_deprecated", "downloadable_deprecated"):
         for entry in report.get(section) or []:
@@ -77,446 +42,208 @@ def _dpk_names_from_report(report_path: str) -> list[str]:
     return names
 
 
-# ---------------------------------------------------------------------------
-# 1. Find deprecated DPKs in the marketplace
-# ---------------------------------------------------------------------------
-
-def find_deprecated_dpks(dpk_names: list[str]) -> tuple[list[dl.Dpk], list[str]]:
-    """
-    Resolve a list of DPK names to live dl.Dpk objects.
-
-    Returns:
-        (found, missing)  — found is a list of dl.Dpk; missing is DPK names
-        that are no longer in the marketplace (already deleted or never published).
-    """
-    found, missing = [], []
-    for name in dpk_names:
-        try:
-            dpk = dl.dpks.get(dpk_name=name)
-            found.append(dpk)
-        except dl.exceptions.NotFound:
-            missing.append(name)
-        except Exception as e:
-            print(f"  ⚠️  Error fetching DPK '{name}': {e}")
-            missing.append(name)
-    return found, missing
+def _dpk_rows(dpk: dl.Dpk) -> list[dict]:
+    """Flat rows for CSV — one row per model, per app if no models, per DPK if no apps."""
+    rows = []
+    for app in dl.apps.list(filters=dl.Filters(field="dpkName", values=dpk.name, resource="apps")).all():
+        base = {"dpk_name": dpk.name, "dpk_id": dpk.id,
+                "app_name": app.name, "app_id": app.id, "project": app.project.name}
+        models = list(dl.models.list(filters=dl.Filters(field="app.id", values=app.id, resource="models")).all())
+        for model in models:
+            rows.append(base | {"model_name": model.name, "model_id": model.id})
+        if not models:
+            rows.append(base | {"model_name": "", "model_id": ""})
+    if not rows:
+        rows.append({"dpk_name": dpk.name, "dpk_id": dpk.id,
+                     "app_name": "", "app_id": "", "project": "", "model_name": "", "model_id": ""})
+    return rows
 
 
-# ---------------------------------------------------------------------------
-# 2. Audit — list all installed apps and models per project
-# ---------------------------------------------------------------------------
-
-_print_lock = threading.Lock()
-
-
-def _safe_print(msg: str) -> None:
-    with _print_lock:
-        print(msg, flush=True)
-
-
-def _scan_project(project: dl.Project, all_dpk_names: list[str], dpk_by_name: dict) -> list[dict]:
-    """
-    One API call per project: fetch ALL apps from any deprecated DPK in a
-    single IN-filter query, then fetch models per app.
-
-    Returns a flat list of installation dicts:
-      {"dpk_name", "project_id", "project_name",
-       "app_id", "app_name", "app_creator", "models": [...]}
-    """
-    try:
-        app_filters = dl.Filters(resource=dl.FiltersResource.APP)
-        app_filters.add(
-            field="dpkName",
-            values=all_dpk_names,
-            operator=dl.FiltersOperations.IN,
-        )
-        apps = list(project.apps.list(filters=app_filters).all())
-    except Exception as e:
-        _safe_print(f"  ⚠️  Could not list apps in '{project.name}': {e}")
-        return []
-
-    results = []
-    for app in apps:
-        # resolve which DPK this app belongs to
-        app_dpk_name = (
-            getattr(app, "dpk_name", None)
-            or getattr(app, "dpkName", None)
-            or getattr(app, "package_name", None)
-        )
-        # fallback: match by display name against dpk_by_name keys
-        if app_dpk_name not in dpk_by_name:
-            app_dpk_name = next(
-                (n for n in all_dpk_names if n in (app.name or "")), None
-            )
-        if app_dpk_name not in dpk_by_name:
-            continue  # couldn't map → skip
-
-        models_info = []
-        try:
-            model_filters = dl.Filters(resource=dl.FiltersResource.MODEL)
-            model_filters.add(field="app.id", values=app.id)
-            for model in project.models.list(filters=model_filters).all():
-                models_info.append({
-                    "model_id": model.id,
-                    "model_name": model.name,
-                    "model_creator": getattr(model, "creator", "") or "",
-                })
-        except Exception as e:
-            _safe_print(f"  ⚠️  Could not list models for app '{app.name}': {e}")
-
-        results.append({
-            "dpk_name": app_dpk_name,
-            "project_id": project.id,
-            "project_name": project.name,
-            "app_id": app.id,
-            "app_name": app.name,
-            "app_creator": getattr(app, "creator", "") or "",
-            "models": models_info,
-        })
-    return results
-
-
-def audit(dpk_names: list[str], max_workers: int = 20) -> list[dict]:
-    """
-    For every deprecated DPK, find every project that has it installed and
-    list the app(s) and models linked to it.
-
-    Strategy: one IN-filter query per project (not per DPK), parallelised
-    across projects with ThreadPoolExecutor.  Complexity: O(N_projects)
-    instead of O(N_projects × N_dpks).
-
-    Return schema:
-      [{"dpk_name", "dpk_id", "dpk_version",
-        "installations": [{"project_id", "project_name",
-                           "app_id", "app_name", "app_creator",
-                           "models": [{"model_id","model_name","model_creator"}]}]}]
-    """
-    found, missing = find_deprecated_dpks(dpk_names)
-
-    if missing:
-        print(f"\n⚠️  DPKs not found in marketplace (already deleted or never published):")
-        for name in missing:
-            print(f"  - {name}")
-
-    dpk_by_name = {dpk.name: dpk for dpk in found}
-    all_dpk_names = list(dpk_by_name.keys())
-
-    projects = _all_projects()
-    total = len(projects)
-    print(f"\n🔍 Scanning {total} project(s) for {len(found)} deprecated DPK(s)"
-          f"  [workers={max_workers}] ...")
-
-    installations_by_dpk: dict[str, list] = {name: [] for name in all_dpk_names}
-    done_count = 0
-    lock = threading.Lock()
-
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {
-            ex.submit(_scan_project, project, all_dpk_names, dpk_by_name): project.name
-            for project in projects
-        }
-        for future in as_completed(futures):
-            with lock:
-                done_count += 1
-                current = done_count
-            if current % 100 == 0 or current == total:
-                _safe_print(f"  ↳ {current}/{total} projects scanned ...")
-            try:
-                for inst in future.result():
-                    dpk_n = inst.pop("dpk_name")
-                    if dpk_n in installations_by_dpk:
-                        installations_by_dpk[dpk_n].append(inst)
-            except Exception as e:
-                _safe_print(f"  ⚠️  {futures[future]}: {e}")
-
-    audit_data = [
-        {
-            "dpk_name": dpk.name,
-            "dpk_id": dpk.id,
-            "dpk_version": getattr(dpk, "version", "?"),
-            "installations": installations_by_dpk.get(dpk.name, []),
-        }
-        for dpk in found
-    ]
-
-    # --------------- Print report ---------------
-    print("=" * 70)
-    print("DEPRECATED NIM DPK AUDIT REPORT")
-    print("=" * 70)
-
-    total_apps = sum(len(e["installations"]) for e in audit_data)
-    total_models = sum(
-        len(inst["models"])
-        for e in audit_data
-        for inst in e["installations"]
-    )
-    print(f"  DPKs deprecated:   {len(found)}")
-    print(f"  DPKs missing:      {len(missing)}")
-    print(f"  Installed apps:    {total_apps}")
-    print(f"  Linked models:     {total_models}")
-    print()
-
-    for entry in audit_data:
-        installs = entry["installations"]
-        status = f"{len(installs)} installation(s)" if installs else "not installed anywhere"
-        print(f"📦 {entry['dpk_name']}  (id={entry['dpk_id']}, v={entry['dpk_version']})  → {status}")
-
-        for inst in installs:
-            print(f"  Project : {inst['project_name']}  (id={inst['project_id']})")
-            print(f"  App     : {inst['app_name']}  (id={inst['app_id']}, creator={inst['app_creator']})")
-            if inst["models"]:
-                print(f"  Models  :")
-                for m in inst["models"]:
-                    print(f"    - {m['model_name']}  (id={m['model_id']}, creator={m['model_creator']})")
-            else:
-                print(f"  Models  : (none)")
-            print()
-
-    print("=" * 70)
-    return audit_data
-
-
-# ---------------------------------------------------------------------------
-# CSV export
-# ---------------------------------------------------------------------------
-
-_CSV_FIELDS = [
-    "dpk_name", "dpk_id", "dpk_version",
-    "project_name", "project_id",
-    "app_name", "app_id", "app_creator",
-    "model_name", "model_id", "model_creator",
-]
-
-
-def write_audit_csv(audit_data: list[dict], path: str) -> None:
-    """
-    Write audit data to a CSV file, one row per model.
-    Apps with no models produce one row with empty model columns.
-    DPKs with no installations produce one row with all installation columns empty.
-    """
+def write_csv(rows: list[dict], path: str):
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=_CSV_FIELDS)
         writer.writeheader()
-        for entry in audit_data:
-            base = {
-                "dpk_name": entry["dpk_name"],
-                "dpk_id": entry["dpk_id"],
-                "dpk_version": entry["dpk_version"],
-            }
-            if not entry["installations"]:
-                writer.writerow({**base, "project_name": "", "project_id": "",
-                                 "app_name": "", "app_id": "", "app_creator": "",
-                                 "model_name": "", "model_id": "", "model_creator": ""})
-                continue
-            for inst in entry["installations"]:
-                inst_base = {**base,
-                             "project_name": inst["project_name"],
-                             "project_id": inst["project_id"],
-                             "app_name": inst["app_name"],
-                             "app_id": inst["app_id"],
-                             "app_creator": inst["app_creator"] or ""}
-                if not inst["models"]:
-                    writer.writerow({**inst_base,
-                                     "model_name": "", "model_id": "", "model_creator": ""})
-                else:
-                    for m in inst["models"]:
-                        writer.writerow({**inst_base,
-                                         "model_name": m["model_name"],
-                                         "model_id": m["model_id"],
-                                         "model_creator": m["model_creator"] or ""})
-    print(f"\n💾 Audit saved → {path}")
+        writer.writerows(rows)
+    log.info("Saved → %s", path)
 
 
 # ---------------------------------------------------------------------------
-# 3. Cleanup — delete models → uninstall apps → delete DPK
+# find
 # ---------------------------------------------------------------------------
 
-def cleanup(dpk_names: list[str], dry_run: bool = True) -> dict:
-    """
-    For each DPK name, across all accessible projects:
-      1. Delete all models linked to the DPK  (packageId filter)
-      2. Uninstall all apps linked to the DPK  (dpkName filter)
-      3. Delete the DPK from the marketplace
+def find_dpk(dpk_name: str) -> dl.Dpk | None:
+    try:
+        dpk = dl.dpks.get(dpk_name=dpk_name)
+    except dl.exceptions.NotFound:
+        log.warning("DPK not found: %s", dpk_name)
+        return None
 
-    Args:
-        dpk_names: List of DPK names to clean up.
-        dry_run:   If True (default), only print what would happen — no deletions.
+    print(f"\nDPK: {dpk.name}  id={dpk.id}")
 
-    Returns:
-        Summary dict with counts per DPK.
-    """
-    if dry_run:
-        print("\n🔒 DRY RUN — no changes will be made. Pass dry_run=False to execute.\n")
-    else:
-        print("\n🚨 LIVE RUN — changes will be applied.\n")
+    apps = list(dl.apps.list(filters=dl.Filters(field="dpkName", values=dpk.name, resource="apps")).all())
+    print(f"\n--- Apps ({len(apps)}) ---")
+    for app in apps:
+        print(f"  app: {app.name}  id={app.id}  project={app.project.name}")
+        models = list(dl.models.list(filters=dl.Filters(field="app.id", values=app.id, resource="models")).all())
+        print(f"    models ({len(models)}):")
+        for model in models:
+            print(f"      model: {model.name}  id={model.id}  creator={model.creator}  project={model.project.name}")
 
-    found, missing = find_deprecated_dpks(dpk_names)
+    revisions = list(dpk.revisions.all())
+    print(f"\n--- Revisions ({len(revisions)}) ---")
+    for rev in revisions:
+        print(f"  revision: {rev.version}  id={rev.id}")
 
-    if missing:
-        print(f"ℹ️  Already gone from marketplace (skipping):")
-        for name in missing:
-            print(f"  - {name}")
-        print()
+    return dpk
 
-    projects = _all_projects()
-    summary = {}
 
-    for dpk in found:
-        print(f"\n{'='*60}")
-        print(f"DPK: {dpk.name}  (id={dpk.id})")
-        print(f"{'='*60}")
+# ---------------------------------------------------------------------------
+# clean
+# ---------------------------------------------------------------------------
 
-        counts = {"models_deleted": 0, "apps_uninstalled": 0, "dpk_deleted": False, "errors": []}
+def clean_dpk(dpk_name: str, dry_run: bool = True) -> dict:
+    counts = {"models_deleted": 0, "apps_uninstalled": 0, "revisions_deleted": 0, "errors": []}
 
-        for project in projects:
-            # -- Step 1: delete models linked to this DPK (by packageId) --
-            try:
-                model_filters = dl.Filters(resource=dl.FiltersResource.MODEL)
-                model_filters.add(field="packageId", values=dpk.id)
-                models = list(project.models.list(filters=model_filters).all())
-                for model in models:
-                    print(f"  🗑️  Model: {model.name}  (id={model.id}, project={project.name})")
-                    if not dry_run:
-                        try:
-                            model.delete()
-                            counts["models_deleted"] += 1
-                        except Exception as e:
-                            err = f"Failed to delete model {model.name}: {e}"
-                            print(f"      ⚠️  {err}")
-                            counts["errors"].append(err)
-                    else:
-                        counts["models_deleted"] += 1
-            except Exception as e:
-                err = f"Could not list models in project '{project.name}': {e}"
-                print(f"  ⚠️  {err}")
-                counts["errors"].append(err)
+    try:
+        dpk = dl.dpks.get(dpk_name=dpk_name)
+    except dl.exceptions.NotFound:
+        log.warning("DPK not found (already deleted?): %s", dpk_name)
+        return counts
 
-            # -- Step 2: uninstall apps linked to this DPK (by dpkName) --
-            try:
-                app_filters = dl.Filters(resource=dl.FiltersResource.APP)
-                app_filters.add(field="dpkName", values=dpk.name)
-                apps = list(project.apps.list(filters=app_filters).all())
-                for app in apps:
-                    print(f"  🗑️  App: {app.name}  (id={app.id}, project={project.name}, creator={getattr(app, 'creator', '?')})")
-                    if not dry_run:
-                        try:
-                            app.uninstall()
-                            counts["apps_uninstalled"] += 1
-                        except Exception as e:
-                            err_str = str(e).lower()
-                            if "404" in err_str or "not found" in err_str:
-                                print(f"      ℹ️  Already uninstalled")
-                                counts["apps_uninstalled"] += 1
-                            else:
-                                err = f"Failed to uninstall app {app.name}: {e}"
-                                print(f"      ⚠️  {err}")
-                                counts["errors"].append(err)
-                    else:
-                        counts["apps_uninstalled"] += 1
-            except Exception as e:
-                err = f"Could not list apps in project '{project.name}': {e}"
-                print(f"  ⚠️  {err}")
-                counts["errors"].append(err)
+    print(f"\n{'='*60}")
+    print(f"DPK: {dpk.name}  id={dpk.id}")
+    print(f"{'='*60}")
 
-        # -- Step 3: delete the DPK itself --
-        print(f"  🗑️  DPK: {dpk.name}")
+    for app in dl.apps.list(filters=dl.Filters(field="dpkName", values=dpk.name, resource="apps")).all():
+        print(f"  App: {app.name}  project={app.project.name}")
+
+        for model in dl.models.list(filters=dl.Filters(field="app.id", values=app.id, resource="models")).all():
+            print(f"    Deleting model: {model.name}  id={model.id}")
+            if not dry_run:
+                try:
+                    model.delete()
+                    counts["models_deleted"] += 1
+                except Exception as e:
+                    log.error("Failed to delete model %s: %s", model.name, e)
+                    counts["errors"].append(f"model {model.name}: {e}")
+            else:
+                counts["models_deleted"] += 1
+
+        print(f"    Uninstalling app: {app.name}")
         if not dry_run:
             try:
-                dpk.delete()
-                counts["dpk_deleted"] = True
-                print(f"      ✅ Deleted")
+                app.uninstall()
+                counts["apps_uninstalled"] += 1
             except Exception as e:
-                err = f"Failed to delete DPK {dpk.name}: {e}"
-                print(f"      ⚠️  {err}")
-                counts["errors"].append(err)
+                err_str = str(e).lower()
+                if "404" in err_str or "not found" in err_str:
+                    log.info("App already uninstalled: %s", app.name)
+                    counts["apps_uninstalled"] += 1
+                else:
+                    log.error("Failed to uninstall app %s: %s", app.name, e)
+                    counts["errors"].append(f"app {app.name}: {e}")
         else:
-            counts["dpk_deleted"] = True  # would be deleted
+            counts["apps_uninstalled"] += 1
 
-        summary[dpk.name] = counts
+    revisions = list(dpk.revisions.all())
+    print(f"  Deleting {len(revisions)} revision(s)...")
+    for rev in revisions:
+        if not dry_run:
+            try:
+                rev.delete()
+                counts["revisions_deleted"] += 1
+            except Exception as e:
+                log.error("Failed to delete revision %s: %s", rev.version, e)
+                counts["errors"].append(f"revision {rev.version}: {e}")
+        else:
+            counts["revisions_deleted"] += 1
 
-    # --------------- Summary ---------------
-    print(f"\n{'='*60}")
-    label = "DRY RUN SUMMARY" if dry_run else "CLEANUP SUMMARY"
-    print(label)
-    print(f"{'='*60}")
-    total_models = sum(v["models_deleted"] for v in summary.values())
-    total_apps = sum(v["apps_uninstalled"] for v in summary.values())
-    total_dpks = sum(1 for v in summary.values() if v["dpk_deleted"])
-    total_errors = sum(len(v["errors"]) for v in summary.values())
-    action = "Would delete" if dry_run else "Deleted"
-    print(f"  {action}: {total_models} model(s), {total_apps} app(s), {total_dpks} DPK(s)")
-    if total_errors:
-        print(f"  Errors: {total_errors}")
-    if dry_run:
-        print(f"\n  Re-run with --execute (or dry_run=False) to apply.")
-    print(f"{'='*60}")
-
-    return summary
+    return counts
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
-    import argparse
-
+def main():
     load_dotenv()
 
     parser = argparse.ArgumentParser(
-        description="Audit and clean up deprecated NIM DPKs from the Dataloop marketplace.",
+        description="Find and clean up deprecated NIM DPKs.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="\n".join([
+            "Examples:",
+            "  python deprecated_cleanup.py find  --from-report agent/run_data/report_*.json",
+            "  python deprecated_cleanup.py clean --from-report agent/run_data/report_*.json --execute",
+        ]),
     )
+    parser.add_argument("--env", choices=["rc", "prod"], default="rc")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    # -- audit --
-    p_audit = sub.add_parser("audit", help="List all installations of deprecated DPKs")
-    p_audit.add_argument("dpk_names", nargs="*", help="DPK names to audit")
-    p_audit.add_argument(
-        "--from-report", metavar="PATH",
-        help="Load deprecated DPK names from a run-report JSON (agent/run_data/report_*.json)",
-    )
-    p_audit.add_argument(
-        "--output", metavar="CSV_PATH",
-        help="CSV output path (default: audit_<timestamp>.csv next to the script)",
-    )
-    p_audit.add_argument(
-        "--workers", type=int, default=20,
-        help="Parallel workers for project scanning (default: 20)",
-    )
+    p_find = sub.add_parser("find", help="List apps, models, and revisions for deprecated DPKs")
+    p_find.add_argument("dpk_names", nargs="*")
+    p_find.add_argument("--from-report", metavar="PATH", help="Load DPK names from a run-report JSON")
+    p_find.add_argument("--output", metavar="CSV_PATH", help="Save results to CSV")
 
-    # -- cleanup --
-    p_clean = sub.add_parser("cleanup", help="Delete models, uninstall apps, delete DPKs")
-    p_clean.add_argument("dpk_names", nargs="*", help="DPK names to clean up")
-    p_clean.add_argument(
-        "--from-report", metavar="PATH",
-        help="Load deprecated DPK names from a run-report JSON",
-    )
-    p_clean.add_argument(
-        "--execute", action="store_true",
-        help="Actually delete/uninstall (default is dry-run)",
-    )
+    p_clean = sub.add_parser("clean", help="Delete models, uninstall apps, delete revisions")
+    p_clean.add_argument("dpk_names", nargs="*")
+    p_clean.add_argument("--from-report", metavar="PATH", help="Load DPK names from a run-report JSON")
+    p_clean.add_argument("--execute", action="store_true", help="Actually delete (default is dry-run)")
+    p_clean.add_argument("--output", metavar="CSV_PATH", help="Save cleanup report to CSV")
 
     args = parser.parse_args()
 
-    # Collect DPK names
     names: list[str] = list(args.dpk_names)
     if args.from_report:
-        names.extend(_dpk_names_from_report(args.from_report))
+        names.extend(_names_from_report(args.from_report))
+    names = list(dict.fromkeys(names))
     if not names:
-        print("Error: provide DPK names directly or via --from-report")
-        sys.exit(1)
-    names = list(dict.fromkeys(names))  # deduplicate, preserve order
+        parser.error("provide DPK names directly or via --from-report")
 
-    print(f"\nLogging in to Dataloop...")
-    ensure_dataloop_login()
+    dl.setenv(args.env)
+    if dl.token_expired():
+        dl.login()
 
-    if args.command == "audit":
-        data = audit(names, max_workers=args.workers)
-        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        csv_path = args.output if args.output else str(
-            Path(__file__).parent / f"audit_{ts}.csv"
-        )
-        write_audit_csv(data, csv_path)
+    if args.command == "find":
+        rows = []
+        for name in names:
+            dpk = find_dpk(name)
+            if dpk and args.output:
+                rows.extend(_dpk_rows(dpk))
+        if args.output:
+            write_csv(rows, args.output)
 
-    elif args.command == "cleanup":
-        cleanup(names, dry_run=not args.execute)
+    elif args.command == "clean":
+        dry_run = not args.execute
+        if dry_run:
+            print("\n🔒 DRY RUN — no changes. Pass --execute to apply.\n")
+        else:
+            print("\n🚨 LIVE RUN — changes will be applied.\n")
+
+        rows, total = [], {"models_deleted": 0, "apps_uninstalled": 0, "revisions_deleted": 0, "errors": []}
+        for name in names:
+            if args.output:
+                try:
+                    rows.extend(_dpk_rows(dl.dpks.get(dpk_name=name)))
+                except dl.exceptions.NotFound:
+                    pass
+            counts = clean_dpk(name, dry_run=dry_run)
+            for key in ("models_deleted", "apps_uninstalled", "revisions_deleted"):
+                total[key] += counts[key]
+            total["errors"].extend(counts["errors"])
+
+        print(f"\n{'='*60}")
+        action = "Would delete" if dry_run else "Deleted"
+        print(f"{action}: {total['models_deleted']} model(s), {total['apps_uninstalled']} app(s), {total['revisions_deleted']} revision(s)")
+        if total["errors"]:
+            log.warning("%d error(s) — see above", len(total["errors"]))
+        if dry_run:
+            print("Re-run with --execute to apply.")
+        print(f"{'='*60}")
+
+        if args.output and rows:
+            write_csv(rows, args.output)
+
+
+if __name__ == "__main__":
+    main()
