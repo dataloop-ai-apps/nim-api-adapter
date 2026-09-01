@@ -1381,7 +1381,9 @@ class Tester:
             logger.warning("FAILED: %s", e)
         finally:
             if cleanup and app is not None:
-                self._cleanup_dpk_and_app(project, app=app, dpk=dpk)
+                # Pass dpk=None — this is a public marketplace DPK, not one we
+                # published, so we must not attempt to delete it.
+                self._cleanup_dpk_and_app(project, app=app, dpk=None)
         return entry
 
     def _build_validation_summary(
@@ -1618,5 +1620,3 @@ if __name__ == "__main__":
             print(f"   error={result['error'][:120]}")
 
     print("\n" + "=" * 60)
-
-dl.apps

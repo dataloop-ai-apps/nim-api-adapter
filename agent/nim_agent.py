@@ -1804,6 +1804,29 @@ if __name__ == "__main__":
     # --- report ---
     sub.add_parser("report", help="Fetch and print NIM availability report")
 
+    # --- validate-release ---
+    p_vr = sub.add_parser(
+        "validate-release",
+        help="Post-release sanity: install + predict a random sample of public NIM DPKs",
+    )
+    p_vr.add_argument(
+        "--percentage",
+        type=float,
+        default=0.10,
+        help="Fraction of each model-type group to test (default: 0.10 = 10%%)",
+    )
+    p_vr.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Uninstall apps and delete models after each test (default: leave running)",
+    )
+    p_vr.add_argument(
+        "--max-workers",
+        type=int,
+        default=20,
+        help="Max parallel threads (default: 20)",
+    )
+
     args = parser.parse_args()
 
     # ---- Dispatch ----
@@ -1975,6 +1998,15 @@ if __name__ == "__main__":
 
     elif args.command == "report":
         fetch_report()
+
+    elif args.command == "validate-release":
+        from nim_tester import Tester
+        tester = Tester()
+        tester.post_release_platform_test(
+            percentage=args.percentage,
+            cleanup=args.cleanup,
+            max_workers=args.max_workers,
+        )
 
     else:
         parser.print_help()

@@ -149,16 +149,50 @@ After `run-agentic` completes, artifacts land in `agent/agent/run_data/`:
 
 ---
 
+## 9. Post-release platform sanity test
+
+Installs a random sample of public NIM DPKs as apps, deploys the model, runs a predict/embed call, and reports pass/fail.
+
+```powershell
+# Default: test 10% of each model type (LLM / VLM / Embedding), leave resources running
+python agent/nim_agent.py validate-release
+
+# Custom percentage (e.g. 25%)
+python agent/nim_agent.py validate-release --percentage 0.25
+
+# Auto-cleanup after each test (uninstall apps + delete models)
+python agent/nim_agent.py validate-release --percentage 0.10 --cleanup
+```
+
+How it works:
+1. Lists all public NIM DPKs published from this repo (filtered by `codebase.gitUrl`)
+2. Groups them by type: `llm`, `vlm`, `embedding`
+3. Randomly samples `ceil(count × percentage)` from each group (minimum 1)
+4. For each sampled DPK: installs as app → deploys model → runs predict/embed → records pass/fail
+5. Prints a summary and writes `agent/agent/run_data/validate_release_<TIMESTAMP>.json`
+
+Required env vars (same as main agent run):
+```
+NGC_API_KEY
+DATALOOP_TEST_PROJECT   (defaults to "NVIDIA-AGENT-PROJECT")
+DATALOOP_NGC_INTEGRATION_ID
+BOT_EMAIL / BOT_PASSWORD / ENV
+```
+
+---
+
 ## Typical release workflow
 
 ```
-1. Reset state (if needed)       del agent\agent\run_data\run_state.json
-2. Verify credentials             .env is populated + GitHub SSO authorized
-3. Full run                       python agent/nim_agent.py run-agentic --anomaly-threshold 0.9
-4. Review the PR on GitHub
-5. Merge the PR
-6. Audit deprecated DPKs          python agent/deprecated_cleanup.py audit --from-report ...
-7. Review the CSV
-8. Dry-run cleanup                python agent/deprecated_cleanup.py cleanup --from-report ...
-9. Execute cleanup                python agent/deprecated_cleanup.py cleanup --from-report ... --execute
+1.  Reset state (if needed)       del agent\agent\run_data\run_state.json
+2.  Verify credentials             .env is populated + GitHub SSO authorized
+3.  Full run                       python agent/nim_agent.py run-agentic --anomaly-threshold 0.9
+4.  Review the PR on GitHub
+5.  Merge the PR
+6.  Post-release sanity            python agent/nim_agent.py validate-release --percentage 0.10
+7.  Review validate_release_*.json in agent/agent/run_data/
+8.  Audit deprecated DPKs          python agent/deprecated_cleanup.py audit --from-report ...
+9.  Review the CSV
+10. Dry-run cleanup                python agent/deprecated_cleanup.py cleanup --from-report ...
+11. Execute cleanup                python agent/deprecated_cleanup.py cleanup --from-report ... --execute
 ```
