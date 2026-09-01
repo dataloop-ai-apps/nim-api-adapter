@@ -111,7 +111,7 @@
         "description": "NVIDIA NIM adapter for nvidia/llama-nemotron-embed-vl-1b-v2",
         "configuration": {
           "nim_model_name": "nvidia/llama-nemotron-embed-vl-1b-v2",
-          "embeddings_size": 1024,
+          "embeddings_size": 2048,
           "hyde_model_name": "",
           "base_url": "https://integrate.api.nvidia.com/v1"
         },
