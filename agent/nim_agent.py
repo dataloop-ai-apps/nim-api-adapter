@@ -1999,6 +1999,17 @@ if __name__ == "__main__":
     elif args.command == "report":
         fetch_report()
 
+    elif args.command == "build-downloadables":
+        agent = NIMAgent(tester_auto_init=False)
+        agent.sanity_check()
+        agent.fetch_models()
+        agent.fetch_dataloop_dpks()
+        agent.compare()
+        agent.onboard_downloadable_models(limit=args.limit)
+        if not args.no_pr and agent.successful_manifests:
+            agent.open_new_and_deprecated_pr()
+        agent.print_report()
+
     elif args.command == "validate-release":
         from nim_tester import Tester
         tester = Tester()
