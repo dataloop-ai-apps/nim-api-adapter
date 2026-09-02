@@ -1,9 +1,9 @@
 {
-  "name": "university-at-buffalo-cached",
-  "displayName": "university-at-buffalo-cached",
+  "name": "nemotron-page-elements-v3",
+  "displayName": "nemotron-page-elements-v3",
   "version": "0.3.63",
   "scope": "public",
-  "description": "CACHED, a chart element detection model from University at Buffalo, served by NIM API. License: MIT",
+  "description": "Nemotron Page Elements v3 - object detection model for detecting text, charts, tables, and infographics on document pages, served by NIM API. License: NVIDIA Open Model License Agreement",
   "attributes": {
     "Hub": [
       "Nvidia",
@@ -19,7 +19,7 @@
     "Media Type": [
       "Image"
     ],
-    "License": "MIT"
+    "License": "NVIDIA Open Model License Agreement"
   },
   "codebase": {
     "type": "git",
@@ -48,7 +48,7 @@
         "entryPoint": "models/api/object_detection/base.py",
         "className": "ModelAdapter",
         "computeConfig": "nim-api-deploy",
-        "description": "NIM API Adapter for CACHED model detecting chart elements.",
+        "description": "NIM API Adapter for Nemotron Page Elements v3 model detecting document elements.",
         "integrations": [
           "dl-ngc-api-key"
         ],
@@ -82,21 +82,21 @@
             ],
             "displayName": "Predict Items",
             "displayIcon": "",
-            "description": "Predict items using CACHED model via NIM API."
+            "description": "Predict items using Nemotron Page Elements v3 model via NIM API."
           }
         ]
       }
     ],
     "models": [
       {
-        "name": "university-at-buffalo-cached",
+        "name": "nemotron-page-elements-v3",
         "moduleName": "nim-api-module",
         "scope": "project",
         "status": "pre-trained",
         "configuration": {
-          "nim_model_name": "cv/university-at-buffalo/cached"
+          "nim_model_name": "cv/nvidia/nemotron-page-elements-v3"
         },
-        "description": "CACHED model for chart element detection, served by NIM API."
+        "description": "Nemotron Page Elements v3 model for document element detection, served by NIM API."
       }
     ]
   }

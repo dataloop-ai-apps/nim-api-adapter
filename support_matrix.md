@@ -137,5 +137,6 @@ This document lists all supported NVIDIA NIM models in this adapter. The "Run An
 | Model | Run Anywhere |
 |-------|:------------:|
 | `cv/baidu/paddleocr` | :white_check_mark: |
-| `cv/nvidia/nv-yolox-page-elements-v1` | :x: |
-| `cv/university-at-buffalo/cached` | :x: |
+| `cv/nvidia/nemotron-graphic-elements-v1` | :x: |
+| `cv/nvidia/nemotron-page-elements-v3` | :x: |
+
