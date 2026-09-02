@@ -1,7 +1,7 @@
 {
   "name": "nemotron-graphic-elements-v1",
   "displayName": "nemotron-graphic-elements-v1",
-  "version": "0.3.63",
+  "version": "0.3.64",
   "scope": "public",
   "description": "Nemotron Graphic Elements v1 - YOLOX-based object detection model for identifying and extracting key elements from charts and graphs, served by NIM API. License: NVIDIA Evaluation License Agreement",
   "attributes": {
@@ -24,7 +24,7 @@
   "codebase": {
     "type": "git",
     "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
-    "gitTag": "0.3.63"
+    "gitTag": "0.3.64"
   },
   "components": {
     "computeConfigs": [
