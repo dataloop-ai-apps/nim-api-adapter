@@ -13,8 +13,8 @@ This document lists all supported NVIDIA NIM models in this adapter. The "Run An
 | Embeddings | 8 | 3 |
 | LLM | 80 | 20 |
 | VLM | 5 | 3 |
-| Object Detection | 5 | 1 |
-| **Total** | **98** | **27** |
+| Object Detection | 3 | 1 |
+| **Total** | **96** | **27** |
 
 ---
 
@@ -139,5 +139,4 @@ This document lists all supported NVIDIA NIM models in this adapter. The "Run An
 | `cv/baidu/paddleocr` | :white_check_mark: |
 | `cv/nvidia/nemotron-graphic-elements-v1` | :x: |
 | `cv/nvidia/nemotron-page-elements-v3` | :x: |
-| `cv/nvidia/nv-yolox-page-elements-v1` | :x: |
-| `cv/university-at-buffalo/cached` | :x: |
+

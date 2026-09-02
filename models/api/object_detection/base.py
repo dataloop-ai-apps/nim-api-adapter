@@ -101,44 +101,16 @@ class ModelAdapter(dl.BaseModelAdapter):
                                                'confidence': round(confidence, 3)})
         return collection
     
-    def extract_annotations_cached(self, item, image_b64, collection):
-        payload = {
-                    "messages": [
-                        {
-                        "content": [{
-                            "type": "image_url",
-                            "image_url": {
-                            "url": f"data:image/png;base64,{image_b64}"
-                            }
-                        }]
-                        }
-                    ]
-                    }
-        
-        response = self.call_model(image_b64, payload)
-        detections = response.get('data', [])[0].get('content', {})
-        # upload to metadata
-        if 'user' not in item.metadata:
-            item.metadata['user'] = {}
-        item.metadata['user']['cached_response'] = detections
-        item.update(True)
-        
-        return collection
-    
     def predict(self, batch, **kwargs):
         batch_annotations = list()
         for item, img, image_b64 in batch:
             collection = dl.AnnotationCollection()
-            if 'nv-yolox-page-elements-v1' in self.model_entity.name:
-                collection = self.extract_annotations_yolox(img, image_b64, collection)
-            elif 'nemotron-page-elements-v3' in self.model_entity.name:
+            if 'nemotron-page-elements-v3' in self.model_entity.name:
                 collection = self.extract_annotations_yolox(img, image_b64, collection)
             elif 'nemotron-graphic-elements-v1' in self.model_entity.name:
                 collection = self.extract_annotations_yolox(img, image_b64, collection)
             elif 'baidu-paddleocr' in self.model_entity.name:
                 collection = self.extract_annotations_paddleocr(img, image_b64, collection)
-            elif 'university-at-buffalo-cached' in self.model_entity.name:
-                collection = self.extract_annotations_cached(item, image_b64, collection)
             else:
                 raise ValueError(f"Model {self.model_entity.name} not supported")
             
