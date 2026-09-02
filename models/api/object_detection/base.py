@@ -131,6 +131,10 @@ class ModelAdapter(dl.BaseModelAdapter):
             collection = dl.AnnotationCollection()
             if 'nv-yolox-page-elements-v1' in self.model_entity.name:
                 collection = self.extract_annotations_yolox(img, image_b64, collection)
+            elif 'nemotron-page-elements-v3' in self.model_entity.name:
+                collection = self.extract_annotations_yolox(img, image_b64, collection)
+            elif 'nemotron-graphic-elements-v1' in self.model_entity.name:
+                collection = self.extract_annotations_yolox(img, image_b64, collection)
             elif 'baidu-paddleocr' in self.model_entity.name:
                 collection = self.extract_annotations_paddleocr(img, image_b64, collection)
             elif 'university-at-buffalo-cached' in self.model_entity.name:
