@@ -60,17 +60,24 @@ def _names_from_cfg(cfg_path: str = None) -> list[str]:
 
 
 def _fetch_repo_dpks_from_dataloop() -> list[dl.Dpk]:
-    """Fetch all DPKs published from this repo (filtered by git URL)."""
-    filters = dl.Filters(resource=dl.FiltersResource.DPK)
-    filters.add(
-        field="codebase.gitUrl",
-        values=[
-            "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
-            "https://github.com/dataloop-ai-apps/nim-api-adapter",
-        ],
-        operator=dl.FiltersOperations.IN,
-    )
-    return list(dl.dpks.list(filters=filters).all())
+    """Fetch all DPKs published from this repo (filtered by git URL).
+
+    The DPK query API does not support $in on nested fields, so we issue
+    two separate eq queries (with/without trailing .git) and deduplicate.
+    """
+    seen_ids: set[str] = set()
+    all_dpks: list[dl.Dpk] = []
+    for git_url in [
+        "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
+        "https://github.com/dataloop-ai-apps/nim-api-adapter",
+    ]:
+        filters = dl.Filters(resource=dl.FiltersResource.DPK)
+        filters.add(field="codebase.gitUrl", values=git_url)
+        for dpk in dl.dpks.list(filters=filters).all():
+            if dpk.id not in seen_ids:
+                seen_ids.add(dpk.id)
+                all_dpks.append(dpk)
+    return all_dpks
 
 
 def _names_from_report(path: str) -> list[str]:
