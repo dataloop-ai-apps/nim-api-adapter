@@ -2,12 +2,14 @@
 Deprecated NIM DPK Cleanup
 
 CLI:
-  python deprecated_cleanup.py find  [DPK_NAME ...] [--from-report PATH] [--output CSV] [--env rc|prod]
-  python deprecated_cleanup.py clean [DPK_NAME ...] [--from-report PATH] [--execute] [--output CSV] [--env rc|prod]
+  python deprecated_cleanup.py find      [DPK_NAME ...] [--from-report PATH] [--output CSV] [--env rc|prod]
+  python deprecated_cleanup.py clean     [DPK_NAME ...] [--from-report PATH] [--execute] [--output CSV] [--env rc|prod]
+  python deprecated_cleanup.py from-repo [--cfg PATH] [--output CSV] [--env rc|prod]
 
 Examples:
   python deprecated_cleanup.py find  --from-report agent/run_data/report_20260827_204809.json
   python deprecated_cleanup.py clean --from-report agent/run_data/report_20260827_204809.json --execute
+  python deprecated_cleanup.py from-repo --env prod --output deprecated_prod.csv
 """
 
 import argparse
@@ -28,6 +30,48 @@ _CSV_FIELDS = ["dpk_name", "dpk_id", "app_name", "app_id", "project", "model_nam
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _repo_root() -> Path:
+    """Return the repository root (parent of agent/)."""
+    return Path(__file__).resolve().parent.parent
+
+
+def _names_from_cfg(cfg_path: str = None) -> list[str]:
+    """
+    Read DPK names from .dataloop.cfg manifests list.
+    Each manifest path points to a dataloop.json whose 'name' field is the DPK name.
+    """
+    if cfg_path is None:
+        cfg_path = _repo_root() / ".dataloop.cfg"
+    with open(cfg_path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    names = []
+    for rel_path in cfg.get("manifests", []):
+        manifest_file = _repo_root() / rel_path
+        if not manifest_file.exists():
+            log.warning("Manifest not found, skipping: %s", rel_path)
+            continue
+        with open(manifest_file, encoding="utf-8") as mf:
+            manifest = json.load(mf)
+        name = manifest.get("name")
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+def _fetch_repo_dpks_from_dataloop() -> list[dl.Dpk]:
+    """Fetch all DPKs published from this repo (filtered by git URL)."""
+    filters = dl.Filters(resource=dl.FiltersResource.DPK)
+    filters.add(
+        field="codebase.gitUrl",
+        values=[
+            "https://github.com/dataloop-ai-apps/nim-api-adapter.git",
+            "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        ],
+        operator=dl.FiltersOperations.IN,
+    )
+    return list(dl.dpks.list(filters=filters).all())
+
 
 def _names_from_report(path: str) -> list[str]:
     """Extract deprecated DPK names from a run-report JSON."""
@@ -191,7 +235,50 @@ def main():
     p_clean.add_argument("--execute", action="store_true", help="Actually delete (default is dry-run)")
     p_clean.add_argument("--output", metavar="CSV_PATH", help="Save cleanup report to CSV")
 
+    p_fr = sub.add_parser(
+        "from-repo",
+        help="Compare .dataloop.cfg DPK names against Dataloop; list deprecated with all apps/models",
+    )
+    p_fr.add_argument("--cfg", metavar="PATH", default=None, help="Path to .dataloop.cfg (default: repo root)")
+    p_fr.add_argument("--output", metavar="CSV_PATH", help="Save results to CSV")
+
     args = parser.parse_args()
+
+    dl.setenv(args.env)
+    if dl.token_expired():
+        dl.login()
+
+    # --- from-repo (early exit — doesn't need dpk_names) ---
+    if args.command == "from-repo":
+        repo_names = set(_names_from_cfg(args.cfg))
+        log.info("Repo DPK names from .dataloop.cfg: %d", len(repo_names))
+
+        all_dpks = _fetch_repo_dpks_from_dataloop()
+        log.info("DPKs in Dataloop from this repo: %d", len(all_dpks))
+
+        deprecated = [d for d in all_dpks if d.name not in repo_names]
+        current    = [d for d in all_dpks if d.name in repo_names]
+
+        print(f"\nTotal DPKs in Dataloop (from this repo): {len(all_dpks)}")
+        print(f"  Current  (in .dataloop.cfg): {len(current)}")
+        print(f"  Deprecated (not in .dataloop.cfg): {len(deprecated)}")
+
+        rows = []
+        for dpk in deprecated:
+            dpk_rows = _dpk_rows(dpk)
+            for r in dpk_rows:
+                print(f"  [DEPRECATED] dpk={r['dpk_name']}  app={r['app_name'] or '-'}  "
+                      f"project={r['project'] or '-'}  model={r['model_name'] or '-'}")
+            rows.extend(dpk_rows)
+
+        if not deprecated:
+            print("  Nothing deprecated — Dataloop is in sync with the repo.")
+
+        if args.output and rows:
+            write_csv(rows, args.output)
+        elif args.output:
+            log.info("No deprecated DPKs to write to CSV.")
+        return
 
     names: list[str] = list(args.dpk_names)
     if args.from_report:
@@ -199,10 +286,6 @@ def main():
     names = list(dict.fromkeys(names))
     if not names:
         parser.error("provide DPK names directly or via --from-report")
-
-    dl.setenv(args.env)
-    if dl.token_expired():
-        dl.login()
 
     if args.command == "find":
         rows = []
