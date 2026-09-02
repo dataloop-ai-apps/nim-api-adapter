@@ -690,19 +690,20 @@ class NIMAgent:
         print("📡 Fetching NGC Catalog (all types, single pass)...")
         all_catalog = get_all_catalog_models(skip_licenses=skip_licenses)
 
-        # Build catalog IDs for downloadable intersection
-        catalog_dl_ids = {
-            f"{m['publisher'].lower().replace(' ', '-')}/{m.get('display_name') or m['name']}"
-            for m in all_catalog if m.get("nim_type") == NIM_TYPE_DOWNLOADABLE
-        }
-        print(f"  Catalog total: {len(all_catalog)} (downloadable: {len(catalog_dl_ids)})")
+        # For downloadable intersection: use raw NGC downloadable catalog (no dedup with api_only).
+        # get_all_catalog_models() deduplicates and reclassifies any model appearing in both
+        # api_only + downloadable as api_only -- which would incorrectly exclude VLMs / safety
+        # models that are also run-anywhere. Fetching the raw downloadable set separately avoids
+        # that silent filtering.
+        print("📡 Fetching NGC Catalog (downloadable only, for intersection)...")
+        catalog_dl_raw = _fetch_catalog_by_nim_type(NIM_TYPE_DOWNLOADABLE)
+        catalog_dl_normalized = {_normalize_nim_name(m["name"]) for m in catalog_dl_raw}
+        print(f"  Catalog total: {len(all_catalog)} (downloadable raw: {len(catalog_dl_normalized)})")
 
-        # 3. Intersection: OpenAI ∩ Downloadable
-        downloadable_ids = openai_ids & catalog_dl_ids
-
+        # 3. Intersection: OpenAI ∩ Downloadable (normalized name match, provider-agnostic)
         self.potential_downloadable_models = [
             m for m in self.potential_api_models
-            if m["id"] in downloadable_ids
+            if _normalize_nim_name(m["id"]) in catalog_dl_normalized
         ]
 
         print(f"  Downloadable (OpenAI & catalog): {len(self.potential_downloadable_models)}")
@@ -1801,8 +1802,41 @@ if __name__ == "__main__":
     p_cq = sub.add_parser("clear-quarantine", help="Un-quarantine a model (or 'all')")
     p_cq.add_argument("model_id", type=str, help="Model ID to un-quarantine, or 'all'")
 
+    # --- compare ---
+    p_cmp = sub.add_parser(
+        "compare",
+        help="Fetch models + compare with Dataloop; optionally export deprecated list to CSV",
+    )
+    p_cmp.add_argument(
+        "--env",
+        type=str,
+        default=None,
+        help="Dataloop env to compare against (e.g. rc, prod). Overrides ENV env-var.",
+    )
+    p_cmp.add_argument(
+        "--csv",
+        type=str,
+        default=None,
+        metavar="FILE",
+        help="Write deprecated models to this CSV file (default: print only)",
+    )
+
     # --- report ---
     sub.add_parser("report", help="Fetch and print NIM availability report")
+
+    # --- build-downloadables ---
+    p_bd = sub.add_parser(
+        "build-downloadables",
+        help="Build Docker images and manifests for downloadable models (skips API smoke tests)",
+    )
+    p_bd.add_argument("--limit", type=int, default=None, help="Max downloadable models to build")
+    p_bd.add_argument("--no-pr", action="store_true", help="Skip PR creation")
+    p_bd.add_argument("--skip-docker", action="store_true", help="Skip Docker builds (manifest-only)")
+    p_bd.add_argument(
+        "--incremental-downloadable-docker",
+        action="store_true",
+        help="Reuse existing runnerImage if already in manifest; only build Docker for new paths",
+    )
 
     # --- validate-release ---
     p_vr = sub.add_parser(
@@ -1996,6 +2030,40 @@ if __name__ == "__main__":
             print(f"Un-quarantined: {args.model_id}")
         state.save()
 
+    elif args.command == "compare":
+        import csv as _csv
+        import os as _os
+
+        if args.env:
+            _os.environ["ENV"] = args.env
+
+        agent = NIMAgent(tester_auto_init=False)
+        agent.fetch_models(skip_licenses=True)
+        agent.fetch_dataloop_dpks()
+        agent.compare()
+
+        env_name = _os.environ.get("ENV", "rc")
+        rows = []
+        for d in agent.api_deprecated:
+            dpk_name = d.get("name") if isinstance(d, dict) else d
+            nim = (d.get("nim_model_name") or "") if isinstance(d, dict) else ""
+            rows.append({"type": "api", "dpk_name": dpk_name, "nim_model_name": nim, "env": env_name})
+        for d in agent.downloadable_deprecated:
+            dpk_name = d.get("name") if isinstance(d, dict) else d
+            nim = (d.get("nim_model_name") or "") if isinstance(d, dict) else ""
+            rows.append({"type": "downloadable", "dpk_name": dpk_name, "nim_model_name": nim, "env": env_name})
+
+        print(f"\nDeprecated models on {env_name}: {len(rows)} total ({sum(1 for r in rows if r['type']=='api')} API, {sum(1 for r in rows if r['type']=='downloadable')} downloadable)")
+        for r in rows:
+            print(f"  [{r['type']:12s}] {r['dpk_name']}  (NIM: {r['nim_model_name'] or 'unknown'})")
+
+        if args.csv:
+            with open(args.csv, "w", newline="", encoding="utf-8") as f:
+                writer = _csv.DictWriter(f, fieldnames=["type", "dpk_name", "nim_model_name", "env"])
+                writer.writeheader()
+                writer.writerows(rows)
+            print(f"\nCSV written to: {args.csv}")
+
     elif args.command == "report":
         fetch_report()
 
@@ -2005,7 +2073,11 @@ if __name__ == "__main__":
         agent.fetch_models()
         agent.fetch_dataloop_dpks()
         agent.compare()
-        agent.onboard_downloadable_models(limit=args.limit)
+        agent.onboard_downloadable_models(
+            limit=args.limit,
+            skip_docker=args.skip_docker,
+            incremental_downloadable_docker=args.incremental_downloadable_docker,
+        )
         if not args.no_pr and agent.successful_manifests:
             agent.open_new_and_deprecated_pr()
         agent.print_report()

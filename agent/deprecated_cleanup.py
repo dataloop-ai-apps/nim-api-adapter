@@ -216,9 +216,9 @@ def main():
     elif args.command == "clean":
         dry_run = not args.execute
         if dry_run:
-            print("\n🔒 DRY RUN — no changes. Pass --execute to apply.\n")
+            print("\nDRY RUN - no changes. Pass --execute to apply.\n")
         else:
-            print("\n🚨 LIVE RUN — changes will be applied.\n")
+            print("\nLIVE RUN - changes will be applied.\n")
 
         rows, total = [], {"models_deleted": 0, "apps_uninstalled": 0, "revisions_deleted": 0, "errors": []}
         for name in names:
