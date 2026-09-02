@@ -40,7 +40,12 @@ RUN apt-get update && \
     ${PYTHON_PATH} -m ensurepip --upgrade || \
     (curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && ${PYTHON_PATH} /tmp/get-pip.py && rm /tmp/get-pip.py) && \
     # Install Dataloop packages
+    # --trusted-host needed because some NIM base images have a self-signed cert
+    # in their certificate chain that causes SSL verification failures for external hosts
     ${PYTHON_PATH} -m pip install --no-cache-dir \
+        --trusted-host storage.googleapis.com \
+        --trusted-host pypi.org \
+        --trusted-host files.pythonhosted.org \
         https://storage.googleapis.com/dtlpy/dev/dtlpy-1.119.5-py3-none-any.whl \
         https://storage.googleapis.com/dtlpy/agent/dtlpy_agent-1.119.5.100-py3-none-any.whl && \
     # Cleanup build dependencies only (no autoremove - base NIM images have

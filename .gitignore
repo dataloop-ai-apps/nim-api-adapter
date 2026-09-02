@@ -366,5 +366,6 @@ pyrightconfig.json
 scripts/
 .vscode/
 .dataloop/
-.github/
 *.txt
+
+.npm-cache/

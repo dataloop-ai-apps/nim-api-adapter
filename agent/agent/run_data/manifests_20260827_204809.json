@@ -1,0 +1,2424 @@
+[
+  {
+    "model_id": "google/diffusiongemma-26b-a4b-it",
+    "model_type": "llm",
+    "dpk_name": "nim-diffusiongemma-26b-a4b-it",
+    "manifest": {
+      "name": "nim-diffusiongemma-26b-a4b-it",
+      "displayName": "Diffusiongemma 26B A4B It",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for google/diffusiongemma-26b-a4b-it. License: NVIDIA Open Model License",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Google",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "NVIDIA Open Model License"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-diffusiongemma-26b-a4b-it-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-diffusiongemma-26b-a4b-it-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-diffusiongemma-26b-a4b-it-deploy",
+            "description": "NVIDIA NIM adapter for google/diffusiongemma-26b-a4b-it",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-diffusiongemma-26b-a4b-it inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-diffusiongemma-26b-a4b-it inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-diffusiongemma-26b-a4b-it model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-diffusiongemma-26b-a4b-it",
+            "moduleName": "nim-diffusiongemma-26b-a4b-it-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for google/diffusiongemma-26b-a4b-it",
+            "configuration": {
+              "nim_model_name": "google/diffusiongemma-26b-a4b-it",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "meta/muse-glimmer-30b",
+    "model_type": "llm",
+    "dpk_name": "nim-muse-glimmer-30b",
+    "manifest": {
+      "name": "nim-muse-glimmer-30b",
+      "displayName": "Muse Glimmer 30B",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for meta/muse-glimmer-30b",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Meta",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-muse-glimmer-30b-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-muse-glimmer-30b-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-muse-glimmer-30b-deploy",
+            "description": "NVIDIA NIM adapter for meta/muse-glimmer-30b",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-muse-glimmer-30b inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-muse-glimmer-30b inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-muse-glimmer-30b model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-muse-glimmer-30b",
+            "moduleName": "nim-muse-glimmer-30b-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for meta/muse-glimmer-30b",
+            "configuration": {
+              "nim_model_name": "meta/muse-glimmer-30b",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/nemotron-3.5-content-safety",
+    "model_type": "llm",
+    "dpk_name": "nim-nemotron-3-5-content-safety",
+    "manifest": {
+      "name": "nim-nemotron-3-5-content-safety",
+      "displayName": "Nemotron 3.5 Content Safety",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-content-safety. License: NVIDIA Nemotron Open Model License",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "NVIDIA Nemotron Open Model License"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-nemotron-3-5-content-safety-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-nemotron-3-5-content-safety-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-nemotron-3-5-content-safety-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-content-safety",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-5-content-safety inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-5-content-safety inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-nemotron-3-5-content-safety model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-nemotron-3-5-content-safety",
+            "moduleName": "nim-nemotron-3-5-content-safety-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-content-safety",
+            "configuration": {
+              "nim_model_name": "nvidia/nemotron-3.5-content-safety",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/ising-calibration-1.5-31b",
+    "model_type": "llm",
+    "dpk_name": "nim-ising-calibration-1-5-31b",
+    "manifest": {
+      "name": "nim-ising-calibration-1-5-31b",
+      "displayName": "Ising Calibration 1.5 31B",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/ising-calibration-1.5-31b",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-ising-calibration-1-5-31b-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-ising-calibration-1-5-31b-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-ising-calibration-1-5-31b-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/ising-calibration-1.5-31b",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-ising-calibration-1-5-31b inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-ising-calibration-1-5-31b inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-ising-calibration-1-5-31b model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-ising-calibration-1-5-31b",
+            "moduleName": "nim-ising-calibration-1-5-31b-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/ising-calibration-1.5-31b",
+            "configuration": {
+              "nim_model_name": "nvidia/ising-calibration-1.5-31b",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "model_type": "llm",
+    "dpk_name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning",
+    "manifest": {
+      "name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning",
+      "displayName": "Nemotron 3 Nano Omni 30B A3B Reasoning",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-nemotron-3-nano-omni-30b-a3b-reasoning-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-nano-omni-30b-a3b-reasoning inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-nano-omni-30b-a3b-reasoning inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-nemotron-3-nano-omni-30b-a3b-reasoning model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning",
+            "moduleName": "nim-nemotron-3-nano-omni-30b-a3b-reasoning-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+            "configuration": {
+              "nim_model_name": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/riva-translate-4b-instruct-v2",
+    "model_type": "llm",
+    "dpk_name": "nim-riva-translate-4b-instruct-v2",
+    "manifest": {
+      "name": "nim-riva-translate-4b-instruct-v2",
+      "displayName": "Riva Translate 4B Instruct V2",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct-v2. License: NVIDIA Open Model License",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "NVIDIA Open Model License"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-riva-translate-4b-instruct-v2-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-riva-translate-4b-instruct-v2-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-riva-translate-4b-instruct-v2-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct-v2",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-riva-translate-4b-instruct-v2 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-riva-translate-4b-instruct-v2 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-riva-translate-4b-instruct-v2 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-riva-translate-4b-instruct-v2",
+            "moduleName": "nim-riva-translate-4b-instruct-v2-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/riva-translate-4b-instruct-v2",
+            "configuration": {
+              "nim_model_name": "nvidia/riva-translate-4b-instruct-v2",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "minimaxai/minimax-m3",
+    "model_type": "llm",
+    "dpk_name": "nim-minimax-m3",
+    "manifest": {
+      "name": "nim-minimax-m3",
+      "displayName": "Minimax M3",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for minimaxai/minimax-m3. License: NVIDIA Software and Model Evaluation License",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Minimaxai",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "NVIDIA Software and Model Evaluation License"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-minimax-m3-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-minimax-m3-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-minimax-m3-deploy",
+            "description": "NVIDIA NIM adapter for minimaxai/minimax-m3",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-minimax-m3 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-minimax-m3 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-minimax-m3 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-minimax-m3",
+            "moduleName": "nim-minimax-m3-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for minimaxai/minimax-m3",
+            "configuration": {
+              "nim_model_name": "minimaxai/minimax-m3",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "poolside/laguna-xs-2.1",
+    "model_type": "llm",
+    "dpk_name": "nim-laguna-xs-2-1",
+    "manifest": {
+      "name": "nim-laguna-xs-2-1",
+      "displayName": "Laguna Xs 2.1",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for poolside/laguna-xs-2.1",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Poolside",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-laguna-xs-2-1-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-laguna-xs-2-1-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-laguna-xs-2-1-deploy",
+            "description": "NVIDIA NIM adapter for poolside/laguna-xs-2.1",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-laguna-xs-2-1 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-laguna-xs-2-1 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-laguna-xs-2-1 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-laguna-xs-2-1",
+            "moduleName": "nim-laguna-xs-2-1-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for poolside/laguna-xs-2.1",
+            "configuration": {
+              "nim_model_name": "poolside/laguna-xs-2.1",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "model_type": "llm",
+    "dpk_name": "nim-nemotron-3-5-lightning-30b-a3b",
+    "manifest": {
+      "name": "nim-nemotron-3-5-lightning-30b-a3b",
+      "displayName": "Nemotron 3.5 Lightning 30B A3B",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-lightning-30b-a3b",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-nemotron-3-5-lightning-30b-a3b-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-nemotron-3-5-lightning-30b-a3b-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-nemotron-3-5-lightning-30b-a3b-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-lightning-30b-a3b",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-5-lightning-30b-a3b inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-5-lightning-30b-a3b inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-nemotron-3-5-lightning-30b-a3b model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-nemotron-3-5-lightning-30b-a3b",
+            "moduleName": "nim-nemotron-3-5-lightning-30b-a3b-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3.5-lightning-30b-a3b",
+            "configuration": {
+              "nim_model_name": "nvidia/nemotron-3.5-lightning-30b-a3b",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "deepseek-ai/deepseek-v4-pro-0813",
+    "model_type": "llm",
+    "dpk_name": "nim-deepseek-v4-pro-0813",
+    "manifest": {
+      "name": "nim-deepseek-v4-pro-0813",
+      "displayName": "Deepseek V4 Pro 0813",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-pro-0813",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Deepseek Ai",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-deepseek-v4-pro-0813-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-deepseek-v4-pro-0813-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-deepseek-v4-pro-0813-deploy",
+            "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-pro-0813",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-deepseek-v4-pro-0813 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-deepseek-v4-pro-0813 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-deepseek-v4-pro-0813 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-deepseek-v4-pro-0813",
+            "moduleName": "nim-deepseek-v4-pro-0813-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-pro-0813",
+            "configuration": {
+              "nim_model_name": "deepseek-ai/deepseek-v4-pro-0813",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "stepfun-ai/step-3.7-flash",
+    "model_type": "llm",
+    "dpk_name": "nim-step-3-7-flash",
+    "manifest": {
+      "name": "nim-step-3-7-flash",
+      "displayName": "Step 3.7 Flash",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for stepfun-ai/step-3.7-flash",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Stepfun Ai",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-step-3-7-flash-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-step-3-7-flash-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-step-3-7-flash-deploy",
+            "description": "NVIDIA NIM adapter for stepfun-ai/step-3.7-flash",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-step-3-7-flash inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-step-3-7-flash inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-step-3-7-flash model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-step-3-7-flash",
+            "moduleName": "nim-step-3-7-flash-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for stepfun-ai/step-3.7-flash",
+            "configuration": {
+              "nim_model_name": "stepfun-ai/step-3.7-flash",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "moonshotai/kimi-k3",
+    "model_type": "llm",
+    "dpk_name": "nim-kimi-k3",
+    "manifest": {
+      "name": "nim-kimi-k3",
+      "displayName": "Kimi K3",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for moonshotai/kimi-k3",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Moonshotai",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-kimi-k3-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-kimi-k3-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-kimi-k3-deploy",
+            "description": "NVIDIA NIM adapter for moonshotai/kimi-k3",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-kimi-k3 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-kimi-k3 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-kimi-k3 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-kimi-k3",
+            "moduleName": "nim-kimi-k3-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for moonshotai/kimi-k3",
+            "configuration": {
+              "nim_model_name": "moonshotai/kimi-k3",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "nvidia/nemotron-3-ultra-550b-a55b",
+    "model_type": "llm",
+    "dpk_name": "nim-nemotron-3-ultra-550b-a55b",
+    "manifest": {
+      "name": "nim-nemotron-3-ultra-550b-a55b",
+      "displayName": "Nemotron 3 Ultra 550B A55B",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for nvidia/nemotron-3-ultra-550b-a55b",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "NVIDIA",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-nemotron-3-ultra-550b-a55b-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-nemotron-3-ultra-550b-a55b-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-nemotron-3-ultra-550b-a55b-deploy",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3-ultra-550b-a55b",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-ultra-550b-a55b inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-nemotron-3-ultra-550b-a55b inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-nemotron-3-ultra-550b-a55b model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-nemotron-3-ultra-550b-a55b",
+            "moduleName": "nim-nemotron-3-ultra-550b-a55b-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for nvidia/nemotron-3-ultra-550b-a55b",
+            "configuration": {
+              "nim_model_name": "nvidia/nemotron-3-ultra-550b-a55b",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  },
+  {
+    "model_id": "deepseek-ai/deepseek-v4-flash-0731",
+    "model_type": "llm",
+    "dpk_name": "nim-deepseek-v4-flash-0731",
+    "manifest": {
+      "name": "nim-deepseek-v4-flash-0731",
+      "displayName": "Deepseek V4 Flash 0731",
+      "version": "0.3.62",
+      "scope": "public",
+      "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-flash-0731",
+      "attributes": {
+        "Category": [
+          "Model",
+          "NIM"
+        ],
+        "Gen AI": "LLM",
+        "Provider": "Deepseek Ai",
+        "Media Type": [
+          "Text"
+        ],
+        "Hub": [
+          "Nvidia",
+          "Dataloop"
+        ],
+        "Deployed By": "NVIDIA",
+        "NLP": "Conversational",
+        "License": "Unknown"
+      },
+      "components": {
+        "computeConfigs": [
+          {
+            "name": "nim-deepseek-v4-flash-0731-deploy",
+            "runtime": {
+              "podType": "regular-xs",
+              "concurrency": 1,
+              "autoscaler": {
+                "type": "rabbitmq",
+                "minReplicas": 0,
+                "maxReplicas": 2,
+                "queueLength": 100
+              },
+              "runnerImage": "gcr.io/viewo-g/piper/agent/runner/apps/nim-api-adapter:0.3.43"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "name": "nim-deepseek-v4-flash-0731-module",
+            "entryPoint": "models/api/llm/base.py",
+            "className": "ModelAdapter",
+            "computeConfig": "nim-deepseek-v4-flash-0731-deploy",
+            "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-flash-0731",
+            "initInputs": [
+              {
+                "type": "Model",
+                "name": "model_entity"
+              }
+            ],
+            "functions": [
+              {
+                "name": "predict_items",
+                "input": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "List of items to run inference on"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Item[]",
+                    "name": "items",
+                    "description": "The same input images for prediction."
+                  },
+                  {
+                    "type": "Annotation[]",
+                    "name": "annotations",
+                    "description": "The predicted annotations."
+                  }
+                ],
+                "displayName": "Predict Items",
+                "displayIcon": "",
+                "description": "Function to run nim-deepseek-v4-flash-0731 inference on items"
+              },
+              {
+                "name": "predict_dataset",
+                "input": [
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": ""
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [],
+                "displayName": "Predict Dataset",
+                "displayIcon": "",
+                "description": "Function to run nim-deepseek-v4-flash-0731 inference on a dataset"
+              },
+              {
+                "name": "evaluate_model",
+                "input": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  },
+                  {
+                    "type": "Json",
+                    "name": "filters",
+                    "description": "Dataloop Filter DQL"
+                  }
+                ],
+                "output": [
+                  {
+                    "type": "Model",
+                    "name": "model",
+                    "description": "Dataloop Model Entity"
+                  },
+                  {
+                    "type": "Dataset",
+                    "name": "dataset",
+                    "description": "Dataloop Dataset Entity"
+                  }
+                ],
+                "displayName": "Evaluate a Model",
+                "displayIcon": "",
+                "description": "Function to evaluate nim-deepseek-v4-flash-0731 model performance"
+              }
+            ],
+            "integrations": [
+              "dl-ngc-api-key"
+            ]
+          }
+        ],
+        "models": [
+          {
+            "name": "nim-deepseek-v4-flash-0731",
+            "moduleName": "nim-deepseek-v4-flash-0731-module",
+            "scope": "project",
+            "status": "pre-trained",
+            "description": "NVIDIA NIM adapter for deepseek-ai/deepseek-v4-flash-0731",
+            "configuration": {
+              "nim_model_name": "deepseek-ai/deepseek-v4-flash-0731",
+              "max_tokens": 512,
+              "temperature": 0.2,
+              "top_p": 0.7,
+              "stream": true,
+              "base_url": "https://integrate.api.nvidia.com/v1",
+              "system_prompt": "You are a helpful and a bit cynical assistant. Give relevant and short answers, if you dont know the answer just say it, dont make up an answer",
+              "add_metadata": [
+                "system.document.source"
+              ]
+            }
+          }
+        ]
+      },
+      "codebase": {
+        "type": "git",
+        "gitUrl": "https://github.com/dataloop-ai-apps/nim-api-adapter",
+        "gitTag": "0.3.62"
+      }
+    }
+  }
+]

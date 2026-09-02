@@ -1,0 +1,1397 @@
+{
+  "timestamp": "2026-08-27T20:48:09.505752",
+  "summary": {
+    "api_models": 84,
+    "downloadable_models": 5,
+    "dataloop_dpks": 167,
+    "dataloop_openai_compat": 138,
+    "dataloop_cv": 3,
+    "dataloop_downloadable": 26,
+    "api_to_add": 62,
+    "api_deprecated": 116,
+    "downloadable_to_add": 3,
+    "downloadable_deprecated": 24,
+    "processed": 65,
+    "successful": 14,
+    "failed": 51
+  },
+  "api_deprecated": [
+    {
+      "name": "nim-llama-3-2-nemoretriever-300m-embed-v2",
+      "display_name": "nim-llama-3-2-nemoretriever-300m-embed-v2",
+      "version": "0.3.60",
+      "id": "69b90c7e02cbe57ecdf59d7c",
+      "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-minimax-m2",
+      "display_name": "nim-minimax-m2",
+      "version": "0.3.60",
+      "id": "69b90c813fba636ee9b32e8a",
+      "nim_model_name": "minimaxai/minimax-m2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-minimax-m2-1",
+      "display_name": "nim-minimax-m2-1",
+      "version": "0.3.60",
+      "id": "69b90c81b45167c52be50324",
+      "nim_model_name": "minimaxai/minimax-m2.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-235b-a22b",
+      "display_name": "nim-qwen3-235b-a22b",
+      "version": "0.3.60",
+      "id": "69b90c84dd40ec23540ce0f6",
+      "nim_model_name": "qwen/qwen3-235b-a22b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-bge-m3",
+      "display_name": "nim-bge-m3",
+      "version": "0.3.62",
+      "id": "69e084652479e9702bb18d89",
+      "nim_model_name": "baai/bge-m3",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-2-nemoretriever-300m-embed-v1",
+      "display_name": "nim-llama-3-2-nemoretriever-300m-embed-v1",
+      "version": "0.3.62",
+      "id": "69e08465342d2369f2725a01",
+      "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-2-nv-embedqa-1b-v2",
+      "display_name": "nim-llama-3-2-nv-embedqa-1b-v2",
+      "version": "0.3.62",
+      "id": "69e08465979758b5403f6166",
+      "nim_model_name": "nvidia/llama-3.2-nv-embedqa-1b-v2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-nemotron-embed-1b-v2",
+      "display_name": "nim-llama-nemotron-embed-1b-v2",
+      "version": "0.3.62",
+      "id": "69e0846615e52e70e7fb29f4",
+      "nim_model_name": "nvidia/llama-nemotron-embed-1b-v2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nv-embed-v1",
+      "display_name": "nim-nv-embed-v1",
+      "version": "0.3.62",
+      "id": "69e08466979758b5403f616c",
+      "nim_model_name": "nvidia/nv-embed-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nv-embedcode-7b-v1",
+      "display_name": "nim-nv-embedcode-7b-v1",
+      "version": "0.3.62",
+      "id": "69e08466cffa7c7ff26cb58d",
+      "nim_model_name": "nvidia/nv-embedcode-7b-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nv-embedqa-e5-v5",
+      "display_name": "nim-nv-embedqa-e5-v5",
+      "version": "0.3.62",
+      "id": "69e084668c2bdb5c89e04ac6",
+      "nim_model_name": "nvidia/nv-embedqa-e5-v5",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-dracarys-llama-3-1-70b-instruct",
+      "display_name": "nim-dracarys-llama-3-1-70b-instruct",
+      "version": "0.3.62",
+      "id": "69e08466979758b5403f6172",
+      "nim_model_name": "abacusai/dracarys-llama-3.1-70b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-jamba-1-5-mini-instruct",
+      "display_name": "nim-jamba-1-5-mini-instruct",
+      "version": "0.3.62",
+      "id": "69e08466342d2369f2725a07",
+      "nim_model_name": "ai21labs/jamba-1.5-mini-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-baichuan2-13b-chat",
+      "display_name": "nim-baichuan2-13b-chat",
+      "version": "0.3.62",
+      "id": "69e084662479e9702bb18d99",
+      "nim_model_name": "baichuan-inc/baichuan2-13b-chat",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-seed-oss-36b-instruct",
+      "display_name": "nim-seed-oss-36b-instruct",
+      "version": "0.3.62",
+      "id": "69e08466cffa7c7ff26cb593",
+      "nim_model_name": "bytedance/seed-oss-36b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-deepseek-r1-distill-llama-8b",
+      "display_name": "nim-deepseek-r1-distill-llama-8b",
+      "version": "0.3.62",
+      "id": "69e08466979758b5403f6178",
+      "nim_model_name": "deepseek-ai/deepseek-r1-distill-llama-8b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-deepseek-r1-distill-qwen-32b",
+      "display_name": "nim-deepseek-r1-distill-qwen-32b",
+      "version": "0.3.62",
+      "id": "69e084662479e9702bb18d9f",
+      "nim_model_name": "deepseek-ai/deepseek-r1-distill-qwen-32b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-deepseek-v3-1",
+      "display_name": "nim-deepseek-v3-1",
+      "version": "0.3.62",
+      "id": "69e084662479e9702bb18da3",
+      "nim_model_name": "deepseek-ai/deepseek-v3.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-deepseek-v3-1-terminus",
+      "display_name": "nim-deepseek-v3-1-terminus",
+      "version": "0.3.62",
+      "id": "69e08466979758b5403f617c",
+      "nim_model_name": "deepseek-ai/deepseek-v3.1-terminus",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-deepseek-v3-2",
+      "display_name": "nim-deepseek-v3-2",
+      "version": "0.3.62",
+      "id": "69e084668c2bdb5c89e04acc",
+      "nim_model_name": "deepseek-ai/deepseek-v3.2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-2-27b-it",
+      "display_name": "nim-gemma-2-27b-it",
+      "version": "0.3.62",
+      "id": "69e08466342d2369f2725a0d",
+      "nim_model_name": "google/gemma-2-27b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-2-2b-it",
+      "display_name": "nim-gemma-2-2b-it",
+      "version": "0.3.62",
+      "id": "69e08466979758b5403f6180",
+      "nim_model_name": "google/gemma-2-2b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-2-9b-it",
+      "display_name": "nim-gemma-2-9b-it",
+      "version": "0.3.62",
+      "id": "69e08467cffa7c7ff26cb599",
+      "nim_model_name": "google/gemma-2-9b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-3-1b-it",
+      "display_name": "nim-gemma-3-1b-it",
+      "version": "0.3.62",
+      "id": "69e08467cffa7c7ff26cb59d",
+      "nim_model_name": "google/gemma-3-1b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-3-27b-it",
+      "display_name": "nim-gemma-3-27b-it",
+      "version": "0.3.62",
+      "id": "69e084678c2bdb5c89e04ad6",
+      "nim_model_name": "google/gemma-3-27b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-3n-e2b-it",
+      "display_name": "nim-gemma-3n-e2b-it",
+      "version": "0.3.62",
+      "id": "69e08467cffa7c7ff26cb5a3",
+      "nim_model_name": "google/gemma-3n-e2b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-3n-e4b-it",
+      "display_name": "nim-gemma-3n-e4b-it",
+      "version": "0.3.62",
+      "id": "69e08467cffa7c7ff26cb5a9",
+      "nim_model_name": "google/gemma-3n-e4b-it",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-7b",
+      "display_name": "nim-gemma-7b",
+      "version": "0.3.62",
+      "id": "69e0846715e52e70e7fb29fc",
+      "nim_model_name": "google/gemma-7b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-shieldgemma-9b",
+      "display_name": "nim-shieldgemma-9b",
+      "version": "0.3.62",
+      "id": "69e08468979758b5403f618b",
+      "nim_model_name": "google/shieldgemma-9b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gemma-2-9b-cpt-sahabatai-instruct",
+      "display_name": "nim-gemma-2-9b-cpt-sahabatai-instruct",
+      "version": "0.3.62",
+      "id": "69e08468cffa7c7ff26cb5af",
+      "nim_model_name": "gotocompany/gemma-2-9b-cpt-sahabatai-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-granite-3-3-8b-instruct",
+      "display_name": "nim-granite-3-3-8b-instruct",
+      "version": "0.3.62",
+      "id": "69e08468979758b5403f618f",
+      "nim_model_name": "ibm/granite-3.3-8b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-granite-guardian-3-0-8b",
+      "display_name": "nim-granite-guardian-3-0-8b",
+      "version": "0.3.62",
+      "id": "69e084682479e9702bb18da7",
+      "nim_model_name": "ibm/granite-guardian-3.0-8b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-italia-10b-instruct-16k",
+      "display_name": "nim-italia-10b-instruct-16k",
+      "version": "0.3.62",
+      "id": "69e0846815e52e70e7fb2a00",
+      "nim_model_name": "igenius/italia_10b_instruct_16k",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-swallow-70b-instruct-v0-1",
+      "display_name": "nim-llama-3-1-swallow-70b-instruct-v0-1",
+      "version": "0.3.62",
+      "id": "69e084688c2bdb5c89e04add",
+      "nim_model_name": "institute-of-science-tokyo/llama-3.1-swallow-70b-instruct-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-swallow-8b-instruct-v0-1",
+      "display_name": "nim-llama-3-1-swallow-8b-instruct-v0-1",
+      "version": "0.3.62",
+      "id": "69e08468342d2369f2725a12",
+      "nim_model_name": "institute-of-science-tokyo/llama-3.1-swallow-8b-instruct-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-marin-8b-instruct",
+      "display_name": "nim-marin-8b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846815e52e70e7fb2a06",
+      "nim_model_name": "marin/marin-8b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-breeze-7b-instruct",
+      "display_name": "nim-breeze-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e084688c2bdb5c89e04ae1",
+      "nim_model_name": "mediatek/breeze-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama3-70b-instruct",
+      "display_name": "nim-llama3-70b-instruct",
+      "version": "0.3.62",
+      "id": "69e08468979758b5403f6195",
+      "nim_model_name": "meta/llama3-70b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama3-8b-instruct",
+      "display_name": "nim-llama3-8b-instruct",
+      "version": "0.3.62",
+      "id": "69e084682479e9702bb18dab",
+      "nim_model_name": "meta/llama3-8b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-405b-instruct",
+      "display_name": "nim-llama-3-1-405b-instruct",
+      "version": "0.3.62",
+      "id": "69e08469342d2369f2725a18",
+      "nim_model_name": "meta/llama-3.1-405b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-70b-instruct",
+      "display_name": "nim-llama-3-1-70b-instruct",
+      "version": "0.3.62",
+      "id": "69e08469979758b5403f619b",
+      "nim_model_name": "meta/llama-3.1-70b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-8b-instruct",
+      "display_name": "nim-llama-3-1-8b-instruct",
+      "version": "0.3.62",
+      "id": "69e084698c2bdb5c89e04ae5",
+      "nim_model_name": "meta/llama-3.1-8b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-2-1b-instruct",
+      "display_name": "nim-llama-3-2-1b-instruct",
+      "version": "0.3.62",
+      "id": "69e08469342d2369f2725a1f",
+      "nim_model_name": "meta/llama-3.2-1b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-2-3b-instruct",
+      "display_name": "nim-llama-3-2-3b-instruct",
+      "version": "0.3.62",
+      "id": "69e08469cffa7c7ff26cb5b5",
+      "nim_model_name": "meta/llama-3.2-3b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-3-70b-instruct",
+      "display_name": "nim-llama-3-3-70b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846915e52e70e7fb2a0a",
+      "nim_model_name": "meta/llama-3.3-70b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-4-maverick-17b-128e-instruct",
+      "display_name": "nim-llama-4-maverick-17b-128e-instruct",
+      "version": "0.3.62",
+      "id": "69e08469979758b5403f61a1",
+      "nim_model_name": "meta/llama-4-maverick-17b-128e-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-4-scout-17b-16e-instruct",
+      "display_name": "nim-llama-4-scout-17b-16e-instruct",
+      "version": "0.3.62",
+      "id": "69e084698c2bdb5c89e04aec",
+      "nim_model_name": "meta/llama-4-scout-17b-16e-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-5-mini-instruct",
+      "display_name": "nim-phi-3-5-mini-instruct",
+      "version": "0.3.62",
+      "id": "69e08469979758b5403f61a7",
+      "nim_model_name": "microsoft/phi-3.5-mini-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-medium-128k-instruct",
+      "display_name": "nim-phi-3-medium-128k-instruct",
+      "version": "0.3.62",
+      "id": "69e084692479e9702bb18db1",
+      "nim_model_name": "microsoft/phi-3-medium-128k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-medium-4k-instruct",
+      "display_name": "nim-phi-3-medium-4k-instruct",
+      "version": "0.3.62",
+      "id": "69e0846a8c2bdb5c89e04af2",
+      "nim_model_name": "microsoft/phi-3-medium-4k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-mini-128k-instruct",
+      "display_name": "nim-phi-3-mini-128k-instruct",
+      "version": "0.3.62",
+      "id": "69e0846a2479e9702bb18db7",
+      "nim_model_name": "microsoft/phi-3-mini-128k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-mini-4k-instruct",
+      "display_name": "nim-phi-3-mini-4k-instruct",
+      "version": "0.3.62",
+      "id": "69e0846a979758b5403f61ad",
+      "nim_model_name": "microsoft/phi-3-mini-4k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-small-128k-instruct",
+      "display_name": "nim-phi-3-small-128k-instruct",
+      "version": "0.3.62",
+      "id": "69e0846acffa7c7ff26cb5bb",
+      "nim_model_name": "microsoft/phi-3-small-128k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-small-8k-instruct",
+      "display_name": "nim-phi-3-small-8k-instruct",
+      "version": "0.3.62",
+      "id": "69e0846a2479e9702bb18dbd",
+      "nim_model_name": "microsoft/phi-3-small-8k-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-4-mini-flash-reasoning",
+      "display_name": "nim-phi-4-mini-flash-reasoning",
+      "version": "0.3.62",
+      "id": "69e0846a342d2369f2725a3b",
+      "nim_model_name": "microsoft/phi-4-mini-flash-reasoning",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-4-mini-instruct",
+      "display_name": "nim-phi-4-mini-instruct",
+      "version": "0.3.62",
+      "id": "69e0846b8c2bdb5c89e04af6",
+      "nim_model_name": "microsoft/phi-4-mini-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-minimax-m2-5",
+      "display_name": "nim-minimax-m2-5",
+      "version": "0.3.62",
+      "id": "69e0846b342d2369f2725a41",
+      "nim_model_name": "minimaxai/minimax-m2.5",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-minimax-m2-7",
+      "display_name": "nim-minimax-m2-7",
+      "version": "0.3.62",
+      "id": "69e0846b8c2bdb5c89e04afe",
+      "nim_model_name": "minimaxai/minimax-m2.7",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-devstral-2-123b-instruct-2512",
+      "display_name": "nim-devstral-2-123b-instruct-2512",
+      "version": "0.3.62",
+      "id": "69e0846b979758b5403f61b3",
+      "nim_model_name": "mistralai/devstral-2-123b-instruct-2512",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-magistral-small-2506",
+      "display_name": "nim-magistral-small-2506",
+      "version": "0.3.62",
+      "id": "69e0846bcffa7c7ff26cb5bf",
+      "nim_model_name": "mistralai/magistral-small-2506",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mamba-codestral-7b-v0-1",
+      "display_name": "nim-mamba-codestral-7b-v0-1",
+      "version": "0.3.62",
+      "id": "69e0846b2479e9702bb18de2",
+      "nim_model_name": "mistralai/mamba-codestral-7b-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mathstral-7b-v0-1",
+      "display_name": "nim-mathstral-7b-v0-1",
+      "version": "0.3.62",
+      "id": "69e0846b979758b5403f61b8",
+      "nim_model_name": "mistralai/mathstral-7b-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-ministral-14b-instruct-2512",
+      "display_name": "nim-ministral-14b-instruct-2512",
+      "version": "0.3.62",
+      "id": "69e0846b979758b5403f61be",
+      "nim_model_name": "mistralai/ministral-14b-instruct-2512",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-7b-instruct-v0-2",
+      "display_name": "nim-mistral-7b-instruct-v0-2",
+      "version": "0.3.62",
+      "id": "69e0846b342d2369f2725a45",
+      "nim_model_name": "mistralai/mistral-7b-instruct-v0.2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-large-3-675b-instruct-2512",
+      "display_name": "nim-mistral-large-3-675b-instruct-2512",
+      "version": "0.3.62",
+      "id": "69e0846b979758b5403f61c2",
+      "nim_model_name": "mistralai/mistral-large-3-675b-instruct-2512",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-medium-3-instruct",
+      "display_name": "nim-mistral-medium-3-instruct",
+      "version": "0.3.62",
+      "id": "69e0846b15e52e70e7fb2a15",
+      "nim_model_name": "mistralai/mistral-medium-3-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-small-24b-instruct",
+      "display_name": "nim-mistral-small-24b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846ccffa7c7ff26cb5c6",
+      "nim_model_name": "mistralai/mistral-small-24b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-small-3-1-24b-instruct-2503",
+      "display_name": "nim-mistral-small-3-1-24b-instruct-2503",
+      "version": "0.3.62",
+      "id": "69e0846c8c2bdb5c89e04b02",
+      "nim_model_name": "mistralai/mistral-small-3.1-24b-instruct-2503",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mistral-small-4-119b-2603",
+      "display_name": "nim-mistral-small-4-119b-2603",
+      "version": "0.3.62",
+      "id": "69e0846c979758b5403f61cc",
+      "nim_model_name": "mistralai/mistral-small-4-119b-2603",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mixtral-8x22b-instruct-v0-1",
+      "display_name": "nim-mixtral-8x22b-instruct-v0-1",
+      "version": "0.3.62",
+      "id": "69e0846c342d2369f2725a4b",
+      "nim_model_name": "mistralai/mixtral-8x22b-instruct-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-mixtral-8x7b-instruct-v0-1",
+      "display_name": "nim-mixtral-8x7b-instruct-v0-1",
+      "version": "0.3.62",
+      "id": "69e0846c2479e9702bb18de9",
+      "nim_model_name": "mistralai/mixtral-8x7b-instruct-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-kimi-k2-5",
+      "display_name": "nim-kimi-k2-5",
+      "version": "0.3.62",
+      "id": "69e0846c979758b5403f61d0",
+      "nim_model_name": "moonshotai/kimi-k2.5",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-kimi-k2-instruct",
+      "display_name": "nim-kimi-k2-instruct",
+      "version": "0.3.62",
+      "id": "69e0846c2479e9702bb18def",
+      "nim_model_name": "moonshotai/kimi-k2-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-kimi-k2-instruct-0905",
+      "display_name": "nim-kimi-k2-instruct-0905",
+      "version": "0.3.62",
+      "id": "69e0846c8c2bdb5c89e04b09",
+      "nim_model_name": "moonshotai/kimi-k2-instruct-0905",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-kimi-k2-thinking",
+      "display_name": "nim-kimi-k2-thinking",
+      "version": "0.3.62",
+      "id": "69e0846c2479e9702bb18df5",
+      "nim_model_name": "moonshotai/kimi-k2-thinking",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-gliner-pii",
+      "display_name": "nim-gliner-pii",
+      "version": "0.3.62",
+      "id": "69e0846c15e52e70e7fb2a1b",
+      "nim_model_name": "nvidia/gliner-pii",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama3-chatqa-1-5-8b",
+      "display_name": "nim-llama3-chatqa-1-5-8b",
+      "version": "0.3.62",
+      "id": "69e0846c979758b5403f61d6",
+      "nim_model_name": "nvidia/llama3-chatqa-1.5-8b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-nemotron-70b-reward",
+      "display_name": "nim-llama-3-1-nemotron-70b-reward",
+      "version": "0.3.62",
+      "id": "69e0846dcffa7c7ff26cb5cc",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-70b-reward",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-nemotron-nano-4b-v1-1",
+      "display_name": "nim-llama-3-1-nemotron-nano-4b-v1-1",
+      "version": "0.3.62",
+      "id": "69e0846d8c2bdb5c89e04b10",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-nano-4b-v1.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-nemotron-nano-8b-v1",
+      "display_name": "nim-llama-3-1-nemotron-nano-8b-v1",
+      "version": "0.3.62",
+      "id": "69e0846d15e52e70e7fb2a20",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-nano-8b-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-3-nemotron-super-49b-v1",
+      "display_name": "nim-llama-3-3-nemotron-super-49b-v1",
+      "version": "0.3.62",
+      "id": "69e0846dcffa7c7ff26cb5d0",
+      "nim_model_name": "nvidia/llama-3.3-nemotron-super-49b-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-3-nemotron-super-49b-v1-5",
+      "display_name": "nim-llama-3-3-nemotron-super-49b-v1-5",
+      "version": "0.3.62",
+      "id": "69e0846dcffa7c7ff26cb5d4",
+      "nim_model_name": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nemotron-4-mini-hindi-4b-instruct",
+      "display_name": "nim-nemotron-4-mini-hindi-4b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846dcffa7c7ff26cb5de",
+      "nim_model_name": "nvidia/nemotron-4-mini-hindi-4b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nemotron-content-safety-reasoning-4b",
+      "display_name": "nim-nemotron-content-safety-reasoning-4b",
+      "version": "0.3.62",
+      "id": "69e0846d2479e9702bb18dff",
+      "nim_model_name": "nvidia/nemotron-content-safety-reasoning-4b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nemotron-mini-4b-instruct",
+      "display_name": "nim-nemotron-mini-4b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846d8c2bdb5c89e04b16",
+      "nim_model_name": "nvidia/nemotron-mini-4b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nvidia-nemotron-nano-9b-v2",
+      "display_name": "nim-nvidia-nemotron-nano-9b-v2",
+      "version": "0.3.62",
+      "id": "69e0846d15e52e70e7fb2a26",
+      "nim_model_name": "nvidia/nvidia-nemotron-nano-9b-v2",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-teuken-7b-instruct-commercial-v0-4",
+      "display_name": "nim-teuken-7b-instruct-commercial-v0-4",
+      "version": "0.3.62",
+      "id": "69e0846e8c2bdb5c89e04b1d",
+      "nim_model_name": "opengpt-x/teuken-7b-instruct-commercial-v0.4",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen2-5-7b-instruct",
+      "display_name": "nim-qwen2-5-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846e2479e9702bb18e0b",
+      "nim_model_name": "qwen/qwen2.5-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen2-5-coder-32b-instruct",
+      "display_name": "nim-qwen2-5-coder-32b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846e15e52e70e7fb2a33",
+      "nim_model_name": "qwen/qwen2.5-coder-32b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen2-5-coder-7b-instruct",
+      "display_name": "nim-qwen2-5-coder-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846ecffa7c7ff26cb5ec",
+      "nim_model_name": "qwen/qwen2.5-coder-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen2-7b-instruct",
+      "display_name": "nim-qwen2-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846e8c2bdb5c89e04b22",
+      "nim_model_name": "qwen/qwen2-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-5-122b-a10b",
+      "display_name": "nim-qwen3-5-122b-a10b",
+      "version": "0.3.62",
+      "id": "69e0846e2479e9702bb18e11",
+      "nim_model_name": "qwen/qwen3.5-122b-a10b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-5-397b-a17b",
+      "display_name": "nim-qwen3-5-397b-a17b",
+      "version": "0.3.62",
+      "id": "69e0846e342d2369f2725a5e",
+      "nim_model_name": "qwen/qwen3.5-397b-a17b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-coder-480b-a35b-instruct",
+      "display_name": "nim-qwen3-coder-480b-a35b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846e979758b5403f61e7",
+      "nim_model_name": "qwen/qwen3-coder-480b-a35b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-next-80b-a3b-instruct",
+      "display_name": "nim-qwen3-next-80b-a3b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846ecffa7c7ff26cb5f2",
+      "nim_model_name": "qwen/qwen3-next-80b-a3b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-qwen3-next-80b-a3b-thinking",
+      "display_name": "nim-qwen3-next-80b-a3b-thinking",
+      "version": "0.3.62",
+      "id": "69e0846e8c2bdb5c89e04b28",
+      "nim_model_name": "qwen/qwen3-next-80b-a3b-thinking",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-rakutenai-7b-chat",
+      "display_name": "nim-rakutenai-7b-chat",
+      "version": "0.3.62",
+      "id": "69e0846f2479e9702bb18e15",
+      "nim_model_name": "rakuten/rakutenai-7b-chat",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-rakutenai-7b-instruct",
+      "display_name": "nim-rakutenai-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f15e52e70e7fb2a39",
+      "nim_model_name": "rakuten/rakutenai-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-sarvam-m",
+      "display_name": "nim-sarvam-m",
+      "version": "0.3.62",
+      "id": "69e0846f979758b5403f61ed",
+      "nim_model_name": "sarvamai/sarvam-m",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-bielik-11b-v2-3-instruct",
+      "display_name": "nim-bielik-11b-v2-3-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f15e52e70e7fb2a3d",
+      "nim_model_name": "speakleash/bielik-11b-v2.3-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-bielik-11b-v2-6-instruct",
+      "display_name": "nim-bielik-11b-v2-6-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f15e52e70e7fb2a43",
+      "nim_model_name": "speakleash/bielik-11b-v2.6-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-step-3-5-flash",
+      "display_name": "nim-step-3-5-flash",
+      "version": "0.3.62",
+      "id": "69e0846f979758b5403f61f3",
+      "nim_model_name": "stepfun-ai/step-3.5-flash",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-stockmark-2-100b-instruct",
+      "display_name": "nim-stockmark-2-100b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f979758b5403f61f9",
+      "nim_model_name": "stockmark/stockmark-2-100b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-chatglm3-6b",
+      "display_name": "nim-chatglm3-6b",
+      "version": "0.3.62",
+      "id": "69e0846fcffa7c7ff26cb5f8",
+      "nim_model_name": "thudm/chatglm3-6b",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-falcon3-7b-instruct",
+      "display_name": "nim-falcon3-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f8c2bdb5c89e04b2f",
+      "nim_model_name": "tiiuae/falcon3-7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-swallow-70b-instruct-v0-1",
+      "display_name": "nim-llama-3-swallow-70b-instruct-v0-1",
+      "version": "0.3.62",
+      "id": "69e0846f2479e9702bb18e19",
+      "nim_model_name": "tokyotech-llm/llama-3-swallow-70b-instruct-v0.1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-solar-10-7b-instruct",
+      "display_name": "nim-solar-10-7b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f15e52e70e7fb2a49",
+      "nim_model_name": "upstage/solar-10.7b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-eurollm-9b-instruct",
+      "display_name": "nim-eurollm-9b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846fcffa7c7ff26cb5ff",
+      "nim_model_name": "utter-project/eurollm-9b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-taiwan-70b-instruct",
+      "display_name": "nim-llama-3-taiwan-70b-instruct",
+      "version": "0.3.62",
+      "id": "69e0846f979758b5403f61fd",
+      "nim_model_name": "yentinglin/llama-3-taiwan-70b-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-glm4-7",
+      "display_name": "nim-glm4-7",
+      "version": "0.3.62",
+      "id": "69e0846f2479e9702bb18e1f",
+      "nim_model_name": "z-ai/glm4.7",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-glm5",
+      "display_name": "nim-glm5",
+      "version": "0.3.62",
+      "id": "69e0846f15e52e70e7fb2a4f",
+      "nim_model_name": "z-ai/glm5",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-3-5-vision-instruct",
+      "display_name": "nim-phi-3-5-vision-instruct",
+      "version": "0.3.62",
+      "id": "69e08470342d2369f2725a69",
+      "nim_model_name": "microsoft/phi-3.5-vision-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-phi-4-multimodal-instruct",
+      "display_name": "nim-phi-4-multimodal-instruct",
+      "version": "0.3.62",
+      "id": "69e0847015e52e70e7fb2a53",
+      "nim_model_name": "microsoft/phi-4-multimodal-instruct",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-llama-3-1-nemotron-nano-vl-8b-v1",
+      "display_name": "nim-llama-3-1-nemotron-nano-vl-8b-v1",
+      "version": "0.3.62",
+      "id": "69e08470979758b5403f6203",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+      "model_type": "llm"
+    },
+    {
+      "name": "nim-nemotron-nano-12b-v2-vl",
+      "display_name": "nim-nemotron-nano-12b-v2-vl",
+      "version": "0.3.62",
+      "id": "69e08470cffa7c7ff26cb609",
+      "nim_model_name": "nvidia/nemotron-nano-12b-v2-vl",
+      "model_type": "llm"
+    },
+    {
+      "name": "parakeet-ctc-0-6b-asr",
+      "display_name": "parakeet-ctc-0-6b-asr",
+      "version": "0.3.62",
+      "id": "69e08475cffa7c7ff26cb627",
+      "nim_model_name": "unknown",
+      "model_type": "llm"
+    }
+  ],
+  "downloadable_deprecated": [
+    {
+      "name": "nim-nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable",
+      "display_name": "nim-nvidia-llama-3.2-nemoretriever-300m-embed-v2-downloadable",
+      "version": "0.3.60",
+      "id": "69b90c863fba636ee9b32ecc",
+      "nim_model_name": "nvidia/llama-3.2-nemoretriever-300m-embed-v2"
+    },
+    {
+      "name": "nim-nvidia-llama-3.2-nv-embedqa-1b-v2-downloadable",
+      "display_name": "nim-nvidia-llama-3.2-nv-embedqa-1b-v2-downloadable",
+      "version": "0.3.62",
+      "id": "69e084702479e9702bb18e26",
+      "nim_model_name": "nvidia/llama-3.2-nv-embedqa-1b-v2"
+    },
+    {
+      "name": "nim-nvidia-nv-embedqa-e5-v5-downloadable",
+      "display_name": "nim-nvidia-nv-embedqa-e5-v5-downloadable",
+      "version": "0.3.62",
+      "id": "69e084702479e9702bb18e2e",
+      "nim_model_name": "nvidia/nv-embedqa-e5-v5"
+    },
+    {
+      "name": "nim-google-gemma-3-1b-it-downloadable",
+      "display_name": "nim-google-gemma-3-1b-it-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847115e52e70e7fb2a5b",
+      "nim_model_name": "google/gemma-3-1b-it"
+    },
+    {
+      "name": "nim-meta-llama-3.1-70b-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.1-70b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e08471342d2369f2725a71",
+      "nim_model_name": "meta/llama-3.1-70b-instruct"
+    },
+    {
+      "name": "nim-meta-llama-3.1-8b-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.1-8b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847115e52e70e7fb2a62",
+      "nim_model_name": "meta/llama-3.1-8b-instruct"
+    },
+    {
+      "name": "nim-meta-llama-3.2-1b-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.2-1b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e08471342d2369f2725a78",
+      "nim_model_name": "meta/llama-3.2-1b-instruct"
+    },
+    {
+      "name": "nim-meta-llama-3.2-3b-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.2-3b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e08471979758b5403f620b",
+      "nim_model_name": "meta/llama-3.2-3b-instruct"
+    },
+    {
+      "name": "nim-meta-llama-3.3-70b-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.3-70b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e084728c2bdb5c89e04b49",
+      "nim_model_name": "meta/llama-3.3-70b-instruct"
+    },
+    {
+      "name": "nim-meta-llama-4-scout-17b-16e-instruct-downloadable",
+      "display_name": "nim-meta-llama-4-scout-17b-16e-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e084722479e9702bb18e35",
+      "nim_model_name": "meta/llama-4-scout-17b-16e-instruct"
+    },
+    {
+      "name": "nim-microsoft-phi-4-mini-instruct-downloadable",
+      "display_name": "nim-microsoft-phi-4-mini-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e084728c2bdb5c89e04b50",
+      "nim_model_name": "microsoft/phi-4-mini-instruct"
+    },
+    {
+      "name": "nim-nvidia-llama-3.1-nemotron-nano-vl-8b-v1-downloadable",
+      "display_name": "nim-nvidia-llama-3.1-nemotron-nano-vl-8b-v1-downloadable",
+      "version": "0.3.62",
+      "id": "69e08473cffa7c7ff26cb612",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1"
+    },
+    {
+      "name": "nim-nvidia-llama-3.1-nemotron-ultra-253b-v1-downloadable",
+      "display_name": "nim-nvidia-llama-3.1-nemotron-ultra-253b-v1-downloadable",
+      "version": "0.3.62",
+      "id": "69e08473342d2369f2725a8e",
+      "nim_model_name": "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+    },
+    {
+      "name": "nim-nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable",
+      "display_name": "nim-nvidia-llama-3.3-nemotron-super-49b-v1.5-downloadable",
+      "version": "0.3.62",
+      "id": "69e084738c2bdb5c89e04b58",
+      "nim_model_name": "nvidia/llama-3.3-nemotron-super-49b-v1.5"
+    },
+    {
+      "name": "nim-nvidia-nemotron-nano-12b-v2-vl-downloadable",
+      "display_name": "nim-nvidia-nemotron-nano-12b-v2-vl-downloadable",
+      "version": "0.3.62",
+      "id": "69e08473cffa7c7ff26cb619",
+      "nim_model_name": "nvidia/nemotron-nano-12b-v2-vl"
+    },
+    {
+      "name": "nim-nvidia-nvidia-nemotron-nano-9b-v2-downloadable",
+      "display_name": "nim-nvidia-nvidia-nemotron-nano-9b-v2-downloadable",
+      "version": "0.3.62",
+      "id": "69e08473979758b5403f6214",
+      "nim_model_name": "nvidia/nvidia-nemotron-nano-9b-v2"
+    },
+    {
+      "name": "nim-openai-gpt-oss-20b-downloadable",
+      "display_name": "nim-openai-gpt-oss-20b-downloadable",
+      "version": "0.3.62",
+      "id": "69e08474cffa7c7ff26cb620",
+      "nim_model_name": "openai/gpt-oss-20b"
+    },
+    {
+      "name": "nim-qwen-qwen2.5-coder-32b-instruct-downloadable",
+      "display_name": "nim-qwen-qwen2.5-coder-32b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847415e52e70e7fb2a69",
+      "nim_model_name": "qwen/qwen2.5-coder-32b-instruct"
+    },
+    {
+      "name": "nim-qwen-qwen3-next-80b-a3b-instruct-downloadable",
+      "display_name": "nim-qwen-qwen3-next-80b-a3b-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847415e52e70e7fb2a70",
+      "nim_model_name": "qwen/qwen3-next-80b-a3b-instruct"
+    },
+    {
+      "name": "nim-qwen-qwen3-next-80b-a3b-thinking-downloadable",
+      "display_name": "nim-qwen-qwen3-next-80b-a3b-thinking-downloadable",
+      "version": "0.3.62",
+      "id": "69e084748c2bdb5c89e04b5f",
+      "nim_model_name": "qwen/qwen3-next-80b-a3b-thinking"
+    },
+    {
+      "name": "nim-sarvamai-sarvam-m-downloadable",
+      "display_name": "nim-sarvamai-sarvam-m-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847415e52e70e7fb2a77",
+      "nim_model_name": "sarvamai/sarvam-m"
+    },
+    {
+      "name": "nim-baidu-paddleocr-downloadable",
+      "display_name": "nim-baidu-paddleocr-downloadable",
+      "version": "0.3.62",
+      "id": "69e084742479e9702bb18e3e",
+      "nim_model_name": "baidu/paddleocr"
+    },
+    {
+      "name": "nim-meta-llama-3.2-11b-vision-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.2-11b-vision-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e084752479e9702bb18e45",
+      "nim_model_name": "meta/llama-3.2-11b-vision-instruct"
+    },
+    {
+      "name": "nim-meta-llama-3.2-90b-vision-instruct-downloadable",
+      "display_name": "nim-meta-llama-3.2-90b-vision-instruct-downloadable",
+      "version": "0.3.62",
+      "id": "69e0847515e52e70e7fb2a7f",
+      "nim_model_name": "meta/llama-3.2-90b-vision-instruct"
+    }
+  ],
+  "pr_url": "https://github.com/dataloop-ai-apps/nim-api-adapter/pull/114",
+  "successful": [
+    {
+      "model_id": "google/diffusiongemma-26b-a4b-it",
+      "dpk_name": "nim-diffusiongemma-26b-a4b-it",
+      "kind": null
+    },
+    {
+      "model_id": "meta/muse-glimmer-30b",
+      "dpk_name": "nim-muse-glimmer-30b",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/nemotron-3.5-content-safety",
+      "dpk_name": "nim-nemotron-3-5-content-safety",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/ising-calibration-1.5-31b",
+      "dpk_name": "nim-ising-calibration-1-5-31b",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "dpk_name": "nim-nemotron-3-nano-omni-30b-a3b-reasoning",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/riva-translate-4b-instruct-v2",
+      "dpk_name": "nim-riva-translate-4b-instruct-v2",
+      "kind": null
+    },
+    {
+      "model_id": "minimaxai/minimax-m3",
+      "dpk_name": "nim-minimax-m3",
+      "kind": null
+    },
+    {
+      "model_id": "poolside/laguna-xs-2.1",
+      "dpk_name": "nim-laguna-xs-2-1",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "dpk_name": "nim-nemotron-3-5-lightning-30b-a3b",
+      "kind": null
+    },
+    {
+      "model_id": "deepseek-ai/deepseek-v4-pro-0813",
+      "dpk_name": "nim-deepseek-v4-pro-0813",
+      "kind": null
+    },
+    {
+      "model_id": "stepfun-ai/step-3.7-flash",
+      "dpk_name": "nim-step-3-7-flash",
+      "kind": null
+    },
+    {
+      "model_id": "moonshotai/kimi-k3",
+      "dpk_name": "nim-kimi-k3",
+      "kind": null
+    },
+    {
+      "model_id": "nvidia/nemotron-3-ultra-550b-a55b",
+      "dpk_name": "nim-nemotron-3-ultra-550b-a55b",
+      "kind": null
+    },
+    {
+      "model_id": "deepseek-ai/deepseek-v4-flash-0731",
+      "dpk_name": "nim-deepseek-v4-flash-0731",
+      "kind": null
+    }
+  ],
+  "failed": [
+    {
+      "model_id": "bigcode/starcoder2-15b",
+      "error": "API call failed: 404 page not found"
+    },
+    {
+      "model_id": "deepseek-ai/deepseek-coder-6.7b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'e503b15c-62b0-4d69-b532-a88f0bfa2656': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "01-ai/yi-large",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '23bd454d-b225-49a3-8118-582a62fc51b8': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "aisingapore/sea-lion-7b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '02f84bf4-c1a1-489b-a9de-ac3e8dcdec14': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "databricks/dbrx-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '3d6c2ff8-8bfc-4d10-8fd0-b7337288e869': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "adept/fuyu-8b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'e598bfc1-b058-41af-869d-556d3c7e1b48': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "google/codegemma-1.1-7b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'e2d298c5-204e-4213-b921-9f492cc9011b': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "google/codegemma-7b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '7dfc10a8-3cc4-448e-97c1-2213308dc222': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "ai21labs/jamba-1.5-large-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '6497fc2b-7ff8-4019-8946-123dccbfc863': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "google/deplot",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '784a8ca4-ea7d-4c93-bb46-ec027c3fae47': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "google/gemma-2b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '04174188-f742-4069-9e72-d77c2b77d3cb': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "ibm/granite-3.0-3b-a800m-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '67324577-3f91-4aa6-b750-97468262530d': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "ibm/granite-3.0-8b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '5a24a4f0-2d59-46b3-ac65-42307f2633d1': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "google/recurrentgemma-2b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '2f495340-a99f-4b4b-89bd-1beb003dd896': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "ibm/granite-8b-code-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'af7b6f03-f615-4c5f-86c6-388bd35cede0': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "ibm/granite-34b-code-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '4df48b4f-e3c5-4ade-82c7-c06b65e25d18': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "meta/codellama-70b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'f6b06895-d073-4714-8bb2-26c09e9f6597': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "microsoft/kosmos-2",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '6018fed7-f227-48dc-99bc-3fd4264d5037': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "microsoft/phi-3-vision-128k-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '20f2537e-8593-4eb9-ad40-60eee3bbaa55': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "mistralai/codestral-22b-instruct-v0.1",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '9a10b012-e6df-46fd-83b2-700dcbc75814': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "mistralai/mistral-large",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '767b5b9a-3f9d-4c1d-86e8-fa861988cee7': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "mistralai/mixtral-8x22b-v0.1",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '39655fc1-9ebc-4b24-963e-6915ea6680de': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "moonshotai/kimi-k2.6",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '23d4f03a-b8a6-4adb-a183-7daa083a09cc': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "mistralai/mistral-large-2-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '7fadd4de-e22a-48e4-90e9-f02ef14a74b9': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nv-mistralai/mistral-nemo-12b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'f8c05193-d2e2-4f0f-bb4d-7ad70070002b': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/cosmos-reason2-8b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'e199b43b-6c62-4a63-9379-f60e1a953236': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/embed-qa-4",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '09c64e32-2b65-4892-a285-2f585408d118': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/llama-3.1-nemotron-51b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '5beba52c-65a9-4f46-8cd9-656689a1b205': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/llama-3.1-nemotron-70b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '9b96341b-9791-4db9-a00d-4e43aa192a39': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/llama3-chatqa-1.5-70b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '46594287-38b9-481c-a37f-baa02f2d3ba1': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/llama-3.2-nv-embedqa-1b-v1",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'b51e8011-e772-4c9a-8b02-618e99ae4467': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/mistral-nemo-minitron-8b-8k-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '5aa06dd2-0a02-4a5d-be4c-bf88e956965d': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/ai-synthetic-video-detector",
+      "error": "API call failed: Error code: 500 - {'type': 'urn:nvcf-worker-service:problem-details:internal-server-error', 'title': 'Internal Server Error', 'status': 500, 'detail': 'Internal error while making inference request'}"
+    },
+    {
+      "model_id": "nvidia/nemotron-4-340b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'b0fcd392-e905-4ab4-8eb9-aeae95c30b37': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/nemotron-4-340b-reward",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'c53ee0e9-bad9-4e09-b365-52c9d6b71254': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/nemotron-parse",
+      "error": "API call failed: Error code: 400 - {'object': 'error', 'message': 'Content cannot be a plain string. The model does not support text input. Content cannot be a plain string. The model does not support text input.', 'type': 'BadRequestError', 'param': None, 'code': 400}"
+    },
+    {
+      "model_id": "nvidia/neva-22b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'bc205f8e-1740-40df-8d32-c4321763498a': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/nemotron-nano-3-30b-a3b",
+      "error": "API call failed: Error code: 404 - {'error': {'message': 'Model not found', 'type': 'Not Found', 'code': 404}}"
+    },
+    {
+      "model_id": "nvidia/nvclip",
+      "error": "API call failed: 404 page not found"
+    },
+    {
+      "model_id": "nvidia/nv-embedqa-mistral-7b-v2",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '6caf65cf-1c3a-4823-89a5-21b821640d99': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/vila",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '1c8df143-2303-419b-8b28-b4dd82cfe113': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "snowflake/arctic-embed-l",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '1528a0ad-205a-46ac-a783-94e2372586a9': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "writer/palmyra-creative-122b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '00bdd0a7-e38f-4423-9007-c4d8730a3f78': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "writer/palmyra-fin-70b-32k",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '316490c6-f1ed-41f9-9da8-3fa9e885653b': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "writer/palmyra-med-70b",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'aab71274-5281-4941-b0b8-20f339d1fc7e': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "writer/palmyra-med-70b-32k",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function 'd6faa974-3591-49a4-963d-97221d074b2e': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "zyphra/zamba2-7b-instruct",
+      "error": "API call failed: Error code: 404 - {'status': 404, 'title': 'Not Found', 'detail': \"Function '8378ffb2-51b0-4140-9684-dda1889373e6': Not found for account 'N-61Q4QtGVto9pNF9zDnZFudG0cZkQmJ43bw_yT-Tic'\"}"
+    },
+    {
+      "model_id": "nvidia/nemotron-3-embed-1b",
+      "error": "API call failed: Error code: 504"
+    },
+    {
+      "model_id": "nvidia/cosmos-reason2-8b",
+      "error": "Cannot resolve relative_path for nvidia/cosmos-reason2-8b - skipping"
+    },
+    {
+      "model_id": "nvidia/llama-nemotron-embed-vl-1b-v2",
+      "error": "Cannot resolve relative_path for nvidia/llama-nemotron-embed-vl-1b-v2 - skipping"
+    },
+    {
+      "model_id": "nvidia/nemotron-parse",
+      "error": "Cannot resolve relative_path for nvidia/nemotron-parse - skipping"
+    }
+  ]
+}
