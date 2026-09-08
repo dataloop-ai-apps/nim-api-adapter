@@ -15,7 +15,7 @@ class ModelAdapter(NIMBaseAdapter):
 
     Supports Llama Vision, Phi Vision, and other models that use the
     standard OpenAI chat completions format with image_url in messages.
-    Guided JSON output (guided_json in configuration) is sent via nvext like the LLM adapter.
+    Guided JSON output (guided_json in configuration) is sent via extra_body like the LLM adapter.
     """
 
     def prepare_item_func(self, item: dl.Item):
@@ -40,8 +40,8 @@ class ModelAdapter(NIMBaseAdapter):
         
         extra_body = {}
         if guided_json and self.use_nvidia_extra_body:
-            extra_body["nvext"] = {"guided_json": guided_json}
-            logger.info(f"Using guided_json in nvext: {guided_json}")
+            extra_body["guided_json"] = guided_json
+            logger.info(f"Using guided_json: {guided_json}")
 
         # Build kwargs - omit seed as some models reject it
         kwargs = {
