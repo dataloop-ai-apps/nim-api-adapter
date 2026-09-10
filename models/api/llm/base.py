@@ -79,11 +79,10 @@ class ModelAdapter(NIMBaseAdapter):
                 logger.error(f"Error parsing guided_json: {e}")
                 guided_json = None
                     
-        # NVIDIA API requires guided_json inside "nvext", not at root
         extra_body = {}
         if guided_json and self.use_nvidia_extra_body:
-            extra_body["nvext"] = {"guided_json": guided_json}
-            logger.info(f"Using guided_json in nvext: {guided_json}")
+            extra_body["guided_json"] = guided_json
+            logger.info(f"Using guided_json: {guided_json}")
 
         # Build kwargs - omit seed as some models reject it
         kwargs = {
