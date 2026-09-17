@@ -43,6 +43,17 @@ class ModelAdapter(NIMBaseAdapter):
             extra_body["guided_json"] = guided_json
             logger.info(f"Using guided_json: {guided_json}")
 
+        chat_template_kwargs = self.configuration.get("chat_template_kwargs", None)
+        if chat_template_kwargs is not None:
+            try:
+                chat_template_kwargs = json.loads(chat_template_kwargs) if isinstance(chat_template_kwargs, str) else chat_template_kwargs
+            except Exception as e:
+                logger.error(f"Error parsing chat_template_kwargs: {e}")
+                chat_template_kwargs = None
+        if chat_template_kwargs and self.use_nvidia_extra_body:
+            extra_body["chat_template_kwargs"] = chat_template_kwargs
+            logger.info(f"Using chat_template_kwargs: {chat_template_kwargs}")
+
         # Build kwargs - omit seed as some models reject it
         kwargs = {
             "model": self.nim_model_name,
